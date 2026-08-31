@@ -1,0 +1,53 @@
+# =============================================================================
+# radio-gestao — Configurações comuns a todos os perfis
+# Sobrescritas pelos arquivos application-{perfil}.yaml
+# =============================================================================
+spring:
+  profiles:
+    active: ${PROFILE:dev}
+  application:
+    name: radiogestao
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 25
+        order_inserts: true
+        order_updates: true
+  jackson:
+    default-property-inclusion: non_null
+    time-zone: America/Sao_Paulo
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/plain
+    min-response-size: 2048
+
+# ---- JWT ----
+jwt:
+  secret: ${JWT_SECRET:minha-chave-secreta-temporaria-MUDAR-EM-PRODUCAO}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# ---- Actuator / Observabilidade ----
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# ---- Logging base ----
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

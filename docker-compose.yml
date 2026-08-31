@@ -1,0 +1,46 @@
+services:
+
+  # ==========================================================================
+  # PostgreSQL — banco de dados principal
+  # ==========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: radiogestao-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: radiogestao_dev
+      POSTGRES_USER: radiogestao
+      POSTGRES_PASSWORD: radiogestao
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U radiogestao -d radiogestao_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ==========================================================================
+  # Adminer — interface web para o banco de dados
+  # Acesso: http://localhost:9090
+  # Sistema: PostgreSQL | Servidor: postgres | Usuário: radiogestao | Senha: radiogestao | Banco: radiogestao_dev
+  # ==========================================================================
+  adminer:
+    image: adminer:latest
+    container_name: radiogestao-adminer
+    restart: unless-stopped
+    ports:
+      - "9090:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: pepa-linha
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    name: radiogestao_postgres_data

@@ -1,0 +1,36 @@
+# =============================================================================
+# radio-gestao — .gitignore
+# =============================================================================
+
+# ---- Build ----
+target/
+*.jar
+*.war
+*.class
+
+# ---- IDE / Ferramentas ----
+.idea/
+*.iml
+.vscode/
+.claude/
+*.swp
+*.swo
+.DS_Store
+
+# ---- Spring / App ----
+application-local.yml
+application-local.properties
+
+# ---- Variáveis de ambiente — NUNCA commitar ----
+.env
+# .env.example é commitado como referência
+
+# ---- Logs ----
+*.log
+logs/
+
+# ---- Docker volumes locais ----
+docker/data/
+
+# ---- Maven wrapper ----
+!.mvn/wrapper/maven-wrapper.jar
