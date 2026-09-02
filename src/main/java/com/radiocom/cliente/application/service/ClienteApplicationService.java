@@ -1,0 +1,227 @@
+package com.radiocom.cliente.application.service;
+
+import com.radiocom.cliente.application.dto.ClienteCreateDTO;
+import com.radiocom.cliente.application.dto.ClienteDTO;
+import com.radiocom.cliente.application.dto.ClienteUpdateDTO;
+import com.radiocom.cliente.application.dto.ContatoDTO;
+import com.radiocom.cliente.application.dto.ContatoUpdateDTO;
+import com.radiocom.cliente.application.dto.PostoDTO;
+import com.radiocom.cliente.application.dto.PostoUpdateDTO;
+import com.radiocom.cliente.application.mapper.ClienteMapper;
+import com.radiocom.cliente.domain.model.Cliente;
+import com.radiocom.cliente.domain.model.Contato;
+import com.radiocom.cliente.domain.model.Posto;
+import com.radiocom.cliente.domain.model.enums.StatusCliente;
+import com.radiocom.cliente.domain.model.enums.TipoPessoa;
+import com.radiocom.cliente.domain.repository.ClienteRepository;
+import com.radiocom.cliente.domain.service.ClienteDomainService;
+import com.radiocom.shared.exception.DomainException;
+import com.radiocom.shared.validation.CpfCnpjValidator;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class ClienteApplicationService {
+
+    private final ClienteRepository clienteRepository;
+    private final ClienteDomainService domainService;
+    private final ClienteMapper mapper;
+
+    @Transactional
+    public ClienteDTO criar(ClienteCreateDTO dto) {
+        log.info("Criando cliente: {}", dto.getDocumento());
+
+        String documentoLimpo = CpfCnpjValidator.clean(dto.getDocumento());
+
+        if (!CpfCnpjValidator.isValid(documentoLimpo)) {
+            throw new DomainException("Documento inválido: " + dto.getDocumento());
+        }
+
+        TipoPessoa tipo = dto.getTipo() != null ?
+                dto.getTipo() :
+                CpfCnpjValidator.getTipo(documentoLimpo);
+
+        domainService.validarDocumentoUnico(documentoLimpo, null);
+
+        Cliente cliente = mapper.toEntity(dto);
+        cliente.setDocumento(documentoLimpo);
+        cliente.setTipo(tipo);
+
+        Cliente salvo = clienteRepository.save(cliente);
+        log.info("Cliente criado: {} - {}", salvo.getId(),
+                CpfCnpjValidator.format(salvo.getDocumento()));
+
+        return mapper.toDTO(salvo);
+    }
+
+    @Transactional(readOnly = true)
+    public ClienteDTO buscarPorId(UUID id) {
+        return mapper.toDTO(domainService.buscarPorId(id));
+    }
+
+    @Transactional(readOnly = true)
+    public ClienteDTO buscarPorIdCompleto(UUID id) {
+        return mapper.toDTO(domainService.buscarPorIdComRelacionamentos(id));
+    }
+
+    @Transactional(readOnly = true)
+    public ClienteDTO buscarPorDocumento(String documento) {
+        return mapper.toDTO(domainService.buscarPorDocumento(documento));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ClienteDTO> listarTodos(Pageable pageable) {
+        return clienteRepository.findAll(pageable).map(mapper::toDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ClienteDTO> listarPorStatus(StatusCliente status) {
+        return clienteRepository.findByStatus(status, Pageable.unpaged())
+                .getContent()
+                .stream()
+                .map(mapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ClienteDTO> buscarPorNome(String nome, Pageable pageable) {
+        return clienteRepository.findByNomeRazaoSocialContainingIgnoreCase(nome, pageable)
+                .map(mapper::toDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ClienteDTO> buscarPorTipo(TipoPessoa tipo, Pageable pageable) {
+        return clienteRepository.findByTipo(tipo, pageable)
+                .map(mapper::toDTO);
+    }
+
+    @Transactional
+    public ClienteDTO atualizar(UUID id, ClienteUpdateDTO dto) {
+        log.info("Atualizando cliente: {}", id);
+
+        Cliente cliente = domainService.buscarPorId(id);
+
+        // tipo e documento são imutáveis — use os endpoints dedicados para
+        // transições de status (/ativar, /inativar, /bloquear)
+        mapper.updateEntityFromDTO(dto, cliente);
+
+        Cliente atualizado = clienteRepository.save(cliente);
+        log.info("Cliente atualizado: {} - {}", atualizado.getId(),
+                CpfCnpjValidator.format(atualizado.getDocumento()));
+
+        return mapper.toDTO(atualizado);
+    }
+
+    @Transactional
+    public ClienteDTO ativar(UUID id) {
+        return mapper.toDTO(domainService.ativarCliente(id));
+    }
+
+    @Transactional
+    public ClienteDTO bloquear(UUID id) {
+        return mapper.toDTO(domainService.bloquearCliente(id));
+    }
+
+    @Transactional
+    public ClienteDTO inativar(UUID id) {
+        return mapper.toDTO(domainService.inativarCliente(id));
+    }
+
+    // ========== GESTÃO DE POSTOS ==========
+
+    @Transactional(readOnly = true)
+    public List<PostoDTO> listarPostos(UUID clienteId) {
+        Cliente cliente = domainService.buscarPorIdComRelacionamentos(clienteId);
+        return mapper.toPostoDTOList(cliente.getPostos());
+    }
+
+    @Transactional
+    public PostoDTO adicionarPosto(UUID clienteId, PostoDTO dto) {
+        Cliente cliente = domainService.buscarPorId(clienteId);
+        Posto novoPosto = mapper.toEntity(dto);
+        cliente.adicionarPosto(novoPosto);
+        clienteRepository.save(cliente);
+        return mapper.toDTO(novoPosto); // JPA preenche o id no novoPosto via cascade
+    }
+
+    @Transactional
+    public ClienteDTO removerPosto(UUID clienteId, UUID postoId) {
+        Cliente cliente = domainService.buscarPorId(clienteId);
+        cliente.removerPostoPorId(postoId);
+        return mapper.toDTO(clienteRepository.save(cliente));
+    }
+
+    @Transactional
+    public ClienteDTO atualizarPosto(UUID clienteId, UUID postoId, PostoUpdateDTO dto) {
+        Cliente cliente = domainService.buscarPorId(clienteId);
+
+        Posto posto = cliente.getPostos().stream()
+                .filter(p -> p.getId().equals(postoId))
+                .findFirst()
+                .orElseThrow(() -> new DomainException("Posto não encontrado: " + postoId));
+
+        if (dto.getNome() != null) posto.setNome(dto.getNome());
+        if (dto.getResponsavel() != null) posto.setResponsavel(dto.getResponsavel());
+        if (dto.getEndereco() != null) posto.setEndereco(mapper.toEntity(dto.getEndereco()));
+        if (Boolean.TRUE.equals(dto.getPadrao())) {
+            // Garante que só um posto seja padrão por cliente
+            cliente.getPostos().forEach(p -> p.setPadrao(false));
+            posto.setPadrao(true);
+        }
+
+        return mapper.toDTO(clienteRepository.save(cliente));
+    }
+
+    // ========== GESTÃO DE CONTATOS ==========
+
+    @Transactional
+    public ClienteDTO adicionarContato(UUID clienteId, ContatoDTO dto) {
+        Cliente cliente = domainService.buscarPorId(clienteId);
+        cliente.adicionarContato(mapper.toEntity(dto));
+        return mapper.toDTO(clienteRepository.save(cliente));
+    }
+
+    @Transactional
+    public ClienteDTO removerContato(UUID clienteId, UUID contatoId) {
+        Cliente cliente = domainService.buscarPorId(clienteId);
+        cliente.removerContatoPorId(contatoId);
+        return mapper.toDTO(clienteRepository.save(cliente));
+    }
+
+    @Transactional
+    public ClienteDTO atualizarContato(UUID clienteId, UUID contatoId, ContatoUpdateDTO dto) {
+        Cliente cliente = domainService.buscarPorId(clienteId);
+
+        Contato contato = cliente.getContatos().stream()
+                .filter(c -> c.getId().equals(contatoId))
+                .findFirst()
+                .orElseThrow(() -> new DomainException("Contato não encontrado: " + contatoId));
+
+        if (dto.getNome() != null) contato.setNome(dto.getNome());
+        if (dto.getTipo() != null) contato.setTipo(dto.getTipo());
+        if (dto.getTelefone() != null) contato.setTelefone(dto.getTelefone());
+        if (dto.getEmail() != null) contato.setEmail(dto.getEmail());
+        if (dto.getCargo() != null) contato.setCargo(dto.getCargo());
+
+        return mapper.toDTO(clienteRepository.save(cliente));
+    }
+
+    @Transactional
+    public ClienteDTO atualizarContatoPrincipal(UUID clienteId, UUID contatoId) {
+        Cliente cliente = domainService.buscarPorId(clienteId);
+        cliente.atualizarContatoPrincipal(contatoId);
+        return mapper.toDTO(clienteRepository.save(cliente));
+    }
+}
