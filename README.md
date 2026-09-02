@@ -37,7 +37,7 @@ Enviado para análise (AGUARDANDO_APROVAÇÃO)
 
 | Módulo | Status | Descrição |
 |---|---|---|
-| `auth` | 🚧 | Autenticação JWT e papéis de usuário |
+| `auth` | ✅ | Autenticação JWT e papéis de usuário |
 | `cliente` | ⬜ | Cadastro de clientes e postos |
 | `estoque` | ⬜ | Catálogo de equipamentos/acessórios usados nos orçamentos |
 | `orcamento` | ⬜ | Orçamento de manutenção/conserto |
