@@ -52,6 +52,7 @@ public class ClienteDomainService {
     @Transactional
     public Cliente inativarCliente(UUID id) {
         Cliente cliente = buscarPorId(id);
+        validarClienteAtivo(cliente);
         cliente.inativar();
         return clienteRepository.save(cliente);
     }

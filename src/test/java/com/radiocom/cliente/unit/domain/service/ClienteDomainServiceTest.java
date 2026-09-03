@@ -98,6 +98,17 @@ class ClienteDomainServiceTest {
     }
 
     @Test
+    @DisplayName("inativarCliente deve lançar exceção quando cliente já não está ativo")
+    void inativarCliente_deveLancarExcecaoQuandoJaNaoAtivo() {
+        cliente.bloquear();
+        when(clienteRepository.findById(clienteId)).thenReturn(Optional.of(cliente));
+
+        assertThatThrownBy(() -> service.inativarCliente(clienteId))
+                .isInstanceOf(DomainException.class)
+                .hasMessageContaining("não está ativo");
+    }
+
+    @Test
     @DisplayName("bloquearCliente deve mudar status e salvar")
     void bloquearCliente_deveMudarStatusESalvar() {
         when(clienteRepository.findById(clienteId)).thenReturn(Optional.of(cliente));
