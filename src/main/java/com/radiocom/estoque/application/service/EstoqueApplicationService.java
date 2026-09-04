@@ -70,6 +70,11 @@ public class EstoqueApplicationService {
     }
 
     @Transactional(readOnly = true)
+    public EquipamentoDTO buscarEquipamentoPorPatrimonio(String patrimonio) {
+        return mapper.toDTO(equipamentoService.buscarPorPatrimonio(patrimonio));
+    }
+
+    @Transactional(readOnly = true)
     public List<EquipamentoDTO> listarEquipamentosPorEstado(EstadoEquipamento estado) {
         return equipamentoService.listarPorEstado(estado).stream().map(mapper::toDTO).toList();
     }
@@ -170,6 +175,34 @@ public class EstoqueApplicationService {
         Peca peca = estoqueService.buscarPecaPorId(id);
         mapper.updateEntityFromDTO(dto, peca);
         return mapper.toDTO(pecaRepository.save(peca));
+    }
+
+    // ========== MOVIMENTAÇÃO (ACESSORIO / PECA) ==========
+
+    @Transactional(readOnly = true)
+    public Integer consultarSaldo(UUID itemId, TipoItem tipoItem) {
+        return estoqueService.consultarSaldo(itemId, tipoItem);
+    }
+
+    @Transactional
+    public Integer darEntrada(UUID itemId, TipoItem tipoItem, Integer quantidade) {
+        Integer saldo = estoqueService.darEntrada(itemId, tipoItem, quantidade);
+        log.info("Entrada de {} unidade(s) em {} {}. Saldo: {}", quantidade, tipoItem, itemId, saldo);
+        return saldo;
+    }
+
+    @Transactional
+    public Integer darSaida(UUID itemId, TipoItem tipoItem, Integer quantidade) {
+        Integer saldo = estoqueService.darSaida(itemId, tipoItem, quantidade);
+        log.info("Saída de {} unidade(s) em {} {}. Saldo: {}", quantidade, tipoItem, itemId, saldo);
+        return saldo;
+    }
+
+    @Transactional
+    public Integer ajustarQuantidade(UUID itemId, TipoItem tipoItem, Integer novaQuantidade) {
+        Integer saldo = estoqueService.ajustar(itemId, tipoItem, novaQuantidade);
+        log.info("Ajuste de estoque em {} {}. Novo saldo: {}", tipoItem, itemId, saldo);
+        return saldo;
     }
 
     // ========== AUXILIAR ==========

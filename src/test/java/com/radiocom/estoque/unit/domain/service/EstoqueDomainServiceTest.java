@@ -68,8 +68,9 @@ class EstoqueDomainServiceTest {
     void darEntrada_deveAumentarQuantidadeESalvar() {
         when(pecaRepository.findById(pecaId)).thenReturn(Optional.of(peca));
 
-        service.darEntrada(pecaId, TipoItem.PECA, 5);
+        Integer saldo = service.darEntrada(pecaId, TipoItem.PECA, 5);
 
+        assertThat(saldo).isEqualTo(15);
         assertThat(peca.getQuantidadeDisponivel()).isEqualTo(15);
     }
 
@@ -78,8 +79,9 @@ class EstoqueDomainServiceTest {
     void darSaida_deveDiminuirQuantidadeESalvar() {
         when(pecaRepository.findById(pecaId)).thenReturn(Optional.of(peca));
 
-        service.darSaida(pecaId, TipoItem.PECA, 4);
+        Integer saldo = service.darSaida(pecaId, TipoItem.PECA, 4);
 
+        assertThat(saldo).isEqualTo(6);
         assertThat(peca.getQuantidadeDisponivel()).isEqualTo(6);
     }
 
@@ -132,8 +134,9 @@ class EstoqueDomainServiceTest {
         UUID acessorioId = UUID.randomUUID();
         when(acessorioRepository.findById(acessorioId)).thenReturn(Optional.of(acessorio));
 
-        service.ajustar(acessorioId, TipoItem.ACESSORIO, 3);
+        Integer saldo = service.ajustar(acessorioId, TipoItem.ACESSORIO, 3);
 
+        assertThat(saldo).isEqualTo(3);
         assertThat(acessorio.getQuantidadeDisponivel()).isEqualTo(3);
     }
 }

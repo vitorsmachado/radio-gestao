@@ -50,18 +50,7 @@ public class EquipamentoDomainService {
         return equipamentoRepository.findByProprietario(proprietario);
     }
 
-    @Transactional(readOnly = true)
-    public List<Equipamento> listarPorProprietarioEEstado(ProprietarioEquipamento proprietario, EstadoEquipamento estado) {
-        return equipamentoRepository.findByProprietarioAndEstado(proprietario, estado);
-    }
-
     // ===== VALIDAÇÃO =====
-
-    public void validarDuplicidadeCodigo(String codigo) {
-        if (equipamentoRepository.existsByCodigo(codigo)) {
-            throw new DomainException("Código já cadastrado: " + codigo);
-        }
-    }
 
     public void validarDuplicidadeNS(String ns) {
         if (equipamentoRepository.existsByNumeroSerie(ns)) {

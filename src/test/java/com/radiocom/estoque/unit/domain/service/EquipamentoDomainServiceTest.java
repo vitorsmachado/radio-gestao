@@ -120,31 +120,11 @@ class EquipamentoDomainServiceTest {
     }
 
     @Test
-    @DisplayName("listarPorProprietarioEEstado deve delegar para o repository")
-    void listarPorProprietarioEEstado_deveDelegarParaRepository() {
-        when(equipamentoRepository.findByProprietarioAndEstado(ProprietarioEquipamento.NOSSO, EstadoEquipamento.DISPONIVEL))
-                .thenReturn(List.of(equipamento));
-
-        assertThat(service.listarPorProprietarioEEstado(ProprietarioEquipamento.NOSSO, EstadoEquipamento.DISPONIVEL))
-                .containsExactly(equipamento);
-    }
-
-    @Test
     @DisplayName("validarDuplicidadePatrimonio deve lançar exceção quando já existe")
     void validarDuplicidadePatrimonio_deveLancarExcecaoQuandoJaExiste() {
         when(equipamentoRepository.existsByPatrimonio("PAT-001")).thenReturn(true);
 
         assertThatThrownBy(() -> service.validarDuplicidadePatrimonio("PAT-001"))
-                .isInstanceOf(DomainException.class)
-                .hasMessageContaining("já cadastrado");
-    }
-
-    @Test
-    @DisplayName("validarDuplicidadeCodigo deve lançar exceção quando já existe")
-    void validarDuplicidadeCodigo_deveLancarExcecaoQuandoJaExiste() {
-        when(equipamentoRepository.existsByCodigo("EQ-001")).thenReturn(true);
-
-        assertThatThrownBy(() -> service.validarDuplicidadeCodigo("EQ-001"))
                 .isInstanceOf(DomainException.class)
                 .hasMessageContaining("já cadastrado");
     }

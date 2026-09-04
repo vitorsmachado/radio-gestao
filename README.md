@@ -39,7 +39,7 @@ Enviado para análise (AGUARDANDO_APROVAÇÃO)
 |---|---|---|
 | `auth` | ✅ | Autenticação JWT e papéis de usuário |
 | `cliente` | ✅ | Cadastro de clientes e postos |
-| `estoque` | ⬜ | Catálogo de equipamentos/acessórios usados nos orçamentos |
+| `estoque` | ✅ | Catálogo de equipamentos/acessórios/peças usados nos orçamentos |
 | `orcamento` | ⬜ | Orçamento de manutenção/conserto |
 | `ordemservico` | ⬜ | Conversão de orçamento aprovado em ordem de serviço |
 

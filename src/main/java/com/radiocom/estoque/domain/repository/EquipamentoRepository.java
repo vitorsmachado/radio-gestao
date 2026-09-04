@@ -21,10 +21,6 @@ public interface EquipamentoRepository extends JpaRepository<Equipamento, UUID> 
 
     List<Equipamento> findByProprietario(ProprietarioEquipamento proprietario);
 
-    List<Equipamento> findByProprietarioAndEstado(ProprietarioEquipamento proprietario, EstadoEquipamento estado);
-
-    boolean existsByCodigo(String codigo);
-
     boolean existsByNumeroSerie(String numeroSerie);
 
     boolean existsByPatrimonio(String patrimonio);

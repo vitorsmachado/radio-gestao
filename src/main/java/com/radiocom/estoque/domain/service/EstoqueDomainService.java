@@ -52,24 +52,27 @@ public class EstoqueDomainService {
     }
 
     @Transactional
-    public void darEntrada(UUID itemId, TipoItem tipoItem, Integer quantidade) {
+    public Integer darEntrada(UUID itemId, TipoItem tipoItem, Integer quantidade) {
         ItemEstoque item = buscarItem(itemId, tipoItem);
         item.entrada(quantidade);
         salvarItem(item, tipoItem);
+        return item.getQuantidadeDisponivel();
     }
 
     @Transactional
-    public void darSaida(UUID itemId, TipoItem tipoItem, Integer quantidade) {
+    public Integer darSaida(UUID itemId, TipoItem tipoItem, Integer quantidade) {
         ItemEstoque item = buscarItem(itemId, tipoItem);
         item.saida(quantidade);
         salvarItem(item, tipoItem);
+        return item.getQuantidadeDisponivel();
     }
 
     @Transactional
-    public void ajustar(UUID itemId, TipoItem tipoItem, Integer novaQuantidade) {
+    public Integer ajustar(UUID itemId, TipoItem tipoItem, Integer novaQuantidade) {
         ItemEstoque item = buscarItem(itemId, tipoItem);
         item.ajustar(novaQuantidade);
         salvarItem(item, tipoItem);
+        return item.getQuantidadeDisponivel();
     }
 
     private ItemEstoque buscarItem(UUID id, TipoItem tipo) {

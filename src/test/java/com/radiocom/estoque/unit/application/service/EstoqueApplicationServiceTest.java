@@ -106,6 +106,18 @@ class EstoqueApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("buscarEquipamentoPorPatrimonio deve delegar para o domain service")
+    void buscarEquipamentoPorPatrimonio_deveDelegar() {
+        Equipamento equipamento = Equipamento.builder()
+                .codigo("EQ-1").descricao("Rádio").tipo(TipoItem.EQUIPAMENTO)
+                .proprietario(ProprietarioEquipamento.NOSSO).faixa(FaixaEquipamento.VHF)
+                .numeroSerie("NS-1").patrimonio("PAT-1").build();
+        when(equipamentoService.buscarPorPatrimonio("PAT-1")).thenReturn(equipamento);
+
+        assertThat(service.buscarEquipamentoPorPatrimonio("PAT-1").getPatrimonio()).isEqualTo("PAT-1");
+    }
+
+    @Test
     @DisplayName("enviarEquipamentoManutencao deve delegar para o domain service")
     void enviarEquipamentoManutencao_deveDelegar() {
         UUID id = UUID.randomUUID();
@@ -178,5 +190,43 @@ class EstoqueApplicationServiceTest {
 
         assertThat(resultado.getCodigo()).isNotBlank();
         assertThat(resultado.getQuantidadeDisponivel()).isEqualTo(20);
+    }
+
+    // ===== Movimentação =====
+
+    @Test
+    @DisplayName("consultarSaldo deve delegar para o domain service")
+    void consultarSaldo_deveDelegar() {
+        UUID id = UUID.randomUUID();
+        when(estoqueService.consultarSaldo(id, TipoItem.PECA)).thenReturn(7);
+
+        assertThat(service.consultarSaldo(id, TipoItem.PECA)).isEqualTo(7);
+    }
+
+    @Test
+    @DisplayName("darEntrada deve delegar para o domain service e retornar o saldo")
+    void darEntrada_deveDelegar() {
+        UUID id = UUID.randomUUID();
+        when(estoqueService.darEntrada(id, TipoItem.PECA, 5)).thenReturn(15);
+
+        assertThat(service.darEntrada(id, TipoItem.PECA, 5)).isEqualTo(15);
+    }
+
+    @Test
+    @DisplayName("darSaida deve delegar para o domain service e retornar o saldo")
+    void darSaida_deveDelegar() {
+        UUID id = UUID.randomUUID();
+        when(estoqueService.darSaida(id, TipoItem.ACESSORIO, 3)).thenReturn(2);
+
+        assertThat(service.darSaida(id, TipoItem.ACESSORIO, 3)).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("ajustarQuantidade deve delegar para o domain service e retornar o saldo")
+    void ajustarQuantidade_deveDelegar() {
+        UUID id = UUID.randomUUID();
+        when(estoqueService.ajustar(id, TipoItem.PECA, 0)).thenReturn(0);
+
+        assertThat(service.ajustarQuantidade(id, TipoItem.PECA, 0)).isEqualTo(0);
     }
 }
