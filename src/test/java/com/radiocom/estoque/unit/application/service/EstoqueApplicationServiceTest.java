@@ -39,6 +39,7 @@ class EstoqueApplicationServiceTest {
     @Mock private CatalogoModeloRepository catalogoModeloRepository;
     @Mock private EquipamentoDomainService equipamentoService;
     @Mock private EstoqueDomainService estoqueService;
+    @Mock private org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     private EstoqueApplicationService service;
 
@@ -46,7 +47,7 @@ class EstoqueApplicationServiceTest {
     void setUp() {
         service = new EstoqueApplicationService(
                 equipamentoRepository, acessorioRepository, pecaRepository, catalogoModeloRepository,
-                equipamentoService, estoqueService, new EstoqueMapper());
+                equipamentoService, estoqueService, new EstoqueMapper(), eventPublisher);
     }
 
     // ===== Equipamento =====
@@ -204,12 +205,27 @@ class EstoqueApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("darEntrada deve delegar para o domain service e retornar o saldo")
-    void darEntrada_deveDelegar() {
+    @DisplayName("darEntrada de PECA deve delegar, retornar o saldo e publicar evento")
+    void darEntrada_devePublicarEventoParaPeca() {
         UUID id = UUID.randomUUID();
         when(estoqueService.darEntrada(id, TipoItem.PECA, 5)).thenReturn(15);
 
         assertThat(service.darEntrada(id, TipoItem.PECA, 5)).isEqualTo(15);
+
+        org.mockito.Mockito.verify(eventPublisher).publishEvent(
+                org.mockito.ArgumentMatchers.any(
+                        com.radiocom.estoque.domain.event.PecaEntradaEstoqueEvent.class));
+    }
+
+    @Test
+    @DisplayName("darEntrada de ACESSORIO deve delegar e retornar o saldo sem publicar evento")
+    void darEntrada_naoDevePublicarEventoParaAcessorio() {
+        UUID id = UUID.randomUUID();
+        when(estoqueService.darEntrada(id, TipoItem.ACESSORIO, 3)).thenReturn(8);
+
+        assertThat(service.darEntrada(id, TipoItem.ACESSORIO, 3)).isEqualTo(8);
+
+        org.mockito.Mockito.verifyNoInteractions(eventPublisher);
     }
 
     @Test

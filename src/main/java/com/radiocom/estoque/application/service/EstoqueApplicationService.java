@@ -2,6 +2,7 @@ package com.radiocom.estoque.application.service;
 
 import com.radiocom.estoque.application.dto.*;
 import com.radiocom.estoque.application.mapper.EstoqueMapper;
+import com.radiocom.estoque.domain.event.PecaEntradaEstoqueEvent;
 import com.radiocom.estoque.domain.model.Acessorio;
 import com.radiocom.estoque.domain.model.CatalogoModelo;
 import com.radiocom.estoque.domain.model.Equipamento;
@@ -18,6 +19,7 @@ import com.radiocom.estoque.domain.service.EstoqueDomainService;
 import com.radiocom.shared.exception.DomainException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +39,7 @@ public class EstoqueApplicationService {
     private final EquipamentoDomainService equipamentoService;
     private final EstoqueDomainService estoqueService;
     private final EstoqueMapper mapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ========== EQUIPAMENTO ==========
 
@@ -188,6 +191,11 @@ public class EstoqueApplicationService {
     public Integer darEntrada(UUID itemId, TipoItem tipoItem, Integer quantidade) {
         Integer saldo = estoqueService.darEntrada(itemId, tipoItem, quantidade);
         log.info("Entrada de {} unidade(s) em {} {}. Saldo: {}", quantidade, tipoItem, itemId, saldo);
+
+        if (tipoItem == TipoItem.PECA) {
+            eventPublisher.publishEvent(new PecaEntradaEstoqueEvent(this, itemId, tipoItem, quantidade));
+        }
+
         return saldo;
     }
 
