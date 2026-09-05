@@ -3,7 +3,6 @@ package com.radiocom.ordemservico.application.service;
 import com.radiocom.ordemservico.application.dto.*;
 import com.radiocom.ordemservico.application.mapper.OrdemServicoMapper;
 import com.radiocom.ordemservico.domain.model.OrdemServico;
-import com.radiocom.ordemservico.domain.repository.OrdemServicoRepository;
 import com.radiocom.ordemservico.domain.service.OrdemServicoDomainService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +17,6 @@ import java.util.UUID;
 @Slf4j
 public class OrdemServicoApplicationService {
 
-    private final OrdemServicoRepository osRepository;
     private final OrdemServicoDomainService osDomainService;
     private final OrdemServicoMapper mapper;
 
@@ -43,7 +41,7 @@ public class OrdemServicoApplicationService {
 
     @Transactional(readOnly = true)
     public List<OrdemServicoDTO> listarPorCliente(UUID clienteId) {
-        return mapper.toDTOList(osRepository.findByClienteId(clienteId));
+        return mapper.toDTOList(osDomainService.listarPorCliente(clienteId));
     }
 
     @Transactional

@@ -74,6 +74,7 @@ public class OrdemServicoMapper {
                 .status(item.getStatus())
                 .motivoNaoAutorizado(item.getMotivoNaoAutorizado())
                 .itensConserto(toConsertoDTOList(item.getItensConserto()))
+                .valorTotalConserto(item.calcularTotalConserto())
                 .build();
     }
 

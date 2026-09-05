@@ -75,6 +75,16 @@ class OrdemServicoDomainServiceTest {
     }
 
     @Test
+    @DisplayName("listarPorCliente deve retornar as OS do cliente")
+    void listarPorCliente_deveRetornarOSDoCliente() {
+        when(osRepository.findByClienteId(clienteId)).thenReturn(List.of(os));
+
+        List<OrdemServico> resultado = service.listarPorCliente(clienteId);
+
+        assertThat(resultado).containsExactly(os);
+    }
+
+    @Test
     @DisplayName("iniciarAndamento deve mudar status e salvar")
     void iniciarAndamento_deveMudarStatusESalvar() {
         when(osRepository.findById(osId)).thenReturn(Optional.of(os));

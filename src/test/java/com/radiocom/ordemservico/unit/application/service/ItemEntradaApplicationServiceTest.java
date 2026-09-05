@@ -88,6 +88,22 @@ class ItemEntradaApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("marcarAguardandoPeca deve delegar para o domain service")
+    void marcarAguardandoPeca_deveDelegar() {
+        item.avaliar("Capacitor queimado", false);
+        item.enviarParaAutorizacao();
+        item.autorizar();
+        item.iniciarFilaManutencao();
+        item.iniciarManutencao();
+        item.marcarAguardandoPeca();
+        when(itemDomainService.marcarAguardandoPeca(itemId)).thenReturn(item);
+
+        ItemEntradaDTO resultado = service.marcarAguardandoPeca(itemId);
+
+        assertThat(resultado.getStatus()).isEqualTo(StatusItemEntrada.AGUARDANDO_PECA);
+    }
+
+    @Test
     @DisplayName("naoAutorizar deve delegar e registrar o motivo")
     void naoAutorizar_deveDelegar() {
         item.avaliar("Placa danificada", false);
@@ -119,5 +135,6 @@ class ItemEntradaApplicationServiceTest {
         ItemEntradaDTO resultado = service.adicionarItemConserto(itemId, dto);
 
         assertThat(resultado.getItensConserto()).hasSize(1);
+        assertThat(resultado.getValorTotalConserto()).isEqualByComparingTo("80.00");
     }
 }

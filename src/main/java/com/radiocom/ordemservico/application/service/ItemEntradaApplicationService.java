@@ -70,6 +70,11 @@ public class ItemEntradaApplicationService {
     }
 
     @Transactional
+    public ItemEntradaDTO marcarAguardandoPeca(UUID id) {
+        return mapper.toDTO(itemDomainService.marcarAguardandoPeca(id));
+    }
+
+    @Transactional
     public ItemEntradaDTO concluirManutencao(UUID id) {
         return mapper.toDTO(itemDomainService.concluirManutencao(id));
     }

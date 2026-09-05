@@ -4,7 +4,6 @@ import com.radiocom.ordemservico.application.dto.*;
 import com.radiocom.ordemservico.application.mapper.OrdemServicoMapper;
 import com.radiocom.ordemservico.application.service.OrdemServicoApplicationService;
 import com.radiocom.ordemservico.domain.model.OrdemServico;
-import com.radiocom.ordemservico.domain.repository.OrdemServicoRepository;
 import com.radiocom.ordemservico.domain.service.OrdemServicoDomainService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +26,6 @@ import static org.mockito.Mockito.when;
 @DisplayName("OrdemServicoApplicationService - Testes Unitários")
 class OrdemServicoApplicationServiceTest {
 
-    @Mock private OrdemServicoRepository osRepository;
     @Mock private OrdemServicoDomainService osDomainService;
 
     private OrdemServicoApplicationService service;
@@ -38,7 +36,7 @@ class OrdemServicoApplicationServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new OrdemServicoApplicationService(osRepository, osDomainService, new OrdemServicoMapper());
+        service = new OrdemServicoApplicationService(osDomainService, new OrdemServicoMapper());
         osId = UUID.randomUUID();
         clienteId = UUID.randomUUID();
         os = OrdemServico.builder().numero("OS-2026-0001").clienteId(clienteId).build();
@@ -63,6 +61,17 @@ class OrdemServicoApplicationServiceTest {
         when(osDomainService.buscarPorId(osId)).thenReturn(os);
 
         assertThat(service.buscarPorId(osId).getId()).isEqualTo(osId);
+    }
+
+    @Test
+    @DisplayName("listarPorCliente deve delegar para o domain service")
+    void listarPorCliente_deveDelegar() {
+        when(osDomainService.listarPorCliente(clienteId)).thenReturn(List.of(os));
+
+        List<OrdemServicoDTO> resultado = service.listarPorCliente(clienteId);
+
+        assertThat(resultado).hasSize(1);
+        assertThat(resultado.get(0).getNumero()).isEqualTo("OS-2026-0001");
     }
 
     @Test

@@ -32,6 +32,11 @@ public class OrdemServicoDomainService {
                 .orElseThrow(() -> new DomainException("OS não encontrada: " + numero));
     }
 
+    @Transactional(readOnly = true)
+    public List<OrdemServico> listarPorCliente(UUID clienteId) {
+        return osRepository.findByClienteId(clienteId);
+    }
+
     @Transactional
     public OrdemServico criar(UUID clienteId, UUID postoId, UUID tecnicoId, String solicitante) {
         OrdemServico os = OrdemServico.builder()

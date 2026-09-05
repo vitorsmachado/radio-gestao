@@ -162,6 +162,21 @@ class ItemEntradaDomainServiceTest {
     }
 
     @Test
+    @DisplayName("marcarAguardandoPeca deve delegar para o domínio quando falta peça no meio do reparo")
+    void marcarAguardandoPeca_deveDelegarDuranteOReparo() {
+        item.avaliar("Capacitor queimado", false);
+        item.enviarParaAutorizacao();
+        item.autorizar();
+        item.iniciarFilaManutencao();
+        item.iniciarManutencao();
+        when(itemEntradaRepository.findById(itemId)).thenReturn(Optional.of(item));
+
+        ItemEntrada resultado = service.marcarAguardandoPeca(itemId);
+
+        assertThat(resultado.getStatus()).isEqualTo(StatusItemEntrada.AGUARDANDO_PECA);
+    }
+
+    @Test
     @DisplayName("aguardarEntrega e entregar devem delegar para o domínio")
     void aguardarEntregaEEntregar_devemDelegar() {
         item.avaliar("Sem defeito", true);

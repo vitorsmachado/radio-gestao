@@ -17,21 +17,26 @@ com.radiocom.<modulo>
 
 ## Rota implementada
 
-O sistema cobre o fluxo completo de um orçamento de manutenção, do cadastro do cliente até a geração da ordem de serviço:
+O sistema cobre o fluxo completo de uma ordem de serviço de manutenção, do cadastro do cliente até a entrega do item consertado. Cada item trazido pelo cliente (`ItemEntrada`) tem seu próprio ciclo de status, independente do status geral da OS — permitindo dividir uma OS em várias (ou uni-las de volta) conforme itens são aprovados, aguardam peça ou ficam prontos em ritmos diferentes:
 
 ```
 Cliente cadastrado
       │
       ▼
-Orçamento criado (RASCUNHO) ── itens de conserto referenciam o catálogo de Estoque
+OS aberta ── itens de entrada registrados (equipamento/acessório/peça)
       │
       ▼
-Enviado para análise (AGUARDANDO_APROVAÇÃO)
+Avaliação técnica ──► autorização do cliente
       │
-      ├── aprovado ──► APROVADO ──► convertido em Ordem de Serviço
+      ├── autorizado ──► fila de manutenção (ou aguardando peça, se faltar em estoque)
+      │                        │
+      │                        ▼
+      │                  manutenção concluída ──► aguardando entrega ──► entregue
       │
-      └── rejeitado ─► REJEITADO
+      └── não autorizado ─► aguardando entrega ──► entregue
 ```
+
+Itens podem ser movidos entre OS (`mover`), ou uma OS pode ser dividida/unida (`dividir`/`unir`) conforme o cliente aprova só parte do conserto.
 
 ## Módulos
 
@@ -40,8 +45,8 @@ Enviado para análise (AGUARDANDO_APROVAÇÃO)
 | `auth` | ✅ | Autenticação JWT e papéis de usuário |
 | `cliente` | ✅ | Cadastro de clientes e postos |
 | `estoque` | ✅ | Catálogo de equipamentos/acessórios/peças usados nos orçamentos |
+| `ordemservico` | ✅ | OS, itens de entrada (ciclo próprio de status) e itens de conserto |
 | `orcamento` | ⬜ | Orçamento de manutenção/conserto |
-| `ordemservico` | ⬜ | Conversão de orçamento aprovado em ordem de serviço |
 
 ## Como rodar localmente
 

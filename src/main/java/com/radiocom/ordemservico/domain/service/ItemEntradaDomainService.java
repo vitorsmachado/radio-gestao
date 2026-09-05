@@ -91,6 +91,18 @@ public class ItemEntradaDomainService {
         return itemEntradaRepository.save(item);
     }
 
+    /**
+     * Uso manual pelo técnico ao descobrir, no meio do reparo, que falta
+     * uma peça — distinto de {@link #autorizar} que já decide isso sozinho
+     * no momento da autorização.
+     */
+    @Transactional
+    public ItemEntrada marcarAguardandoPeca(UUID id) {
+        ItemEntrada item = buscarPorId(id);
+        item.marcarAguardandoPeca();
+        return itemEntradaRepository.save(item);
+    }
+
     @Transactional
     public ItemEntrada concluirManutencao(UUID id) {
         ItemEntrada item = buscarPorId(id);
