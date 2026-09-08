@@ -64,7 +64,8 @@ Documentação da API (Swagger): `http://localhost:8080/api/swagger-ui.html`
 ## Testes
 
 ```bash
-./mvnw test
+./mvnw test      # testes unitários + slices de API (mocks, H2 só pra subir contexto) — não precisa de Docker
+./mvnw verify     # os de cima + testes de integração (*IT.java) com Postgres real via Testcontainers — precisa de Docker
 ```
 
-Testes unitários cobrem regras de domínio e serviços de aplicação; testes de integração usam Testcontainers com Postgres real.
+Testes unitários cobrem regras de domínio e serviços de aplicação; slices de API (`*ControllerTest`) sobem só a camada web com os serviços mockados. Os testes de integração (`*IT.java`, separados via Maven Failsafe) sobem o contexto inteiro contra um Postgres real, validando que as migrations Flyway aplicam sem erro e que as entidades JPA batem com o schema (`ddl-auto=validate`).
