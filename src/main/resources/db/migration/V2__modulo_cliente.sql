@@ -3,7 +3,7 @@
 -- =============================================================================
 
 CREATE TABLE clientes (
-    id                  UUID         NOT NULL DEFAULT uuid_generate_v4(),
+    id                  UUID         NOT NULL DEFAULT gen_random_uuid(),
     data_criacao        TIMESTAMP    NOT NULL DEFAULT NOW(),
     data_atualizacao    TIMESTAMP,
     tipo                VARCHAR(20)  NOT NULL,
@@ -31,7 +31,7 @@ CREATE INDEX idx_cliente_status ON clientes (status);
 CREATE INDEX idx_cliente_tipo   ON clientes (tipo);
 
 CREATE TABLE contatos (
-    id               UUID         NOT NULL DEFAULT uuid_generate_v4(),
+    id               UUID         NOT NULL DEFAULT gen_random_uuid(),
     data_criacao     TIMESTAMP    NOT NULL DEFAULT NOW(),
     data_atualizacao TIMESTAMP,
     nome             VARCHAR(255) NOT NULL,
@@ -49,7 +49,7 @@ CREATE TABLE contatos (
 CREATE INDEX idx_contatos_cliente ON contatos (cliente_id);
 
 CREATE TABLE postos (
-    id               UUID         NOT NULL DEFAULT uuid_generate_v4(),
+    id               UUID         NOT NULL DEFAULT gen_random_uuid(),
     data_criacao     TIMESTAMP    NOT NULL DEFAULT NOW(),
     data_atualizacao TIMESTAMP,
     nome             VARCHAR(255) NOT NULL,

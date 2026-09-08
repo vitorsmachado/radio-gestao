@@ -6,8 +6,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * Base para testes que precisam de um Postgres real (não H2), com as
@@ -20,15 +18,26 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * Flyway habilitado; o {@code @ServiceConnection} substitui a URL do
  * datasource pela do container, então as credenciais do application-dev.yaml
  * nunca chegam a ser usadas de verdade.
+ *
+ * Padrão "singleton container": propositalmente SEM {@code @Testcontainers}/
+ * {@code @Container} — essas anotações param o container ao final de CADA
+ * classe de teste, e como o campo static é compartilhado entre
+ * FlywayMigrationIT/NumeroOSGeneratorIT/NumeroOrcamentoGeneratorIT (todas
+ * rodando na mesma JVM), a primeira a terminar derrubava o container pras
+ * outras. Aqui ele é iniciado uma única vez à mão e nunca parado — quem
+ * encerra é o Ryuk (container auxiliar do Testcontainers) quando a JVM do
+ * teste termina.
  */
 @SpringBootTest
-@Testcontainers
 @ActiveProfiles("dev")
 public abstract class PostgresIntegrationTestBase {
 
-    @Container
     @ServiceConnection
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
+
+    static {
+        POSTGRES.start();
+    }
 
     @DynamicPropertySource
     static void ddlValidate(DynamicPropertyRegistry registry) {

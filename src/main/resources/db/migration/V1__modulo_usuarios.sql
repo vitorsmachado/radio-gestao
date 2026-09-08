@@ -3,7 +3,7 @@
 -- =============================================================================
 
 CREATE TABLE usuarios (
-    id               UUID         NOT NULL DEFAULT uuid_generate_v4(),
+    id               UUID         NOT NULL DEFAULT gen_random_uuid(),
     data_criacao     TIMESTAMP    NOT NULL DEFAULT NOW(),
     data_atualizacao TIMESTAMP,
     nome             VARCHAR(100) NOT NULL,
@@ -26,7 +26,7 @@ CREATE INDEX idx_usuario_role ON usuarios (role);
 -- TROCAR A SENHA NO PRIMEIRO LOGIN!
 INSERT INTO usuarios (id, nome, email, login, senha_hash, role, ativo)
 VALUES (
-    uuid_generate_v4(),
+    gen_random_uuid(),
     'Administrador',
     'admin@radiogestao.com.br',
     'admin',

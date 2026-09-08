@@ -5,7 +5,7 @@
 -- =============================================================================
 
 CREATE TABLE ordens_servico (
-    id               UUID         NOT NULL DEFAULT uuid_generate_v4(),
+    id               UUID         NOT NULL DEFAULT gen_random_uuid(),
     data_criacao     TIMESTAMP    NOT NULL DEFAULT NOW(),
     data_atualizacao TIMESTAMP,
     numero           VARCHAR(20)  NOT NULL,
@@ -29,7 +29,7 @@ CREATE INDEX idx_os_cliente ON ordens_servico (cliente_id);
 CREATE INDEX idx_os_status  ON ordens_servico (status);
 
 CREATE TABLE os_itens_entrada (
-    id                   UUID         NOT NULL DEFAULT uuid_generate_v4(),
+    id                   UUID         NOT NULL DEFAULT gen_random_uuid(),
     data_criacao         TIMESTAMP    NOT NULL DEFAULT NOW(),
     data_atualizacao     TIMESTAMP,
     os_id                UUID         NOT NULL,
@@ -62,7 +62,7 @@ CREATE INDEX idx_item_entrada_orcamento ON os_itens_entrada (orcamento_id);
 CREATE INDEX idx_item_entrada_status    ON os_itens_entrada (status);
 
 CREATE TABLE os_itens_conserto (
-    id               UUID         NOT NULL DEFAULT uuid_generate_v4(),
+    id               UUID         NOT NULL DEFAULT gen_random_uuid(),
     data_criacao     TIMESTAMP    NOT NULL DEFAULT NOW(),
     data_atualizacao TIMESTAMP,
     item_entrada_id  UUID         NOT NULL,

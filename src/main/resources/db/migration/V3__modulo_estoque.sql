@@ -5,7 +5,7 @@
 
 -- Criado primeiro pois equipamentos, acessorios e pecas referenciam esta tabela.
 CREATE TABLE catalogo_modelos (
-    id               UUID         NOT NULL DEFAULT uuid_generate_v4(),
+    id               UUID         NOT NULL DEFAULT gen_random_uuid(),
     data_criacao     TIMESTAMP    NOT NULL DEFAULT NOW(),
     data_atualizacao TIMESTAMP,
     tipo_item        VARCHAR(20)  NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE catalogo_modelos (
 
 CREATE TABLE equipamentos (
     -- Colunas de ItemEstoque (herdadas)
-    id                    UUID         NOT NULL DEFAULT uuid_generate_v4(),
+    id                    UUID         NOT NULL DEFAULT gen_random_uuid(),
     data_criacao          TIMESTAMP    NOT NULL DEFAULT NOW(),
     data_atualizacao      TIMESTAMP,
     codigo                VARCHAR(50)  NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE equipamento_especificacoes (
 
 CREATE TABLE acessorios (
     -- Colunas de ItemEstoque (herdadas)
-    id                    UUID         NOT NULL DEFAULT uuid_generate_v4(),
+    id                    UUID         NOT NULL DEFAULT gen_random_uuid(),
     data_criacao          TIMESTAMP    NOT NULL DEFAULT NOW(),
     data_atualizacao      TIMESTAMP,
     codigo                VARCHAR(50)  NOT NULL,
@@ -116,7 +116,7 @@ CREATE INDEX idx_acess_catalogo   ON acessorios (catalogo_modelo_id);
 
 CREATE TABLE pecas (
     -- Colunas de ItemEstoque (herdadas)
-    id                    UUID         NOT NULL DEFAULT uuid_generate_v4(),
+    id                    UUID         NOT NULL DEFAULT gen_random_uuid(),
     data_criacao          TIMESTAMP    NOT NULL DEFAULT NOW(),
     data_atualizacao      TIMESTAMP,
     codigo                VARCHAR(50)  NOT NULL,

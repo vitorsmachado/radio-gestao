@@ -6,7 +6,7 @@
 -- =============================================================================
 
 CREATE TABLE orcamentos (
-    id                   UUID         NOT NULL DEFAULT uuid_generate_v4(),
+    id                   UUID         NOT NULL DEFAULT gen_random_uuid(),
     data_criacao         TIMESTAMP    NOT NULL DEFAULT NOW(),
     data_atualizacao     TIMESTAMP,
     numero               VARCHAR(20)  NOT NULL,
