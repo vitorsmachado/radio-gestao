@@ -38,6 +38,8 @@ Avaliação técnica ──► autorização do cliente
 
 Itens podem ser movidos entre OS (`mover`), ou uma OS pode ser dividida/unida (`dividir`/`unir`) conforme o cliente aprova só parte do conserto.
 
+Antes de enviar a avaliação para autorização, os itens avaliados de uma OS podem ser agrupados num `Orçamento` — um envelope com validade, condições de pagamento e desconto, usado para apresentar a proposta formal ao cliente. A aprovação/rejeição em si continua por item; o orçamento só formaliza o envio em lote.
+
 ## Módulos
 
 | Módulo | Status | Descrição |
@@ -46,7 +48,7 @@ Itens podem ser movidos entre OS (`mover`), ou uma OS pode ser dividida/unida (`
 | `cliente` | ✅ | Cadastro de clientes e postos |
 | `estoque` | ✅ | Catálogo de equipamentos/acessórios/peças usados nos orçamentos |
 | `ordemservico` | ✅ | OS, itens de entrada (ciclo próprio de status) e itens de conserto |
-| `orcamento` | ⬜ | Orçamento de manutenção/conserto |
+| `orcamento` | ✅ | Envelope que agrupa itens de uma OS numa proposta formal ao cliente |
 
 ## Como rodar localmente
 

@@ -220,6 +220,21 @@ public class ItemEntrada extends BaseEntity {
         this.osId = novaOsId;
     }
 
+    // ===== AGRUPAMENTO EM ORÇAMENTO =====
+
+    public void atribuirOrcamento(UUID orcamentoId) {
+        validarNaoEntregue("Atribuir a um orçamento");
+        if (orcamentoId == null) {
+            throw new IllegalArgumentException("Orçamento não pode ser nulo");
+        }
+        this.orcamentoId = orcamentoId;
+    }
+
+    public void removerDoOrcamento() {
+        validarNaoEntregue("Remover do orçamento");
+        this.orcamentoId = null;
+    }
+
     // ===== ITENS DE CONSERTO =====
 
     public void adicionarItemConserto(ItemConserto item) {

@@ -358,6 +358,58 @@ class ItemEntradaTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    // ===== agrupamento em orçamento =====
+
+    @Test
+    @DisplayName("atribuirOrcamento deve definir o orcamentoId")
+    void atribuirOrcamento_deveDefinirOrcamentoId() {
+        UUID orcamentoId = UUID.randomUUID();
+
+        item.atribuirOrcamento(orcamentoId);
+
+        assertThat(item.getOrcamentoId()).isEqualTo(orcamentoId);
+    }
+
+    @Test
+    @DisplayName("atribuirOrcamento deve lançar exceção quando orcamentoId é nulo")
+    void atribuirOrcamento_deveLancarExcecaoQuandoNulo() {
+        assertThatThrownBy(() -> item.atribuirOrcamento(null))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("atribuirOrcamento deve lançar exceção quando item já entregue")
+    void atribuirOrcamento_deveLancarExcecaoQuandoEntregue() {
+        item.avaliar("Sem defeito", true);
+        item.aguardarEntrega();
+        item.entregar();
+
+        assertThatThrownBy(() -> item.atribuirOrcamento(UUID.randomUUID()))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    @DisplayName("removerDoOrcamento deve limpar o orcamentoId")
+    void removerDoOrcamento_deveLimparOrcamentoId() {
+        item.atribuirOrcamento(UUID.randomUUID());
+
+        item.removerDoOrcamento();
+
+        assertThat(item.getOrcamentoId()).isNull();
+    }
+
+    @Test
+    @DisplayName("removerDoOrcamento deve lançar exceção quando item já entregue")
+    void removerDoOrcamento_deveLancarExcecaoQuandoEntregue() {
+        item.atribuirOrcamento(UUID.randomUUID());
+        item.avaliar("Sem defeito", true);
+        item.aguardarEntrega();
+        item.entregar();
+
+        assertThatThrownBy(item::removerDoOrcamento)
+                .isInstanceOf(IllegalStateException.class);
+    }
+
     // ===== itens de conserto =====
 
     @Test

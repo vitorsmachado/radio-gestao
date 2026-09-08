@@ -15,6 +15,8 @@ public interface ItemEntradaRepository extends JpaRepository<ItemEntrada, UUID> 
 
     List<ItemEntrada> findByOsId(UUID osId);
 
+    List<ItemEntrada> findByOrcamentoId(UUID orcamentoId);
+
     /**
      * Itens aguardando uma peça específica — usado quando a peça recebe
      * entrada no estoque, para saber quais itens podem voltar pra fila.
