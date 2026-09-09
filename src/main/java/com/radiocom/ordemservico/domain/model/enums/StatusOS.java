@@ -5,8 +5,18 @@ package com.radiocom.ordemservico.domain.model.enums;
  * ItemEntrada, não aqui.
  */
 public enum StatusOS {
-    ABERTA,
-    EM_ANDAMENTO,
-    CONCLUIDA,
-    CANCELADA
+    ABERTA("Aberta"),
+    EM_ANDAMENTO("Em andamento"),
+    CONCLUIDA("Concluída"),
+    CANCELADA("Cancelada");
+
+    private final String label;
+
+    StatusOS(String label) {
+        this.label = label;
+    }
+
+    public String getLabel() {
+        return label;
+    }
 }

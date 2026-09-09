@@ -2,11 +2,15 @@ package com.radiocom.ordemservico.interfaces.rest;
 
 import com.radiocom.ordemservico.application.dto.*;
 import com.radiocom.ordemservico.application.service.OrdemServicoApplicationService;
+import com.radiocom.ordemservico.application.service.OrdemServicoPdfService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +24,7 @@ import java.util.UUID;
 public class OrdemServicoController {
 
     private final OrdemServicoApplicationService service;
+    private final OrdemServicoPdfService pdfService;
 
     @PostMapping
     @Operation(summary = "Abrir nova OS")
@@ -81,5 +86,15 @@ public class OrdemServicoController {
     public ResponseEntity<OrdemServicoDTO> unir(
             @PathVariable UUID id, @Valid @RequestBody UnirOSDTO dto) {
         return ResponseEntity.ok(service.unir(id, dto));
+    }
+
+    @GetMapping("/{id}/pdf")
+    @Operation(summary = "Gerar PDF da OS")
+    public ResponseEntity<byte[]> gerarPdf(@PathVariable UUID id) {
+        byte[] pdf = pdfService.gerarPdf(id);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition.inline().filename("os-" + id + ".pdf").build());
+        return ResponseEntity.ok().headers(headers).body(pdf);
     }
 }

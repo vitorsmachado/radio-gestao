@@ -7,8 +7,18 @@ package com.radiocom.orcamento.domain.model.enums;
  * nunca dessincronizar da aprovação real (que é por item).
  */
 public enum StatusAprovacaoOrcamento {
-    PENDENTE,
-    AUTORIZADO,
-    NAO_AUTORIZADO,
-    PARCIALMENTE_AUTORIZADO
+    PENDENTE("Pendente"),
+    AUTORIZADO("Autorizado"),
+    NAO_AUTORIZADO("Não autorizado"),
+    PARCIALMENTE_AUTORIZADO("Parcialmente autorizado");
+
+    private final String label;
+
+    StatusAprovacaoOrcamento(String label) {
+        this.label = label;
+    }
+
+    public String getLabel() {
+        return label;
+    }
 }

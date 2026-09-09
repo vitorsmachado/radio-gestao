@@ -40,6 +40,8 @@ Itens podem ser movidos entre OS (`mover`), ou uma OS pode ser dividida/unida (`
 
 Antes de enviar a avaliação para autorização, os itens avaliados de uma OS podem ser agrupados num `Orçamento` — um envelope com validade, condições de pagamento e desconto, usado para apresentar a proposta formal ao cliente. A aprovação/rejeição em si continua por item; o orçamento só formaliza o envio em lote.
 
+Tanto a OS quanto o Orçamento têm geração de PDF (`GET /{id}/pdf`) — o HTML é montado via Thymeleaf e convertido para PDF pelo Flying Saucer + OpenPDF.
+
 ## Módulos
 
 | Módulo | Status | Descrição |

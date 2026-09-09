@@ -5,6 +5,7 @@ import com.radiocom.auth.application.service.JwtService;
 import com.radiocom.config.SecurityConfig;
 import com.radiocom.ordemservico.application.dto.*;
 import com.radiocom.ordemservico.application.service.OrdemServicoApplicationService;
+import com.radiocom.ordemservico.application.service.OrdemServicoPdfService;
 import com.radiocom.ordemservico.domain.model.enums.StatusOS;
 import com.radiocom.shared.exception.DomainException;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +47,9 @@ class OrdemServicoControllerTest {
 
     @MockBean
     private OrdemServicoApplicationService service;
+
+    @MockBean
+    private OrdemServicoPdfService pdfService;
 
     @MockBean
     private JwtService jwtService;
@@ -151,5 +155,17 @@ class OrdemServicoControllerTest {
     void buscarPorId_semAutenticacao_deveRetornar401() throws Exception {
         mockMvc.perform(get("/v1/ordens-servico/{id}", osId))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET /{id}/pdf deve retornar 200 com application/pdf")
+    void gerarPdf_deveRetornar200ComApplicationPdf() throws Exception {
+        byte[] pdfFalso = "%PDF-1.4 fake".getBytes();
+        when(pdfService.gerarPdf(osId)).thenReturn(pdfFalso);
+
+        mockMvc.perform(get("/v1/ordens-servico/{id}/pdf", osId))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .contentType(MediaType.APPLICATION_PDF));
     }
 }

@@ -6,15 +6,25 @@ package com.radiocom.ordemservico.domain.model.enums;
  * atualmente agrupado.
  */
 public enum StatusItemEntrada {
-    PENDENTE_AVALIACAO,
-    AVALIADO,
-    PENDENTE_AUTORIZACAO,
-    AUTORIZADO,
-    NAO_AUTORIZADO,
-    PENDENTE_MANUTENCAO,
-    AGUARDANDO_PECA,
-    EM_MANUTENCAO,
-    MANUTENCAO_CONCLUIDA,
-    AGUARDANDO_ENTREGA,
-    ENTREGUE
+    PENDENTE_AVALIACAO("Pendente de avaliação"),
+    AVALIADO("Avaliado"),
+    PENDENTE_AUTORIZACAO("Pendente de autorização"),
+    AUTORIZADO("Autorizado"),
+    NAO_AUTORIZADO("Não autorizado"),
+    PENDENTE_MANUTENCAO("Pendente de manutenção"),
+    AGUARDANDO_PECA("Aguardando peça"),
+    EM_MANUTENCAO("Em manutenção"),
+    MANUTENCAO_CONCLUIDA("Manutenção concluída"),
+    AGUARDANDO_ENTREGA("Aguardando entrega"),
+    ENTREGUE("Entregue");
+
+    private final String label;
+
+    StatusItemEntrada(String label) {
+        this.label = label;
+    }
+
+    public String getLabel() {
+        return label;
+    }
 }

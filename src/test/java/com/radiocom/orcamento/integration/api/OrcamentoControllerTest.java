@@ -8,6 +8,7 @@ import com.radiocom.orcamento.application.dto.AdicionarItemOrcamentoDTO;
 import com.radiocom.orcamento.application.dto.OrcamentoCreateDTO;
 import com.radiocom.orcamento.application.dto.OrcamentoDTO;
 import com.radiocom.orcamento.application.service.OrcamentoApplicationService;
+import com.radiocom.orcamento.application.service.OrcamentoPdfService;
 import com.radiocom.orcamento.domain.model.enums.StatusOrcamento;
 import com.radiocom.shared.exception.DomainException;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +50,9 @@ class OrcamentoControllerTest {
 
     @MockBean
     private OrcamentoApplicationService service;
+
+    @MockBean
+    private OrcamentoPdfService pdfService;
 
     @MockBean
     private JwtService jwtService;
@@ -188,5 +192,17 @@ class OrcamentoControllerTest {
                         .content(objectMapper.writeValueAsString(MotivoDTO.builder().motivo("Cliente desistiu").build())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CANCELADO"));
+    }
+
+    @Test
+    @DisplayName("GET /{id}/pdf deve retornar 200 com application/pdf")
+    void gerarPdf_deveRetornar200ComApplicationPdf() throws Exception {
+        byte[] pdfFalso = "%PDF-1.4 fake".getBytes();
+        when(pdfService.gerarPdf(orcamentoId)).thenReturn(pdfFalso);
+
+        mockMvc.perform(get("/v1/orcamentos/{id}/pdf", orcamentoId))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .contentType(MediaType.APPLICATION_PDF));
     }
 }

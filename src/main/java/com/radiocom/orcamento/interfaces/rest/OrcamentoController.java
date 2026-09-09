@@ -5,11 +5,15 @@ import com.radiocom.orcamento.application.dto.AdicionarItemOrcamentoDTO;
 import com.radiocom.orcamento.application.dto.OrcamentoCreateDTO;
 import com.radiocom.orcamento.application.dto.OrcamentoDTO;
 import com.radiocom.orcamento.application.service.OrcamentoApplicationService;
+import com.radiocom.orcamento.application.service.OrcamentoPdfService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +27,7 @@ import java.util.UUID;
 public class OrcamentoController {
 
     private final OrcamentoApplicationService service;
+    private final OrcamentoPdfService pdfService;
 
     @PostMapping
     @Operation(summary = "Criar novo orçamento (RASCUNHO)")
@@ -76,5 +81,15 @@ public class OrcamentoController {
     public ResponseEntity<OrcamentoDTO> cancelar(
             @PathVariable UUID id, @Valid @RequestBody MotivoDTO dto) {
         return ResponseEntity.ok(service.cancelar(id, dto));
+    }
+
+    @GetMapping("/{id}/pdf")
+    @Operation(summary = "Gerar PDF do orçamento")
+    public ResponseEntity<byte[]> gerarPdf(@PathVariable UUID id) {
+        byte[] pdf = pdfService.gerarPdf(id);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition.inline().filename("orcamento-" + id + ".pdf").build());
+        return ResponseEntity.ok().headers(headers).body(pdf);
     }
 }
