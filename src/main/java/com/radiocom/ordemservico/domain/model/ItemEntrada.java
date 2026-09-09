@@ -84,8 +84,7 @@ public class ItemEntrada extends BaseEntity {
     @Column(name = "motivo_nao_autorizado", length = 500)
     private String motivoNaoAutorizado;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JoinColumn(name = "item_entrada_id")
+    @OneToMany(mappedBy = "itemEntrada", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<ItemConserto> itensConserto = new ArrayList<>();
 
@@ -239,6 +238,7 @@ public class ItemEntrada extends BaseEntity {
 
     public void adicionarItemConserto(ItemConserto item) {
         validarNaoEntregue("Adicionar item de conserto");
+        item.setItemEntrada(this);
         this.itensConserto.add(item);
     }
 

@@ -20,6 +20,17 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ItemConserto extends BaseEntity {
 
+    /**
+     * Lado dono do relacionamento bidirecional com {@link ItemEntrada}.
+     * Precisa ser bidirecional (não só @JoinColumn do lado do pai) porque
+     * item_entrada_id é NOT NULL: um @OneToMany unidirecional faz o Hibernate
+     * inserir a linha filha sem a FK e só preencher num UPDATE separado depois,
+     * o que viola a constraint. Com o filho dono da FK, ela já vai no INSERT.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_entrada_id", nullable = false)
+    private ItemEntrada itemEntrada;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo", nullable = false, length = 20)
