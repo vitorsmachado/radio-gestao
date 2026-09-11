@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,4 +37,8 @@ public interface CatalogoModeloRepository extends JpaRepository<CatalogoModelo, 
             @Param("tipoItem") TipoItem tipoItem,
             @Param("status") StatusItem status,
             Pageable pageable);
+
+    /** Marcas distintas já cadastradas — usado pra sugerir marca no cadastro de um novo item. */
+    @Query("SELECT DISTINCT c.marca FROM CatalogoModelo c ORDER BY c.marca")
+    List<String> listarMarcas();
 }

@@ -177,6 +177,14 @@ class CatalogoModeloServiceTest {
     }
 
     @Test
+    @DisplayName("listarMarcas deve delegar pro repositório")
+    void listarMarcas_deveDelegar() {
+        when(repository.listarMarcas()).thenReturn(List.of("Icom", "Motorola"));
+
+        assertThat(service.listarMarcas()).containsExactly("Icom", "Motorola");
+    }
+
+    @Test
     @DisplayName("deletar deve lançar exceção quando não existe")
     void deletar_deveLancarExcecaoQuandoNaoExiste() {
         when(repository.findById(modeloId)).thenReturn(Optional.empty());

@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -56,6 +57,11 @@ public class CatalogoModeloService {
     @Transactional(readOnly = true)
     public Page<CatalogoModeloDTO> listar(String busca, TipoItem tipoItem, StatusItem status, Pageable pageable) {
         return repository.buscar(busca, tipoItem, status, pageable).map(mapper::toDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> listarMarcas() {
+        return repository.listarMarcas();
     }
 
     @Transactional

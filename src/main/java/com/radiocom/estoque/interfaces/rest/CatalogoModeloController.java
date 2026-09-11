@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -58,6 +59,13 @@ public class CatalogoModeloController {
             @RequestParam(required = false) StatusItem status,
             @PageableDefault(size = 20, sort = "dataCriacao", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(service.listar(busca, tipoItem, status, pageable));
+    }
+
+    @GetMapping("/marcas")
+    @Operation(summary = "Listar marcas já cadastradas",
+            description = "Usado pra sugerir marca no cadastro de um novo item, evitando duplicidade por grafia.")
+    public ResponseEntity<List<String>> listarMarcas() {
+        return ResponseEntity.ok(service.listarMarcas());
     }
 
     @DeleteMapping("/{id}")

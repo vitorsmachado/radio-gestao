@@ -137,6 +137,17 @@ class CatalogoModeloControllerTest {
     }
 
     @Test
+    @DisplayName("GET /v1/catalogo-modelos/marcas deve retornar 200 com a lista")
+    void listarMarcas_deveRetornar200() throws Exception {
+        when(service.listarMarcas()).thenReturn(List.of("Icom", "Motorola"));
+
+        mockMvc.perform(get("/v1/catalogo-modelos/marcas"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0]").value("Icom"))
+                .andExpect(jsonPath("$[1]").value("Motorola"));
+    }
+
+    @Test
     @DisplayName("DELETE /v1/catalogo-modelos/{id} deve retornar 204")
     void deletar_deveRetornar204() throws Exception {
         UUID id = UUID.randomUUID();
