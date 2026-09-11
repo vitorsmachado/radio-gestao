@@ -2,6 +2,7 @@ package com.radiocom.estoque.interfaces.rest;
 
 import com.radiocom.estoque.application.dto.*;
 import com.radiocom.estoque.application.service.EstoqueApplicationService;
+import com.radiocom.estoque.domain.model.enums.CriticidadeEstoque;
 import com.radiocom.estoque.domain.model.enums.EstadoEquipamento;
 import com.radiocom.estoque.domain.model.enums.ProprietarioEquipamento;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
@@ -151,11 +152,14 @@ public class EstoqueController {
     }
 
     @GetMapping("/pecas")
-    @Operation(summary = "Listar peças", description = "Ordenado por mais recente primeiro por padrão.")
+    @Operation(summary = "Listar peças",
+            description = "Ordenado por mais recente primeiro por padrão. Filtro de criticidade opcional "
+                    + "(EM_FALTA = saldo zerado, ESTOQUE_BAIXO = saldo no mínimo ou abaixo, mas não zerado).")
     public ResponseEntity<Page<PecaDTO>> listarPecas(
+            @RequestParam(required = false) CriticidadeEstoque criticidade,
             @PageableDefault(size = 20, sort = "dataCriacao", direction = org.springframework.data.domain.Sort.Direction.DESC)
             Pageable pageable) {
-        return ResponseEntity.ok(estoqueService.listarPecas(pageable));
+        return ResponseEntity.ok(estoqueService.listarPecas(pageable, criticidade));
     }
 
     @GetMapping("/pecas/{id}")

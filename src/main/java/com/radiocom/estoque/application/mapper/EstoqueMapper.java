@@ -122,6 +122,10 @@ public class EstoqueMapper {
 
     public PecaDTO toDTO(Peca p) {
         if (p == null) return null;
+        boolean emFalta = p.getQuantidadeDisponivel() != null && p.getQuantidadeDisponivel() == 0;
+        boolean estoqueBaixo = !emFalta && p.getQuantidadeMinima() != null
+                && p.getQuantidadeDisponivel() != null
+                && p.getQuantidadeDisponivel() <= p.getQuantidadeMinima();
         return PecaDTO.builder()
                 .id(p.getId())
                 .codigo(p.getCodigo())
@@ -130,6 +134,8 @@ public class EstoqueMapper {
                 .quantidadeMinima(p.getQuantidadeMinima())
                 .status(p.getStatus())
                 .catalogoModeloId(p.getCatalogoModelo() != null ? p.getCatalogoModelo().getId() : null)
+                .emFalta(emFalta)
+                .estoqueBaixo(estoqueBaixo)
                 .dataCriacao(p.getDataCriacao())
                 .dataAtualizacao(p.getDataAtualizacao())
                 .build();

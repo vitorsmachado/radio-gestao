@@ -195,17 +195,43 @@ class EstoqueApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("listarPecas deve delegar pro repositório e mapear a página")
-    void listarPecas_deveDelegarEMapear() {
+    @DisplayName("listarPecas sem criticidade deve delegar pro findAll e mapear a página")
+    void listarPecas_semCriticidade_deveDelegarParaFindAll() {
         Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(5).build();
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
         when(pecaRepository.findAll(pageable)).thenReturn(
                 new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
 
-        var resultado = service.listarPecas(pageable);
+        var resultado = service.listarPecas(pageable, null);
 
         assertThat(resultado.getTotalElements()).isEqualTo(1);
         assertThat(resultado.getContent().get(0).getDescricao()).isEqualTo("Antena UHF");
+    }
+
+    @Test
+    @DisplayName("listarPecas com EM_FALTA deve delegar pro findByQuantidadeDisponivel(0)")
+    void listarPecas_emFalta_deveDelegarParaFindByQuantidadeZero() {
+        Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(0).build();
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        when(pecaRepository.findByQuantidadeDisponivel(0, pageable)).thenReturn(
+                new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
+
+        var resultado = service.listarPecas(pageable, CriticidadeEstoque.EM_FALTA);
+
+        assertThat(resultado.getContent().get(0).isEmFalta()).isTrue();
+    }
+
+    @Test
+    @DisplayName("listarPecas com ESTOQUE_BAIXO deve delegar pro findEstoqueBaixo")
+    void listarPecas_estoqueBaixo_deveDelegarParaFindEstoqueBaixo() {
+        Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(2).quantidadeMinima(5).build();
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        when(pecaRepository.findEstoqueBaixo(pageable)).thenReturn(
+                new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
+
+        var resultado = service.listarPecas(pageable, CriticidadeEstoque.ESTOQUE_BAIXO);
+
+        assertThat(resultado.getContent().get(0).isEstoqueBaixo()).isTrue();
     }
 
     // ===== Movimentação =====

@@ -7,6 +7,7 @@ import com.radiocom.estoque.domain.model.Acessorio;
 import com.radiocom.estoque.domain.model.CatalogoModelo;
 import com.radiocom.estoque.domain.model.Equipamento;
 import com.radiocom.estoque.domain.model.Peca;
+import com.radiocom.estoque.domain.model.enums.CriticidadeEstoque;
 import com.radiocom.estoque.domain.model.enums.EstadoEquipamento;
 import com.radiocom.estoque.domain.model.enums.ProprietarioEquipamento;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
@@ -176,8 +177,16 @@ public class EstoqueApplicationService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PecaDTO> listarPecas(Pageable pageable) {
-        return pecaRepository.findAll(pageable).map(mapper::toDTO);
+    public Page<PecaDTO> listarPecas(Pageable pageable, CriticidadeEstoque criticidade) {
+        Page<Peca> pagina;
+        if (criticidade == CriticidadeEstoque.EM_FALTA) {
+            pagina = pecaRepository.findByQuantidadeDisponivel(0, pageable);
+        } else if (criticidade == CriticidadeEstoque.ESTOQUE_BAIXO) {
+            pagina = pecaRepository.findEstoqueBaixo(pageable);
+        } else {
+            pagina = pecaRepository.findAll(pageable);
+        }
+        return pagina.map(mapper::toDTO);
     }
 
     @Transactional

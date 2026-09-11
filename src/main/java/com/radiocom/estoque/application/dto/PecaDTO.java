@@ -22,6 +22,8 @@ public class PecaDTO {
     private Integer quantidadeMinima;
     private StatusItem status;
     private UUID catalogoModeloId;
+    private boolean emFalta;
+    private boolean estoqueBaixo;
     private LocalDateTime dataCriacao;
     private LocalDateTime dataAtualizacao;
 }
