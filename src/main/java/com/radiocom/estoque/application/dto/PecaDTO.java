@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -24,6 +25,7 @@ public class PecaDTO {
     private UUID catalogoModeloId;
     private boolean emFalta;
     private boolean estoqueBaixo;
+    private List<CatalogoModeloDTO> modelosCompativeis;
     private LocalDateTime dataCriacao;
     private LocalDateTime dataAtualizacao;
 }

@@ -5,6 +5,9 @@ import com.radiocom.estoque.domain.model.*;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
 public class EstoqueMapper {
 
@@ -136,6 +139,9 @@ public class EstoqueMapper {
                 .catalogoModeloId(p.getCatalogoModelo() != null ? p.getCatalogoModelo().getId() : null)
                 .emFalta(emFalta)
                 .estoqueBaixo(estoqueBaixo)
+                .modelosCompativeis(p.getModelosCompativeis().stream()
+                        .map(this::toDTO)
+                        .collect(Collectors.toList()))
                 .dataCriacao(p.getDataCriacao())
                 .dataAtualizacao(p.getDataAtualizacao())
                 .build();

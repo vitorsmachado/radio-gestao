@@ -201,6 +201,46 @@ class EstoqueControllerTest {
     }
 
     @Test
+    @DisplayName("POST /pecas/{id}/modelos-compativeis/{catalogoModeloId} deve retornar 200")
+    void vincularModeloCompativel_deveRetornar200() throws Exception {
+        UUID pecaId = UUID.randomUUID();
+        UUID modeloId = UUID.randomUUID();
+        PecaDTO pecaDTO = PecaDTO.builder().id(pecaId).descricao("Bateria BP-227").build();
+
+        when(estoqueService.vincularModeloCompativel(pecaId, modeloId)).thenReturn(pecaDTO);
+
+        mockMvc.perform(post("/v1/estoque/pecas/{id}/modelos-compativeis/{modeloId}", pecaId, modeloId).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.descricao").value("Bateria BP-227"));
+    }
+
+    @Test
+    @DisplayName("POST /pecas/{id}/modelos-compativeis/{catalogoModeloId} deve retornar 400 quando não é EQUIPAMENTO")
+    void vincularModeloCompativel_deveRetornar400QuandoNaoEquipamento() throws Exception {
+        UUID pecaId = UUID.randomUUID();
+        UUID modeloId = UUID.randomUUID();
+
+        when(estoqueService.vincularModeloCompativel(pecaId, modeloId))
+                .thenThrow(new DomainException("Só é possível vincular peças a modelos do tipo EQUIPAMENTO"));
+
+        mockMvc.perform(post("/v1/estoque/pecas/{id}/modelos-compativeis/{modeloId}", pecaId, modeloId).with(csrf()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("DELETE /pecas/{id}/modelos-compativeis/{catalogoModeloId} deve retornar 200")
+    void desvincularModeloCompativel_deveRetornar200() throws Exception {
+        UUID pecaId = UUID.randomUUID();
+        UUID modeloId = UUID.randomUUID();
+        PecaDTO pecaDTO = PecaDTO.builder().id(pecaId).descricao("Bateria BP-227").build();
+
+        when(estoqueService.desvincularModeloCompativel(pecaId, modeloId)).thenReturn(pecaDTO);
+
+        mockMvc.perform(delete("/v1/estoque/pecas/{id}/modelos-compativeis/{modeloId}", pecaId, modeloId).with(csrf()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     @DisplayName("GET /equipamentos/{id} sem autenticação deve retornar 401")
     @WithAnonymousUser
     void buscarEquipamentoPorId_semAutenticacao_deveRetornar401() throws Exception {

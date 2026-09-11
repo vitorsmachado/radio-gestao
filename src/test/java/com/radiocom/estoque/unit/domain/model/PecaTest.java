@@ -1,10 +1,14 @@
 package com.radiocom.estoque.unit.domain.model;
 
+import com.radiocom.estoque.domain.model.CatalogoModelo;
 import com.radiocom.estoque.domain.model.Peca;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -71,5 +75,29 @@ class PecaTest {
         assertThatThrownBy(() -> peca.ajustar(-1))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("não pode ser nula ou negativa");
+    }
+
+    @Test
+    @DisplayName("vincularModeloCompativel deve adicionar o modelo ao conjunto")
+    void vincularModeloCompativel_deveAdicionar() {
+        CatalogoModelo modelo = CatalogoModelo.builder().tipoItem(TipoItem.EQUIPAMENTO).marca("Motorola").modelo("EP450").build();
+        ReflectionTestUtils.setField(modelo, "id", UUID.randomUUID());
+
+        peca.vincularModeloCompativel(modelo);
+
+        assertThat(peca.getModelosCompativeis()).containsExactly(modelo);
+    }
+
+    @Test
+    @DisplayName("desvincularModeloCompativel deve remover o modelo pelo id")
+    void desvincularModeloCompativel_deveRemover() {
+        CatalogoModelo modelo = CatalogoModelo.builder().tipoItem(TipoItem.EQUIPAMENTO).marca("Motorola").modelo("EP450").build();
+        UUID modeloId = UUID.randomUUID();
+        ReflectionTestUtils.setField(modelo, "id", modeloId);
+        peca.vincularModeloCompativel(modelo);
+
+        peca.desvincularModeloCompativel(modeloId);
+
+        assertThat(peca.getModelosCompativeis()).isEmpty();
     }
 }

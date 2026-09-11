@@ -195,6 +195,66 @@ class EstoqueApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("vincularModeloCompativel deve vincular quando o modelo é EQUIPAMENTO")
+    void vincularModeloCompativel_deveVincularQuandoEquipamento() {
+        Peca peca = Peca.builder().descricao("Bateria BP-227").build();
+        UUID pecaId = UUID.randomUUID();
+        org.springframework.test.util.ReflectionTestUtils.setField(peca, "id", pecaId);
+
+        CatalogoModelo modelo = CatalogoModelo.builder().tipoItem(TipoItem.EQUIPAMENTO).marca("Motorola").modelo("EP450").build();
+        UUID modeloId = UUID.randomUUID();
+        org.springframework.test.util.ReflectionTestUtils.setField(modelo, "id", modeloId);
+
+        when(estoqueService.buscarPecaPorId(pecaId)).thenReturn(peca);
+        when(catalogoModeloRepository.findById(modeloId)).thenReturn(Optional.of(modelo));
+        when(pecaRepository.save(any(Peca.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        PecaDTO resultado = service.vincularModeloCompativel(pecaId, modeloId);
+
+        assertThat(resultado.getModelosCompativeis()).hasSize(1);
+        assertThat(resultado.getModelosCompativeis().get(0).getModelo()).isEqualTo("EP450");
+    }
+
+    @Test
+    @DisplayName("vincularModeloCompativel deve lançar exceção quando o modelo não é EQUIPAMENTO")
+    void vincularModeloCompativel_deveLancarExcecaoQuandoNaoEquipamento() {
+        Peca peca = Peca.builder().descricao("Bateria BP-227").build();
+        UUID pecaId = UUID.randomUUID();
+        org.springframework.test.util.ReflectionTestUtils.setField(peca, "id", pecaId);
+
+        CatalogoModelo modelo = CatalogoModelo.builder().tipoItem(TipoItem.PECA).marca("Genérica").modelo("Capacitor").build();
+        UUID modeloId = UUID.randomUUID();
+        org.springframework.test.util.ReflectionTestUtils.setField(modelo, "id", modeloId);
+
+        when(estoqueService.buscarPecaPorId(pecaId)).thenReturn(peca);
+        when(catalogoModeloRepository.findById(modeloId)).thenReturn(Optional.of(modelo));
+
+        assertThatThrownBy(() -> service.vincularModeloCompativel(pecaId, modeloId))
+                .isInstanceOf(DomainException.class)
+                .hasMessageContaining("EQUIPAMENTO");
+    }
+
+    @Test
+    @DisplayName("desvincularModeloCompativel deve remover o vínculo")
+    void desvincularModeloCompativel_deveRemover() {
+        CatalogoModelo modelo = CatalogoModelo.builder().tipoItem(TipoItem.EQUIPAMENTO).marca("Motorola").modelo("EP450").build();
+        UUID modeloId = UUID.randomUUID();
+        org.springframework.test.util.ReflectionTestUtils.setField(modelo, "id", modeloId);
+
+        Peca peca = Peca.builder().descricao("Bateria BP-227").build();
+        UUID pecaId = UUID.randomUUID();
+        org.springframework.test.util.ReflectionTestUtils.setField(peca, "id", pecaId);
+        peca.vincularModeloCompativel(modelo);
+
+        when(estoqueService.buscarPecaPorId(pecaId)).thenReturn(peca);
+        when(pecaRepository.save(any(Peca.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        PecaDTO resultado = service.desvincularModeloCompativel(pecaId, modeloId);
+
+        assertThat(resultado.getModelosCompativeis()).isEmpty();
+    }
+
+    @Test
     @DisplayName("listarPecas sem criticidade deve delegar pro findAll e mapear a página")
     void listarPecas_semCriticidade_deveDelegarParaFindAll() {
         Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(5).build();

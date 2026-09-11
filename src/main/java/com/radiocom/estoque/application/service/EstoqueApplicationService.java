@@ -196,6 +196,25 @@ public class EstoqueApplicationService {
         return mapper.toDTO(pecaRepository.save(peca));
     }
 
+    @Transactional
+    public PecaDTO vincularModeloCompativel(UUID pecaId, UUID catalogoModeloId) {
+        Peca peca = estoqueService.buscarPecaPorId(pecaId);
+        CatalogoModelo modelo = catalogoModeloRepository.findById(catalogoModeloId)
+                .orElseThrow(() -> new DomainException("Entrada de catálogo não encontrada: " + catalogoModeloId));
+        if (modelo.getTipoItem() != TipoItem.EQUIPAMENTO) {
+            throw new DomainException("Só é possível vincular peças a modelos do tipo EQUIPAMENTO");
+        }
+        peca.vincularModeloCompativel(modelo);
+        return mapper.toDTO(pecaRepository.save(peca));
+    }
+
+    @Transactional
+    public PecaDTO desvincularModeloCompativel(UUID pecaId, UUID catalogoModeloId) {
+        Peca peca = estoqueService.buscarPecaPorId(pecaId);
+        peca.desvincularModeloCompativel(catalogoModeloId);
+        return mapper.toDTO(pecaRepository.save(peca));
+    }
+
     // ========== MOVIMENTAÇÃO (ACESSORIO / PECA) ==========
 
     @Transactional(readOnly = true)

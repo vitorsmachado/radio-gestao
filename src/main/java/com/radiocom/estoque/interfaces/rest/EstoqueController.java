@@ -176,6 +176,20 @@ public class EstoqueController {
         return ResponseEntity.ok(estoqueService.atualizarPeca(id, dto));
     }
 
+    @PostMapping("/pecas/{id}/modelos-compativeis/{catalogoModeloId}")
+    @Operation(summary = "Vincular a peça a um modelo de equipamento compatível")
+    public ResponseEntity<PecaDTO> vincularModeloCompativel(
+            @PathVariable UUID id, @PathVariable UUID catalogoModeloId) {
+        return ResponseEntity.ok(estoqueService.vincularModeloCompativel(id, catalogoModeloId));
+    }
+
+    @DeleteMapping("/pecas/{id}/modelos-compativeis/{catalogoModeloId}")
+    @Operation(summary = "Desvincular um modelo de equipamento compatível da peça")
+    public ResponseEntity<PecaDTO> desvincularModeloCompativel(
+            @PathVariable UUID id, @PathVariable UUID catalogoModeloId) {
+        return ResponseEntity.ok(estoqueService.desvincularModeloCompativel(id, catalogoModeloId));
+    }
+
     @GetMapping("/pecas/{id}/saldo")
     @Operation(summary = "Consultar saldo em estoque da peça")
     public ResponseEntity<Integer> consultarSaldoPeca(@PathVariable UUID id) {
