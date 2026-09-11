@@ -69,6 +69,25 @@ class CatalogoModeloServiceTest {
     }
 
     @Test
+    @DisplayName("criar deve salvar o valor de referência quando informado")
+    void criar_deveSalvarValorReferencia() {
+        CatalogoModeloCreateDTO dto = CatalogoModeloCreateDTO.builder()
+                .tipoItem(TipoItem.EQUIPAMENTO)
+                .marca("Motorola")
+                .modelo("EP450")
+                .valorReferencia(new java.math.BigDecimal("1250.00"))
+                .build();
+
+        when(repository.findByTipoItemAndMarcaIgnoreCaseAndModeloIgnoreCase(
+                TipoItem.EQUIPAMENTO, "Motorola", "EP450")).thenReturn(Optional.empty());
+        when(repository.save(any(CatalogoModelo.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CatalogoModeloDTO resultado = service.criar(dto);
+
+        assertThat(resultado.getValorReferencia()).isEqualByComparingTo("1250.00");
+    }
+
+    @Test
     @DisplayName("criar deve lançar exceção quando já existe no catálogo")
     void criar_deveLancarExcecaoQuandoJaExiste() {
         CatalogoModeloCreateDTO dto = CatalogoModeloCreateDTO.builder()
@@ -110,6 +129,21 @@ class CatalogoModeloServiceTest {
 
         assertThat(resultado.getDescricao()).isEqualTo("Rádio portátil UHF");
         assertThat(resultado.getStatus()).isEqualTo(StatusItem.OBSOLETO);
+    }
+
+    @Test
+    @DisplayName("atualizar deve aplicar o valor de referência quando informado")
+    void atualizar_deveAplicarValorReferencia() {
+        CatalogoModeloUpdateDTO dto = CatalogoModeloUpdateDTO.builder()
+                .valorReferencia(new java.math.BigDecimal("80.00"))
+                .build();
+
+        when(repository.findById(modeloId)).thenReturn(Optional.of(modelo));
+        when(repository.save(any(CatalogoModelo.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CatalogoModeloDTO resultado = service.atualizar(modeloId, dto);
+
+        assertThat(resultado.getValorReferencia()).isEqualByComparingTo("80.00");
     }
 
     @Test

@@ -154,6 +154,7 @@ public class EstoqueMapper {
                 .marca(dto.getMarca().trim())
                 .modelo(dto.getModelo().trim())
                 .descricao(dto.getDescricao())
+                .valorReferencia(dto.getValorReferencia())
                 .controlePorSerie(dto.isControlePorSerie())
                 .possuiPatrimonio(dto.isPossuiPatrimonio())
                 .build();
@@ -169,6 +170,7 @@ public class EstoqueMapper {
                 .marca(cm.getMarca())
                 .modelo(cm.getModelo())
                 .descricao(cm.getDescricao())
+                .valorReferencia(cm.getValorReferencia())
                 .status(cm.getStatus())
                 .controlePorSerie(cm.isControlePorSerie())
                 .possuiPatrimonio(cm.isPossuiPatrimonio())
@@ -182,6 +184,7 @@ public class EstoqueMapper {
         if (dto.getTipoAcessorio() != null) cm.setTipoAcessorio(dto.getTipoAcessorio());
         if (dto.getReferencia() != null) cm.setReferencia(dto.getReferencia().isBlank() ? null : dto.getReferencia().trim());
         if (dto.getDescricao() != null) cm.setDescricao(dto.getDescricao());
+        if (dto.getValorReferencia() != null) cm.setValorReferencia(dto.getValorReferencia());
         if (dto.getStatus() != null) cm.setStatus(dto.getStatus());
         if (dto.getControlePorSerie() != null) cm.setControlePorSerie(dto.getControlePorSerie());
         if (dto.getPossuiPatrimonio() != null) cm.setPossuiPatrimonio(dto.getPossuiPatrimonio());

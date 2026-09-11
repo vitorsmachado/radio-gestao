@@ -4,11 +4,14 @@ import com.radiocom.estoque.domain.model.enums.TipoAcessorio;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 @Data
 @Builder
@@ -34,6 +37,9 @@ public class CatalogoModeloCreateDTO {
 
     @Size(max = 255)
     private String descricao;
+
+    @PositiveOrZero
+    private BigDecimal valorReferencia;
 
     private boolean controlePorSerie;
 

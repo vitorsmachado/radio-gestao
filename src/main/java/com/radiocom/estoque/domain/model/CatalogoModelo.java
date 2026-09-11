@@ -10,6 +10,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "catalogo_modelos", uniqueConstraints = {
         @UniqueConstraint(name = "uk_catalogo_tipo_marca_modelo",
@@ -44,6 +46,10 @@ public class CatalogoModelo extends BaseEntity {
 
     @Column(length = 255)
     private String descricao;
+
+    /** Preço de referência sugerido ao adicionar este modelo num orçamento — não é preço de venda/locação. */
+    @Column(name = "valor_referencia", precision = 15, scale = 2)
+    private BigDecimal valorReferencia;
 
     @NotNull
     @Enumerated(EnumType.STRING)

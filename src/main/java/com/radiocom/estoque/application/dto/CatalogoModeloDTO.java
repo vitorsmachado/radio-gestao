@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -24,6 +25,7 @@ public class CatalogoModeloDTO {
     private String marca;
     private String modelo;
     private String descricao;
+    private BigDecimal valorReferencia;
     private StatusItem status;
     private boolean controlePorSerie;
     private boolean possuiPatrimonio;
