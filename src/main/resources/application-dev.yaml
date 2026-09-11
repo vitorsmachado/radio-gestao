@@ -16,6 +16,11 @@ spring:
       maximum-pool-size: 5
       minimum-idle: 2
       connection-timeout: 30000
+      # preferQueryMode=simple: evita "could not determine data type of parameter"
+      # em queries com filtro opcional no padrão "(:param IS NULL OR campo = :param)"
+      # — o driver para de tentar adivinhar o tipo do parâmetro antes de executar.
+      data-source-properties:
+        preferQueryMode: simple
 
   jpa:
     hibernate:

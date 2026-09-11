@@ -14,11 +14,14 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Sobe o contexto inteiro contra um Postgres real via Testcontainers. Se as
- * migrations (V1 a V5) tiverem qualquer erro de SQL, ou se alguma entidade
- * JPA não bater com o schema que elas criam (ddl-auto=validate na base),
- * o contexto nem sobe — por isso o teste em si é simples, a validação real
- * já aconteceu no boot do @SpringBootTest.
+ * Sobe o contexto inteiro contra um Postgres real via Testcontainers. Se
+ * alguma migration tiver erro de SQL, ou se alguma entidade JPA não bater
+ * com o schema que elas criam (ddl-auto=validate na base), o contexto nem
+ * sobe — por isso o teste em si é simples, a validação real já aconteceu
+ * no boot do @SpringBootTest.
+ *
+ * IMPORTANTE: a lista de versões esperadas no segundo teste precisa ser
+ * atualizada toda vez que uma migration nova (Vn) for adicionada.
  */
 @DisplayName("Migrations Flyway - Teste de Integração (Postgres real)")
 class FlywayMigrationIT extends PostgresIntegrationTestBase {
@@ -33,7 +36,7 @@ class FlywayMigrationIT extends PostgresIntegrationTestBase {
     }
 
     @Test
-    @DisplayName("flyway_schema_history deve registrar as 5 migrations aplicadas com sucesso, em ordem")
+    @DisplayName("flyway_schema_history deve registrar todas as migrations aplicadas com sucesso, em ordem")
     void flywayHistory_deveRegistrarTodasAsMigrationsComSucesso() throws Exception {
         List<String> versoes = new ArrayList<>();
 
@@ -47,6 +50,6 @@ class FlywayMigrationIT extends PostgresIntegrationTestBase {
             }
         }
 
-        assertThat(versoes).containsExactly("1", "2", "3", "4", "5");
+        assertThat(versoes).containsExactly("1", "2", "3", "4", "5", "6", "7");
     }
 }
