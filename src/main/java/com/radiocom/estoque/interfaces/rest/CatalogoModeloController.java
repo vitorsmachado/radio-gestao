@@ -4,6 +4,7 @@ import com.radiocom.estoque.application.dto.CatalogoModeloCreateDTO;
 import com.radiocom.estoque.application.dto.CatalogoModeloDTO;
 import com.radiocom.estoque.application.dto.CatalogoModeloUpdateDTO;
 import com.radiocom.estoque.application.service.CatalogoModeloService;
+import com.radiocom.estoque.domain.model.enums.StatusItem;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,12 +12,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -47,18 +48,16 @@ public class CatalogoModeloController {
         return ResponseEntity.ok(service.atualizar(id, dto));
     }
 
-    @GetMapping("/tipo/{tipoItem}")
-    @Operation(summary = "Listar entradas de catálogo por tipo (EQUIPAMENTO/ACESSORIO/PECA/SERVICO)")
-    public ResponseEntity<List<CatalogoModeloDTO>> listarPorTipo(@PathVariable TipoItem tipoItem) {
-        return ResponseEntity.ok(service.listarPorTipo(tipoItem));
-    }
-
-    @GetMapping("/buscar")
-    @Operation(summary = "Buscar por marca ou modelo")
-    public ResponseEntity<Page<CatalogoModeloDTO>> buscarPorMarcaOuModelo(
-            @RequestParam String termo,
-            @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(service.buscarPorMarcaOuModelo(termo, pageable));
+    @GetMapping
+    @Operation(summary = "Listar catálogo",
+            description = "Busca (opcional) cobre marca, modelo e descrição. Tipo e status também são opcionais. "
+                    + "Ordenado por mais recente primeiro.")
+    public ResponseEntity<Page<CatalogoModeloDTO>> listar(
+            @RequestParam(required = false) String busca,
+            @RequestParam(required = false) TipoItem tipoItem,
+            @RequestParam(required = false) StatusItem status,
+            @PageableDefault(size = 20, sort = "dataCriacao", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(service.listar(busca, tipoItem, status, pageable));
     }
 
     @DeleteMapping("/{id}")

@@ -6,6 +6,7 @@ import com.radiocom.config.SecurityConfig;
 import com.radiocom.estoque.application.dto.CatalogoModeloCreateDTO;
 import com.radiocom.estoque.application.dto.CatalogoModeloDTO;
 import com.radiocom.estoque.application.service.CatalogoModeloService;
+import com.radiocom.estoque.domain.model.enums.StatusItem;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import com.radiocom.shared.exception.DomainException;
 import org.junit.jupiter.api.DisplayName;
@@ -14,14 +15,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -102,6 +107,33 @@ class CatalogoModeloControllerTest {
         mockMvc.perform(get("/v1/catalogo-modelos/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.modelo").value("EP450"));
+    }
+
+    @Test
+    @DisplayName("GET /v1/catalogo-modelos deve retornar 200 com a página")
+    void listar_deveRetornar200() throws Exception {
+        CatalogoModeloDTO item = CatalogoModeloDTO.builder()
+                .id(UUID.randomUUID()).tipoItem(TipoItem.EQUIPAMENTO).marca("Motorola").modelo("EP450").build();
+
+        when(service.listar(any(), any(), any(), any()))
+                .thenReturn(new PageImpl<>(List.of(item), PageRequest.of(0, 20), 1));
+
+        mockMvc.perform(get("/v1/catalogo-modelos"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].marca").value("Motorola"));
+    }
+
+    @Test
+    @DisplayName("GET /v1/catalogo-modelos deve repassar busca, tipo e status como filtros")
+    void listar_deveRepassarFiltros() throws Exception {
+        when(service.listar(eq("Motorola"), eq(TipoItem.EQUIPAMENTO), eq(StatusItem.ATIVO), any()))
+                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
+
+        mockMvc.perform(get("/v1/catalogo-modelos")
+                        .param("busca", "Motorola")
+                        .param("tipoItem", "EQUIPAMENTO")
+                        .param("status", "ATIVO"))
+                .andExpect(status().isOk());
     }
 
     @Test

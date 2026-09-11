@@ -17,6 +17,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -144,6 +149,31 @@ class CatalogoModeloServiceTest {
         CatalogoModeloDTO resultado = service.atualizar(modeloId, dto);
 
         assertThat(resultado.getValorReferencia()).isEqualByComparingTo("80.00");
+    }
+
+    @Test
+    @DisplayName("listar deve delegar busca/tipo/status pro repositório e mapear a página")
+    void listar_deveDelegarERetornarPaginaMapeada() {
+        Pageable pageable = PageRequest.of(0, 20);
+        when(repository.buscar("Motorola", TipoItem.EQUIPAMENTO, StatusItem.ATIVO, pageable))
+                .thenReturn(new PageImpl<>(List.of(modelo), pageable, 1));
+
+        var resultado = service.listar("Motorola", TipoItem.EQUIPAMENTO, StatusItem.ATIVO, pageable);
+
+        assertThat(resultado.getTotalElements()).isEqualTo(1);
+        assertThat(resultado.getContent().get(0).getMarca()).isEqualTo("Motorola");
+    }
+
+    @Test
+    @DisplayName("listar deve funcionar sem nenhum filtro informado")
+    void listar_deveFuncionarSemFiltros() {
+        Pageable pageable = PageRequest.of(0, 20);
+        when(repository.buscar(null, null, null, pageable))
+                .thenReturn(new PageImpl<>(List.of(modelo), pageable, 1));
+
+        var resultado = service.listar(null, null, null, pageable);
+
+        assertThat(resultado.getContent()).hasSize(1);
     }
 
     @Test

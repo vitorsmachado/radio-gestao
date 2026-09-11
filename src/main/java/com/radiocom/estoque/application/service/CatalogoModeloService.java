@@ -5,6 +5,7 @@ import com.radiocom.estoque.application.dto.CatalogoModeloDTO;
 import com.radiocom.estoque.application.dto.CatalogoModeloUpdateDTO;
 import com.radiocom.estoque.application.mapper.EstoqueMapper;
 import com.radiocom.estoque.domain.model.CatalogoModelo;
+import com.radiocom.estoque.domain.model.enums.StatusItem;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import com.radiocom.estoque.domain.repository.CatalogoModeloRepository;
 import com.radiocom.shared.exception.DomainException;
@@ -15,9 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -55,16 +54,8 @@ public class CatalogoModeloService {
     }
 
     @Transactional(readOnly = true)
-    public List<CatalogoModeloDTO> listarPorTipo(TipoItem tipoItem) {
-        return repository.findByTipoItem(tipoItem).stream()
-                .map(mapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public Page<CatalogoModeloDTO> buscarPorMarcaOuModelo(String termo, Pageable pageable) {
-        return repository.findByMarcaContainingIgnoreCaseOrModeloContainingIgnoreCase(termo, termo, pageable)
-                .map(mapper::toDTO);
+    public Page<CatalogoModeloDTO> listar(String busca, TipoItem tipoItem, StatusItem status, Pageable pageable) {
+        return repository.buscar(busca, tipoItem, status, pageable).map(mapper::toDTO);
     }
 
     @Transactional
