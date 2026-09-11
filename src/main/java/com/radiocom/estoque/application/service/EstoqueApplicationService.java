@@ -166,6 +166,11 @@ public class EstoqueApplicationService {
         peca.setCatalogoModelo(
                 resolverCatalogoModelo(TipoItem.PECA, dto.getCatalogoModeloId(), dto.getMarca(), dto.getModelo(), dto.getDescricao(), null));
 
+        if (dto.getModelosCompativeisIds() != null) {
+            dto.getModelosCompativeisIds().forEach(
+                    modeloId -> peca.vincularModeloCompativel(resolverModeloCompativel(modeloId)));
+        }
+
         Peca salva = pecaRepository.save(peca);
         log.info("Peça criada: {} ({})", salva.getId(), salva.getCodigo());
         return mapper.toDTO(salva);
@@ -177,16 +182,10 @@ public class EstoqueApplicationService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PecaDTO> listarPecas(Pageable pageable, CriticidadeEstoque criticidade) {
-        Page<Peca> pagina;
-        if (criticidade == CriticidadeEstoque.EM_FALTA) {
-            pagina = pecaRepository.findByQuantidadeDisponivel(0, pageable);
-        } else if (criticidade == CriticidadeEstoque.ESTOQUE_BAIXO) {
-            pagina = pecaRepository.findEstoqueBaixo(pageable);
-        } else {
-            pagina = pecaRepository.findAll(pageable);
-        }
-        return pagina.map(mapper::toDTO);
+    public Page<PecaDTO> listarPecas(Pageable pageable, CriticidadeEstoque criticidade, UUID modeloCompativelId) {
+        boolean emFalta = criticidade == CriticidadeEstoque.EM_FALTA;
+        boolean estoqueBaixo = criticidade == CriticidadeEstoque.ESTOQUE_BAIXO;
+        return pecaRepository.buscar(modeloCompativelId, emFalta, estoqueBaixo, pageable).map(mapper::toDTO);
     }
 
     @Transactional
@@ -199,13 +198,17 @@ public class EstoqueApplicationService {
     @Transactional
     public PecaDTO vincularModeloCompativel(UUID pecaId, UUID catalogoModeloId) {
         Peca peca = estoqueService.buscarPecaPorId(pecaId);
+        peca.vincularModeloCompativel(resolverModeloCompativel(catalogoModeloId));
+        return mapper.toDTO(pecaRepository.save(peca));
+    }
+
+    private CatalogoModelo resolverModeloCompativel(UUID catalogoModeloId) {
         CatalogoModelo modelo = catalogoModeloRepository.findById(catalogoModeloId)
                 .orElseThrow(() -> new DomainException("Entrada de catálogo não encontrada: " + catalogoModeloId));
         if (modelo.getTipoItem() != TipoItem.EQUIPAMENTO) {
             throw new DomainException("Só é possível vincular peças a modelos do tipo EQUIPAMENTO");
         }
-        peca.vincularModeloCompativel(modelo);
-        return mapper.toDTO(pecaRepository.save(peca));
+        return modelo;
     }
 
     @Transactional

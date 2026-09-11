@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -33,4 +34,7 @@ public class PecaCreateDTO {
 
     @Size(max = 100)
     private String modelo;
+
+    /** Modelos de equipamento (CatalogoModelo do tipo EQUIPAMENTO) com os quais a peça é compatível. */
+    private List<UUID> modelosCompativeisIds;
 }

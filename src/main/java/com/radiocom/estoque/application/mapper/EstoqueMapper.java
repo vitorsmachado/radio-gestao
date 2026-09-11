@@ -5,7 +5,6 @@ import com.radiocom.estoque.domain.model.*;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Component

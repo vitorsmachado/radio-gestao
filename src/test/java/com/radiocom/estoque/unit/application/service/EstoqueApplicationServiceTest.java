@@ -195,6 +195,27 @@ class EstoqueApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("criarPeca deve vincular os modelos compatíveis informados")
+    void criarPeca_deveVincularModelosCompativeis() {
+        UUID modeloId = UUID.randomUUID();
+        CatalogoModelo modelo = CatalogoModelo.builder().tipoItem(TipoItem.EQUIPAMENTO).marca("Motorola").modelo("EP450").build();
+        org.springframework.test.util.ReflectionTestUtils.setField(modelo, "id", modeloId);
+
+        PecaCreateDTO dto = PecaCreateDTO.builder()
+                .descricao("Bateria BP-227")
+                .modelosCompativeisIds(java.util.List.of(modeloId))
+                .build();
+
+        when(catalogoModeloRepository.findById(modeloId)).thenReturn(Optional.of(modelo));
+        when(pecaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        PecaDTO resultado = service.criarPeca(dto);
+
+        assertThat(resultado.getModelosCompativeis()).hasSize(1);
+        assertThat(resultado.getModelosCompativeis().get(0).getModelo()).isEqualTo("EP450");
+    }
+
+    @Test
     @DisplayName("vincularModeloCompativel deve vincular quando o modelo é EQUIPAMENTO")
     void vincularModeloCompativel_deveVincularQuandoEquipamento() {
         Peca peca = Peca.builder().descricao("Bateria BP-227").build();
@@ -255,43 +276,57 @@ class EstoqueApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("listarPecas sem criticidade deve delegar pro findAll e mapear a página")
-    void listarPecas_semCriticidade_deveDelegarParaFindAll() {
+    @DisplayName("listarPecas sem filtros deve chamar buscar com emFalta/estoqueBaixo false e modelo nulo")
+    void listarPecas_semFiltros_deveChamarBuscarSemRestricao() {
         Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(5).build();
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-        when(pecaRepository.findAll(pageable)).thenReturn(
+        when(pecaRepository.buscar(null, false, false, pageable)).thenReturn(
                 new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
 
-        var resultado = service.listarPecas(pageable, null);
+        var resultado = service.listarPecas(pageable, null, null);
 
         assertThat(resultado.getTotalElements()).isEqualTo(1);
         assertThat(resultado.getContent().get(0).getDescricao()).isEqualTo("Antena UHF");
     }
 
     @Test
-    @DisplayName("listarPecas com EM_FALTA deve delegar pro findByQuantidadeDisponivel(0)")
-    void listarPecas_emFalta_deveDelegarParaFindByQuantidadeZero() {
+    @DisplayName("listarPecas com EM_FALTA deve chamar buscar com emFalta=true")
+    void listarPecas_emFalta_deveChamarBuscarComEmFaltaTrue() {
         Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(0).build();
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-        when(pecaRepository.findByQuantidadeDisponivel(0, pageable)).thenReturn(
+        when(pecaRepository.buscar(null, true, false, pageable)).thenReturn(
                 new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
 
-        var resultado = service.listarPecas(pageable, CriticidadeEstoque.EM_FALTA);
+        var resultado = service.listarPecas(pageable, CriticidadeEstoque.EM_FALTA, null);
 
         assertThat(resultado.getContent().get(0).isEmFalta()).isTrue();
     }
 
     @Test
-    @DisplayName("listarPecas com ESTOQUE_BAIXO deve delegar pro findEstoqueBaixo")
-    void listarPecas_estoqueBaixo_deveDelegarParaFindEstoqueBaixo() {
+    @DisplayName("listarPecas com ESTOQUE_BAIXO deve chamar buscar com estoqueBaixo=true")
+    void listarPecas_estoqueBaixo_deveChamarBuscarComEstoqueBaixoTrue() {
         Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(2).quantidadeMinima(5).build();
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-        when(pecaRepository.findEstoqueBaixo(pageable)).thenReturn(
+        when(pecaRepository.buscar(null, false, true, pageable)).thenReturn(
                 new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
 
-        var resultado = service.listarPecas(pageable, CriticidadeEstoque.ESTOQUE_BAIXO);
+        var resultado = service.listarPecas(pageable, CriticidadeEstoque.ESTOQUE_BAIXO, null);
 
         assertThat(resultado.getContent().get(0).isEstoqueBaixo()).isTrue();
+    }
+
+    @Test
+    @DisplayName("listarPecas com modeloCompativelId deve repassar o filtro pro repositório")
+    void listarPecas_comModeloCompativelId_deveRepassarFiltro() {
+        UUID modeloId = UUID.randomUUID();
+        Peca peca = Peca.builder().descricao("Bateria BP-227").build();
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        when(pecaRepository.buscar(modeloId, false, false, pageable)).thenReturn(
+                new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
+
+        var resultado = service.listarPecas(pageable, null, modeloId);
+
+        assertThat(resultado.getContent()).hasSize(1);
     }
 
     // ===== Movimentação =====
