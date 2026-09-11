@@ -177,6 +177,19 @@ class EstoqueControllerTest {
     }
 
     @Test
+    @DisplayName("GET /pecas deve retornar 200 com a página")
+    void listarPecas_deveRetornar200() throws Exception {
+        PecaDTO pecaDTO = PecaDTO.builder().id(UUID.randomUUID()).descricao("Antena UHF").build();
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        when(estoqueService.listarPecas(any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(pecaDTO), pageable, 1));
+
+        mockMvc.perform(get("/v1/estoque/pecas"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].descricao").value("Antena UHF"));
+    }
+
+    @Test
     @DisplayName("GET /equipamentos/{id} sem autenticação deve retornar 401")
     @WithAnonymousUser
     void buscarEquipamentoPorId_semAutenticacao_deveRetornar401() throws Exception {

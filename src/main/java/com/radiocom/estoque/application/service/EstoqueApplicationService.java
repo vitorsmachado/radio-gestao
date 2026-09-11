@@ -20,6 +20,8 @@ import com.radiocom.shared.exception.DomainException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -171,6 +173,11 @@ public class EstoqueApplicationService {
     @Transactional(readOnly = true)
     public PecaDTO buscarPecaPorId(UUID id) {
         return mapper.toDTO(estoqueService.buscarPecaPorId(id));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PecaDTO> listarPecas(Pageable pageable) {
+        return pecaRepository.findAll(pageable).map(mapper::toDTO);
     }
 
     @Transactional

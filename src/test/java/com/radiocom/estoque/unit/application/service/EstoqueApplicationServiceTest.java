@@ -5,6 +5,7 @@ import com.radiocom.estoque.application.mapper.EstoqueMapper;
 import com.radiocom.estoque.application.service.EstoqueApplicationService;
 import com.radiocom.estoque.domain.model.CatalogoModelo;
 import com.radiocom.estoque.domain.model.Equipamento;
+import com.radiocom.estoque.domain.model.Peca;
 import com.radiocom.estoque.domain.model.enums.*;
 import com.radiocom.estoque.domain.repository.AcessorioRepository;
 import com.radiocom.estoque.domain.repository.CatalogoModeloRepository;
@@ -191,6 +192,20 @@ class EstoqueApplicationServiceTest {
 
         assertThat(resultado.getCodigo()).isNotBlank();
         assertThat(resultado.getQuantidadeDisponivel()).isEqualTo(20);
+    }
+
+    @Test
+    @DisplayName("listarPecas deve delegar pro repositório e mapear a página")
+    void listarPecas_deveDelegarEMapear() {
+        Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(5).build();
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        when(pecaRepository.findAll(pageable)).thenReturn(
+                new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
+
+        var resultado = service.listarPecas(pageable);
+
+        assertThat(resultado.getTotalElements()).isEqualTo(1);
+        assertThat(resultado.getContent().get(0).getDescricao()).isEqualTo("Antena UHF");
     }
 
     // ===== Movimentação =====
