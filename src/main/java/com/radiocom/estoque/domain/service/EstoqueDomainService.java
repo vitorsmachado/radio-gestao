@@ -11,6 +11,8 @@ import com.radiocom.estoque.domain.repository.MovimentacaoEstoqueRepository;
 import com.radiocom.estoque.domain.repository.PecaRepository;
 import com.radiocom.shared.exception.DomainException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,6 +85,11 @@ public class EstoqueDomainService {
         salvarItem(item, tipoItem);
         registrarMovimentacao(itemId, tipoItem, TipoMovimentacao.AJUSTE, saldoAnterior, item.getQuantidadeDisponivel(), motivo);
         return item.getQuantidadeDisponivel();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<MovimentacaoEstoque> listarMovimentacoes(UUID itemId, Pageable pageable) {
+        return movimentacaoRepository.findByItemId(itemId, pageable);
     }
 
     private void registrarMovimentacao(UUID itemId, TipoItem tipoItem, TipoMovimentacao tipoMovimentacao,

@@ -341,6 +341,38 @@ class EstoqueApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("listarMovimentacoesPeca deve verificar existência da peça e delegar pro domain service")
+    void listarMovimentacoesPeca_deveVerificarExistenciaEDelegar() {
+        UUID pecaId = UUID.randomUUID();
+        Peca peca = Peca.builder().descricao("Antena UHF").codigo("PC-001").build();
+        var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        com.radiocom.estoque.domain.model.MovimentacaoEstoque mov = com.radiocom.estoque.domain.model.MovimentacaoEstoque.builder()
+                .itemId(pecaId).tipoItem(TipoItem.PECA)
+                .tipoMovimentacao(com.radiocom.estoque.domain.model.enums.TipoMovimentacao.ENTRADA)
+                .saldoAnterior(0).saldoNovo(5).motivo("Reposição").build();
+
+        when(estoqueService.buscarPecaPorId(pecaId)).thenReturn(peca);
+        when(estoqueService.listarMovimentacoes(pecaId, pageable))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(mov), pageable, 1));
+
+        var resultado = service.listarMovimentacoesPeca(pecaId, pageable);
+
+        assertThat(resultado.getContent()).hasSize(1);
+        assertThat(resultado.getContent().get(0).getMotivo()).isEqualTo("Reposição");
+    }
+
+    @Test
+    @DisplayName("listarMovimentacoesPeca deve lançar exceção quando a peça não existe")
+    void listarMovimentacoesPeca_deveLancarExcecaoQuandoPecaNaoExiste() {
+        UUID pecaId = UUID.randomUUID();
+        var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        when(estoqueService.buscarPecaPorId(pecaId)).thenThrow(new DomainException("Peça não encontrada: " + pecaId));
+
+        assertThatThrownBy(() -> service.listarMovimentacoesPeca(pecaId, pageable))
+                .isInstanceOf(DomainException.class);
+    }
+
+    @Test
     @DisplayName("listarPecas sem filtros deve chamar buscar com emFalta/estoqueBaixo false e modelo nulo")
     void listarPecas_semFiltros_deveChamarBuscarSemRestricao() {
         Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(5).build();

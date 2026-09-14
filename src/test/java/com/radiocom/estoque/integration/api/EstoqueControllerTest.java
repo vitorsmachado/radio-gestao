@@ -213,6 +213,34 @@ class EstoqueControllerTest {
     }
 
     @Test
+    @DisplayName("GET /pecas/{id}/movimentacoes deve retornar 200 com a página")
+    void listarMovimentacoesPeca_deveRetornar200() throws Exception {
+        UUID pecaId = UUID.randomUUID();
+        MovimentacaoEstoqueDTO movDTO = MovimentacaoEstoqueDTO.builder()
+                .tipoMovimentacao(com.radiocom.estoque.domain.model.enums.TipoMovimentacao.ENTRADA)
+                .saldoAnterior(0).saldoNovo(5).motivo("Reposição").build();
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+
+        when(estoqueService.listarMovimentacoesPeca(eq(pecaId), any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(movDTO), pageable, 1));
+
+        mockMvc.perform(get("/v1/estoque/pecas/{id}/movimentacoes", pecaId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].motivo").value("Reposição"));
+    }
+
+    @Test
+    @DisplayName("GET /pecas/{id}/movimentacoes deve retornar 400 quando a peça não existe")
+    void listarMovimentacoesPeca_deveRetornar400QuandoNaoExiste() throws Exception {
+        UUID pecaId = UUID.randomUUID();
+        when(estoqueService.listarMovimentacoesPeca(eq(pecaId), any()))
+                .thenThrow(new DomainException("Peça não encontrada: " + pecaId));
+
+        mockMvc.perform(get("/v1/estoque/pecas/{id}/movimentacoes", pecaId))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("PUT /pecas/{id} deve retornar 200")
     void atualizarPeca_deveRetornar200() throws Exception {
         UUID pecaId = UUID.randomUUID();

@@ -201,6 +201,12 @@ public class EstoqueApplicationService {
         return mapper.toDTO(pecaRepository.save(peca));
     }
 
+    @Transactional(readOnly = true)
+    public Page<MovimentacaoEstoqueDTO> listarMovimentacoesPeca(UUID pecaId, Pageable pageable) {
+        estoqueService.buscarPecaPorId(pecaId);
+        return estoqueService.listarMovimentacoes(pecaId, pageable).map(mapper::toDTO);
+    }
+
     @Transactional
     public PecaDTO vincularModeloCompativel(UUID pecaId, UUID catalogoModeloId) {
         Peca peca = estoqueService.buscarPecaPorId(pecaId);

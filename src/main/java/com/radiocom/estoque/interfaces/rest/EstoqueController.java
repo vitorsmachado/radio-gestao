@@ -198,6 +198,16 @@ public class EstoqueController {
         return ResponseEntity.ok(estoqueService.consultarSaldo(id, TipoItem.PECA));
     }
 
+    @GetMapping("/pecas/{id}/movimentacoes")
+    @Operation(summary = "Histórico de movimentações de estoque da peça",
+            description = "Ordenado por mais recente primeiro. Cada registro guarda saldo anterior, saldo novo e motivo (quando informado).")
+    public ResponseEntity<Page<MovimentacaoEstoqueDTO>> listarMovimentacoesPeca(
+            @PathVariable UUID id,
+            @PageableDefault(size = 20, sort = "dataCriacao", direction = org.springframework.data.domain.Sort.Direction.DESC)
+            Pageable pageable) {
+        return ResponseEntity.ok(estoqueService.listarMovimentacoesPeca(id, pageable));
+    }
+
     @PostMapping("/pecas/{id}/entrada")
     @Operation(summary = "Registrar entrada de quantidade da peça")
     public ResponseEntity<Integer> darEntradaPeca(

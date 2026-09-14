@@ -158,6 +158,21 @@ class EstoqueDomainServiceTest {
     }
 
     @Test
+    @DisplayName("listarMovimentacoes deve delegar pro repositório filtrando por itemId")
+    void listarMovimentacoes_deveDelegarPorItemId() {
+        var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        MovimentacaoEstoque mov = MovimentacaoEstoque.builder()
+                .itemId(pecaId).tipoItem(TipoItem.PECA).tipoMovimentacao(TipoMovimentacao.ENTRADA)
+                .saldoAnterior(10).saldoNovo(15).build();
+        when(movimentacaoRepository.findByItemId(pecaId, pageable))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(mov), pageable, 1));
+
+        var resultado = service.listarMovimentacoes(pecaId, pageable);
+
+        assertThat(resultado.getContent()).containsExactly(mov);
+    }
+
+    @Test
     @DisplayName("ajustar deve definir quantidade exata e salvar")
     void ajustar_deveDefinirQuantidadeExataESalvar() {
         Acessorio acessorio = Acessorio.builder()

@@ -203,4 +203,18 @@ public class EstoqueMapper {
         if (dto.getControlePorSerie() != null) cm.setControlePorSerie(dto.getControlePorSerie());
         if (dto.getPossuiPatrimonio() != null) cm.setPossuiPatrimonio(dto.getPossuiPatrimonio());
     }
+
+    // ========== MOVIMENTAÇÃO DE ESTOQUE ==========
+
+    public MovimentacaoEstoqueDTO toDTO(MovimentacaoEstoque m) {
+        if (m == null) return null;
+        return MovimentacaoEstoqueDTO.builder()
+                .id(m.getId())
+                .tipoMovimentacao(m.getTipoMovimentacao())
+                .saldoAnterior(m.getSaldoAnterior())
+                .saldoNovo(m.getSaldoNovo())
+                .motivo(m.getMotivo())
+                .dataCriacao(m.getDataCriacao())
+                .build();
+    }
 }
