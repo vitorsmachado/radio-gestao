@@ -152,6 +152,47 @@ class CatalogoModeloServiceTest {
     }
 
     @Test
+    @DisplayName("atualizar deve permitir alterar a referência quando não há conflito")
+    void atualizar_devePermitirAlterarReferencia() {
+        CatalogoModeloUpdateDTO dto = CatalogoModeloUpdateDTO.builder().referencia("REF-002").build();
+
+        when(repository.findById(modeloId)).thenReturn(Optional.of(modelo));
+        when(repository.existsByReferenciaIgnoreCase("REF-002")).thenReturn(false);
+        when(repository.save(any(CatalogoModelo.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CatalogoModeloDTO resultado = service.atualizar(modeloId, dto);
+
+        assertThat(resultado.getReferencia()).isEqualTo("REF-002");
+    }
+
+    @Test
+    @DisplayName("atualizar deve rejeitar referência já cadastrada em outro item")
+    void atualizar_deveRejeitarReferenciaDuplicada() {
+        CatalogoModeloUpdateDTO dto = CatalogoModeloUpdateDTO.builder().referencia("referencia").build();
+
+        when(repository.findById(modeloId)).thenReturn(Optional.of(modelo));
+        when(repository.existsByReferenciaIgnoreCase("referencia")).thenReturn(true);
+
+        assertThatThrownBy(() -> service.atualizar(modeloId, dto))
+                .isInstanceOf(DomainException.class)
+                .hasMessageContaining("Referência já cadastrada");
+    }
+
+    @Test
+    @DisplayName("atualizar não deve validar duplicidade quando a referência enviada é a mesma já cadastrada")
+    void atualizar_naoDeveValidarQuandoReferenciaIgual() {
+        modelo.setReferencia("REF-001");
+        CatalogoModeloUpdateDTO dto = CatalogoModeloUpdateDTO.builder().referencia("ref-001").descricao("Atualizado").build();
+
+        when(repository.findById(modeloId)).thenReturn(Optional.of(modelo));
+        when(repository.save(any(CatalogoModelo.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CatalogoModeloDTO resultado = service.atualizar(modeloId, dto);
+
+        assertThat(resultado.getDescricao()).isEqualTo("Atualizado");
+    }
+
+    @Test
     @DisplayName("listar deve delegar busca/tipo/status pro repositório e mapear a página")
     void listar_deveDelegarERetornarPaginaMapeada() {
         Pageable pageable = PageRequest.of(0, 20);

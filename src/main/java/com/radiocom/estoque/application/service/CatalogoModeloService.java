@@ -50,6 +50,11 @@ public class CatalogoModeloService {
     @Transactional
     public CatalogoModeloDTO atualizar(UUID id, CatalogoModeloUpdateDTO dto) {
         CatalogoModelo entidade = buscarEntidade(id);
+        if (dto.getReferencia() != null && !dto.getReferencia().isBlank()
+                && !dto.getReferencia().trim().equalsIgnoreCase(entidade.getReferencia())
+                && repository.existsByReferenciaIgnoreCase(dto.getReferencia().trim())) {
+            throw new DomainException("Referência já cadastrada: " + dto.getReferencia());
+        }
         mapper.updateEntityFromDTO(dto, entidade);
         return mapper.toDTO(repository.save(entidade));
     }

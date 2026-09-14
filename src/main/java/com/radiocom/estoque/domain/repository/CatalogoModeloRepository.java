@@ -20,6 +20,8 @@ public interface CatalogoModeloRepository extends JpaRepository<CatalogoModelo, 
     Optional<CatalogoModelo> findByTipoItemAndMarcaIgnoreCaseAndModeloIgnoreCase(
             TipoItem tipoItem, String marca, String modelo);
 
+    boolean existsByReferenciaIgnoreCase(String referencia);        
+
     /**
      * Listagem combinada: todos os filtros são opcionais (null = sem restrição).
      * A busca cobre marca, modelo e descrição — o filtro por marca/modelo isolado
