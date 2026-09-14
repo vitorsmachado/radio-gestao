@@ -280,7 +280,7 @@ class EstoqueApplicationServiceTest {
     void listarPecas_semFiltros_deveChamarBuscarSemRestricao() {
         Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(5).build();
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-        when(pecaRepository.buscar(null, false, false, pageable)).thenReturn(
+        when(pecaRepository.buscar(null, false, false, false, pageable)).thenReturn(
                 new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
 
         var resultado = service.listarPecas(pageable, null, null);
@@ -294,7 +294,7 @@ class EstoqueApplicationServiceTest {
     void listarPecas_emFalta_deveChamarBuscarComEmFaltaTrue() {
         Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(0).build();
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-        when(pecaRepository.buscar(null, true, false, pageable)).thenReturn(
+        when(pecaRepository.buscar(null, true, false, false, pageable)).thenReturn(
                 new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
 
         var resultado = service.listarPecas(pageable, CriticidadeEstoque.EM_FALTA, null);
@@ -307,7 +307,7 @@ class EstoqueApplicationServiceTest {
     void listarPecas_estoqueBaixo_deveChamarBuscarComEstoqueBaixoTrue() {
         Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(2).quantidadeMinima(5).build();
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-        when(pecaRepository.buscar(null, false, true, pageable)).thenReturn(
+        when(pecaRepository.buscar(null, false, true, false, pageable)).thenReturn(
                 new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
 
         var resultado = service.listarPecas(pageable, CriticidadeEstoque.ESTOQUE_BAIXO, null);
@@ -316,12 +316,25 @@ class EstoqueApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("listarPecas com CRITICO deve chamar buscar com critico=true")
+    void listarPecas_critico_deveChamarBuscarComCriticoTrue() {
+        Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(0).build();
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        when(pecaRepository.buscar(null, false, false, true, pageable)).thenReturn(
+                new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
+
+        var resultado = service.listarPecas(pageable, CriticidadeEstoque.CRITICO, null);
+
+        assertThat(resultado.getContent()).hasSize(1);
+    }
+
+    @Test
     @DisplayName("listarPecas com modeloCompativelId deve repassar o filtro pro repositório")
     void listarPecas_comModeloCompativelId_deveRepassarFiltro() {
         UUID modeloId = UUID.randomUUID();
         Peca peca = Peca.builder().descricao("Bateria BP-227").build();
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-        when(pecaRepository.buscar(modeloId, false, false, pageable)).thenReturn(
+        when(pecaRepository.buscar(modeloId, false, false, false, pageable)).thenReturn(
                 new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
 
         var resultado = service.listarPecas(pageable, null, modeloId);

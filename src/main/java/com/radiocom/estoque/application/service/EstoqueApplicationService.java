@@ -185,7 +185,8 @@ public class EstoqueApplicationService {
     public Page<PecaDTO> listarPecas(Pageable pageable, CriticidadeEstoque criticidade, UUID modeloCompativelId) {
         boolean emFalta = criticidade == CriticidadeEstoque.EM_FALTA;
         boolean estoqueBaixo = criticidade == CriticidadeEstoque.ESTOQUE_BAIXO;
-        return pecaRepository.buscar(modeloCompativelId, emFalta, estoqueBaixo, pageable).map(mapper::toDTO);
+        boolean critico = criticidade == CriticidadeEstoque.CRITICO;
+        return pecaRepository.buscar(modeloCompativelId, emFalta, estoqueBaixo, critico, pageable).map(mapper::toDTO);
     }
 
     @Transactional

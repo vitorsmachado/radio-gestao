@@ -62,6 +62,30 @@ class PecaListagemIT extends PostgresIntegrationTestBase {
     }
 
     @Test
+    @DisplayName("listarPecas com criticidade CRITICO deve incluir tanto em falta quanto estoque baixo")
+    void listarPecas_comCritico_deveIncluirEmFaltaEEstoqueBaixo() {
+        estoqueService.criarPeca(PecaCreateDTO.builder()
+                .descricao("Fusível " + UUID.randomUUID())
+                .quantidadeDisponivel(0)
+                .build());
+
+        estoqueService.criarPeca(PecaCreateDTO.builder()
+                .descricao("Microfone " + UUID.randomUUID())
+                .quantidadeDisponivel(2)
+                .quantidadeMinima(5)
+                .build());
+
+        estoqueService.criarPeca(PecaCreateDTO.builder()
+                .descricao("Case " + UUID.randomUUID())
+                .quantidadeDisponivel(10)
+                .build());
+
+        var pagina = estoqueService.listarPecas(PageRequest.of(0, 20), CriticidadeEstoque.CRITICO, null);
+
+        assertThat(pagina.getContent()).allMatch(p -> p.isEmFalta() || p.isEstoqueBaixo());
+    }
+
+    @Test
     @DisplayName("listarPecas com modeloCompativelId deve executar sem erro de tipo de parâmetro e filtrar corretamente")
     void listarPecas_comModeloCompativel_naoDeveLancarErroEDeveFiltrar() {
         CatalogoModeloDTO modelo = catalogoModeloService.criar(CatalogoModeloCreateDTO.builder()
