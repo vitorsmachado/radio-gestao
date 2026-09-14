@@ -213,6 +213,39 @@ class EstoqueControllerTest {
     }
 
     @Test
+    @DisplayName("PUT /pecas/{id} deve retornar 200")
+    void atualizarPeca_deveRetornar200() throws Exception {
+        UUID pecaId = UUID.randomUUID();
+        PecaUpdateDTO dto = PecaUpdateDTO.builder().codigo("PC-002").descricao("Antena UHF revisada").build();
+        PecaDTO pecaDTO = PecaDTO.builder().id(pecaId).codigo("PC-002").descricao("Antena UHF revisada").build();
+
+        when(estoqueService.atualizarPeca(eq(pecaId), any(PecaUpdateDTO.class))).thenReturn(pecaDTO);
+
+        mockMvc.perform(put("/v1/estoque/pecas/{id}", pecaId)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.codigo").value("PC-002"));
+    }
+
+    @Test
+    @DisplayName("PUT /pecas/{id} deve retornar 400 quando código já está cadastrado")
+    void atualizarPeca_deveRetornar400QuandoCodigoDuplicado() throws Exception {
+        UUID pecaId = UUID.randomUUID();
+        PecaUpdateDTO dto = PecaUpdateDTO.builder().codigo("PC-999").build();
+
+        when(estoqueService.atualizarPeca(eq(pecaId), any(PecaUpdateDTO.class)))
+                .thenThrow(new DomainException("Código já cadastrado: PC-999"));
+
+        mockMvc.perform(put("/v1/estoque/pecas/{id}", pecaId)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("POST /pecas/{id}/modelos-compativeis/{catalogoModeloId} deve retornar 200")
     void vincularModeloCompativel_deveRetornar200() throws Exception {
         UUID pecaId = UUID.randomUUID();
@@ -276,7 +309,23 @@ class EstoqueControllerTest {
         UUID pecaId = UUID.randomUUID();
         MovimentacaoQuantidadeDTO dto = MovimentacaoQuantidadeDTO.builder().quantidade(5).build();
 
-        when(estoqueService.darEntrada(eq(pecaId), eq(TipoItem.PECA), eq(5))).thenReturn(15);
+        when(estoqueService.darEntrada(eq(pecaId), eq(TipoItem.PECA), eq(5), any())).thenReturn(15);
+
+        mockMvc.perform(post("/v1/estoque/pecas/{id}/entrada", pecaId)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").value(15));
+    }
+
+    @Test
+    @DisplayName("POST /pecas/{id}/entrada deve repassar o motivo informado")
+    void darEntradaPeca_deveRepassarMotivo() throws Exception {
+        UUID pecaId = UUID.randomUUID();
+        MovimentacaoQuantidadeDTO dto = MovimentacaoQuantidadeDTO.builder().quantidade(5).motivo("Reposição do fornecedor").build();
+
+        when(estoqueService.darEntrada(pecaId, TipoItem.PECA, 5, "Reposição do fornecedor")).thenReturn(15);
 
         mockMvc.perform(post("/v1/estoque/pecas/{id}/entrada", pecaId)
                         .with(csrf())

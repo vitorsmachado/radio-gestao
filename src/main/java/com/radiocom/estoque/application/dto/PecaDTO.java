@@ -23,6 +23,8 @@ public class PecaDTO {
     private Integer quantidadeMinima;
     private StatusItem status;
     private UUID catalogoModeloId;
+    private String observacoes;
+    private String localizacaoFisica;
     private boolean emFalta;
     private boolean estoqueBaixo;
     private List<CatalogoModeloDTO> modelosCompativeis;

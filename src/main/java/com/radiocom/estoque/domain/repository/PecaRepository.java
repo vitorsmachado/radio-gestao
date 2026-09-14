@@ -13,6 +13,8 @@ import java.util.UUID;
 @Repository
 public interface PecaRepository extends JpaRepository<Peca, UUID> {
 
+    boolean existsByCodigoIgnoreCase(String codigo);
+
     /**
      * Listagem combinada: emFalta/estoqueBaixo/critico/modeloCompativelId são
      * filtros independentes e opcionais (false/null = sem restrição), podendo

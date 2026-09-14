@@ -13,6 +13,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PecaUpdateDTO {
 
+    @Size(max = 50)
+    private String codigo;
+
     @Size(max = 255)
     private String descricao;
 

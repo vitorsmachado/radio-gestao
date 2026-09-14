@@ -126,21 +126,21 @@ public class EstoqueController {
     @Operation(summary = "Registrar entrada de quantidade do acessório")
     public ResponseEntity<Integer> darEntradaAcessorio(
             @PathVariable UUID id, @Valid @RequestBody MovimentacaoQuantidadeDTO dto) {
-        return ResponseEntity.ok(estoqueService.darEntrada(id, TipoItem.ACESSORIO, dto.getQuantidade()));
+        return ResponseEntity.ok(estoqueService.darEntrada(id, TipoItem.ACESSORIO, dto.getQuantidade(), dto.getMotivo()));
     }
 
     @PostMapping("/acessorios/{id}/saida")
     @Operation(summary = "Registrar saída de quantidade do acessório")
     public ResponseEntity<Integer> darSaidaAcessorio(
             @PathVariable UUID id, @Valid @RequestBody MovimentacaoQuantidadeDTO dto) {
-        return ResponseEntity.ok(estoqueService.darSaida(id, TipoItem.ACESSORIO, dto.getQuantidade()));
+        return ResponseEntity.ok(estoqueService.darSaida(id, TipoItem.ACESSORIO, dto.getQuantidade(), dto.getMotivo()));
     }
 
     @PutMapping("/acessorios/{id}/ajuste")
     @Operation(summary = "Ajustar quantidade do acessório para um valor exato")
     public ResponseEntity<Integer> ajustarAcessorio(
             @PathVariable UUID id, @Valid @RequestBody AjusteQuantidadeDTO dto) {
-        return ResponseEntity.ok(estoqueService.ajustarQuantidade(id, TipoItem.ACESSORIO, dto.getQuantidade()));
+        return ResponseEntity.ok(estoqueService.ajustarQuantidade(id, TipoItem.ACESSORIO, dto.getQuantidade(), dto.getMotivo()));
     }
 
     // ========== PECAS ==========
@@ -202,20 +202,20 @@ public class EstoqueController {
     @Operation(summary = "Registrar entrada de quantidade da peça")
     public ResponseEntity<Integer> darEntradaPeca(
             @PathVariable UUID id, @Valid @RequestBody MovimentacaoQuantidadeDTO dto) {
-        return ResponseEntity.ok(estoqueService.darEntrada(id, TipoItem.PECA, dto.getQuantidade()));
+        return ResponseEntity.ok(estoqueService.darEntrada(id, TipoItem.PECA, dto.getQuantidade(), dto.getMotivo()));
     }
 
     @PostMapping("/pecas/{id}/saida")
     @Operation(summary = "Registrar saída de quantidade da peça")
     public ResponseEntity<Integer> darSaidaPeca(
             @PathVariable UUID id, @Valid @RequestBody MovimentacaoQuantidadeDTO dto) {
-        return ResponseEntity.ok(estoqueService.darSaida(id, TipoItem.PECA, dto.getQuantidade()));
+        return ResponseEntity.ok(estoqueService.darSaida(id, TipoItem.PECA, dto.getQuantidade(), dto.getMotivo()));
     }
 
     @PutMapping("/pecas/{id}/ajuste")
     @Operation(summary = "Ajustar quantidade da peça para um valor exato")
     public ResponseEntity<Integer> ajustarPeca(
             @PathVariable UUID id, @Valid @RequestBody AjusteQuantidadeDTO dto) {
-        return ResponseEntity.ok(estoqueService.ajustarQuantidade(id, TipoItem.PECA, dto.getQuantidade()));
+        return ResponseEntity.ok(estoqueService.ajustarQuantidade(id, TipoItem.PECA, dto.getQuantidade(), dto.getMotivo()));
     }
 }

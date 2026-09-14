@@ -192,6 +192,11 @@ public class EstoqueApplicationService {
     @Transactional
     public PecaDTO atualizarPeca(UUID id, PecaUpdateDTO dto) {
         Peca peca = estoqueService.buscarPecaPorId(id);
+        if (dto.getCodigo() != null && !dto.getCodigo().isBlank()
+                && !dto.getCodigo().trim().equalsIgnoreCase(peca.getCodigo())
+                && pecaRepository.existsByCodigoIgnoreCase(dto.getCodigo().trim())) {
+            throw new DomainException("Código já cadastrado: " + dto.getCodigo());
+        }
         mapper.updateEntityFromDTO(dto, peca);
         return mapper.toDTO(pecaRepository.save(peca));
     }
@@ -227,8 +232,8 @@ public class EstoqueApplicationService {
     }
 
     @Transactional
-    public Integer darEntrada(UUID itemId, TipoItem tipoItem, Integer quantidade) {
-        Integer saldo = estoqueService.darEntrada(itemId, tipoItem, quantidade);
+    public Integer darEntrada(UUID itemId, TipoItem tipoItem, Integer quantidade, String motivo) {
+        Integer saldo = estoqueService.darEntrada(itemId, tipoItem, quantidade, motivo);
         log.info("Entrada de {} unidade(s) em {} {}. Saldo: {}", quantidade, tipoItem, itemId, saldo);
 
         if (tipoItem == TipoItem.PECA) {
@@ -239,15 +244,15 @@ public class EstoqueApplicationService {
     }
 
     @Transactional
-    public Integer darSaida(UUID itemId, TipoItem tipoItem, Integer quantidade) {
-        Integer saldo = estoqueService.darSaida(itemId, tipoItem, quantidade);
+    public Integer darSaida(UUID itemId, TipoItem tipoItem, Integer quantidade, String motivo) {
+        Integer saldo = estoqueService.darSaida(itemId, tipoItem, quantidade, motivo);
         log.info("Saída de {} unidade(s) em {} {}. Saldo: {}", quantidade, tipoItem, itemId, saldo);
         return saldo;
     }
 
     @Transactional
-    public Integer ajustarQuantidade(UUID itemId, TipoItem tipoItem, Integer novaQuantidade) {
-        Integer saldo = estoqueService.ajustar(itemId, tipoItem, novaQuantidade);
+    public Integer ajustarQuantidade(UUID itemId, TipoItem tipoItem, Integer novaQuantidade, String motivo) {
+        Integer saldo = estoqueService.ajustar(itemId, tipoItem, novaQuantidade, motivo);
         log.info("Ajuste de estoque em {} {}. Novo saldo: {}", tipoItem, itemId, saldo);
         return saldo;
     }

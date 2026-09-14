@@ -2,9 +2,12 @@ package com.radiocom.estoque.domain.service;
 
 import com.radiocom.estoque.domain.model.Acessorio;
 import com.radiocom.estoque.domain.model.ItemEstoque;
+import com.radiocom.estoque.domain.model.MovimentacaoEstoque;
 import com.radiocom.estoque.domain.model.Peca;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
+import com.radiocom.estoque.domain.model.enums.TipoMovimentacao;
 import com.radiocom.estoque.domain.repository.AcessorioRepository;
+import com.radiocom.estoque.domain.repository.MovimentacaoEstoqueRepository;
 import com.radiocom.estoque.domain.repository.PecaRepository;
 import com.radiocom.shared.exception.DomainException;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,7 @@ public class EstoqueDomainService {
 
     private final AcessorioRepository acessorioRepository;
     private final PecaRepository pecaRepository;
+    private final MovimentacaoEstoqueRepository movimentacaoRepository;
 
     @Transactional(readOnly = true)
     public Acessorio buscarAcessorioPorId(UUID id) {
@@ -52,27 +56,45 @@ public class EstoqueDomainService {
     }
 
     @Transactional
-    public Integer darEntrada(UUID itemId, TipoItem tipoItem, Integer quantidade) {
+    public Integer darEntrada(UUID itemId, TipoItem tipoItem, Integer quantidade, String motivo) {
         ItemEstoque item = buscarItem(itemId, tipoItem);
+        int saldoAnterior = item.getQuantidadeDisponivel();
         item.entrada(quantidade);
         salvarItem(item, tipoItem);
+        registrarMovimentacao(itemId, tipoItem, TipoMovimentacao.ENTRADA, saldoAnterior, item.getQuantidadeDisponivel(), motivo);
         return item.getQuantidadeDisponivel();
     }
 
     @Transactional
-    public Integer darSaida(UUID itemId, TipoItem tipoItem, Integer quantidade) {
+    public Integer darSaida(UUID itemId, TipoItem tipoItem, Integer quantidade, String motivo) {
         ItemEstoque item = buscarItem(itemId, tipoItem);
+        int saldoAnterior = item.getQuantidadeDisponivel();
         item.saida(quantidade);
         salvarItem(item, tipoItem);
+        registrarMovimentacao(itemId, tipoItem, TipoMovimentacao.SAIDA, saldoAnterior, item.getQuantidadeDisponivel(), motivo);
         return item.getQuantidadeDisponivel();
     }
 
     @Transactional
-    public Integer ajustar(UUID itemId, TipoItem tipoItem, Integer novaQuantidade) {
+    public Integer ajustar(UUID itemId, TipoItem tipoItem, Integer novaQuantidade, String motivo) {
         ItemEstoque item = buscarItem(itemId, tipoItem);
+        int saldoAnterior = item.getQuantidadeDisponivel();
         item.ajustar(novaQuantidade);
         salvarItem(item, tipoItem);
+        registrarMovimentacao(itemId, tipoItem, TipoMovimentacao.AJUSTE, saldoAnterior, item.getQuantidadeDisponivel(), motivo);
         return item.getQuantidadeDisponivel();
+    }
+
+    private void registrarMovimentacao(UUID itemId, TipoItem tipoItem, TipoMovimentacao tipoMovimentacao,
+                                        int saldoAnterior, int saldoNovo, String motivo) {
+        movimentacaoRepository.save(MovimentacaoEstoque.builder()
+                .itemId(itemId)
+                .tipoItem(tipoItem)
+                .tipoMovimentacao(tipoMovimentacao)
+                .saldoAnterior(saldoAnterior)
+                .saldoNovo(saldoNovo)
+                .motivo(motivo != null && !motivo.isBlank() ? motivo.trim() : null)
+                .build());
     }
 
     private ItemEstoque buscarItem(UUID id, TipoItem tipo) {

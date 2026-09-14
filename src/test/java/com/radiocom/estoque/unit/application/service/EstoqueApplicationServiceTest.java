@@ -276,6 +276,71 @@ class EstoqueApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("atualizarPeca deve permitir alterar o código quando não há conflito")
+    void atualizarPeca_deveAlterarCodigo() {
+        Peca peca = Peca.builder().descricao("Antena UHF").codigo("PC-001").build();
+        UUID pecaId = UUID.randomUUID();
+        org.springframework.test.util.ReflectionTestUtils.setField(peca, "id", pecaId);
+
+        when(estoqueService.buscarPecaPorId(pecaId)).thenReturn(peca);
+        when(pecaRepository.existsByCodigoIgnoreCase("PC-002")).thenReturn(false);
+        when(pecaRepository.save(any(Peca.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        PecaDTO resultado = service.atualizarPeca(pecaId, PecaUpdateDTO.builder().codigo("PC-002").build());
+
+        assertThat(resultado.getCodigo()).isEqualTo("PC-002");
+    }
+
+    @Test
+    @DisplayName("atualizarPeca deve rejeitar código já cadastrado em outra peça")
+    void atualizarPeca_deveRejeitarCodigoDuplicado() {
+        Peca peca = Peca.builder().descricao("Antena UHF").codigo("PC-001").build();
+        UUID pecaId = UUID.randomUUID();
+        org.springframework.test.util.ReflectionTestUtils.setField(peca, "id", pecaId);
+
+        when(estoqueService.buscarPecaPorId(pecaId)).thenReturn(peca);
+        when(pecaRepository.existsByCodigoIgnoreCase("PC-999")).thenReturn(true);
+
+        assertThatThrownBy(() -> service.atualizarPeca(pecaId, PecaUpdateDTO.builder().codigo("PC-999").build()))
+                .isInstanceOf(DomainException.class)
+                .hasMessageContaining("Código já cadastrado");
+    }
+
+    @Test
+    @DisplayName("atualizarPeca deve retornar observacoes e localizacaoFisica atualizadas")
+    void atualizarPeca_deveRetornarObservacoesELocalizacao() {
+        Peca peca = Peca.builder().descricao("Antena UHF").codigo("PC-001").build();
+        UUID pecaId = UUID.randomUUID();
+        org.springframework.test.util.ReflectionTestUtils.setField(peca, "id", pecaId);
+
+        when(estoqueService.buscarPecaPorId(pecaId)).thenReturn(peca);
+        when(pecaRepository.save(any(Peca.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        PecaDTO resultado = service.atualizarPeca(pecaId, PecaUpdateDTO.builder()
+                .observacoes("Verificar contatos oxidados")
+                .localizacaoFisica("Prateleira B3")
+                .build());
+
+        assertThat(resultado.getObservacoes()).isEqualTo("Verificar contatos oxidados");
+        assertThat(resultado.getLocalizacaoFisica()).isEqualTo("Prateleira B3");
+    }
+
+    @Test
+    @DisplayName("atualizarPeca não deve validar duplicidade quando o código enviado é o mesmo já cadastrado")
+    void atualizarPeca_naoDeveValidarQuandoCodigoIgual() {
+        Peca peca = Peca.builder().descricao("Antena UHF").codigo("PC-001").build();
+        UUID pecaId = UUID.randomUUID();
+        org.springframework.test.util.ReflectionTestUtils.setField(peca, "id", pecaId);
+
+        when(estoqueService.buscarPecaPorId(pecaId)).thenReturn(peca);
+        when(pecaRepository.save(any(Peca.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        PecaDTO resultado = service.atualizarPeca(pecaId, PecaUpdateDTO.builder().codigo("pc-001").descricao("Antena UHF revisada").build());
+
+        assertThat(resultado.getDescricao()).isEqualTo("Antena UHF revisada");
+    }
+
+    @Test
     @DisplayName("listarPecas sem filtros deve chamar buscar com emFalta/estoqueBaixo false e modelo nulo")
     void listarPecas_semFiltros_deveChamarBuscarSemRestricao() {
         Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(5).build();
@@ -357,9 +422,9 @@ class EstoqueApplicationServiceTest {
     @DisplayName("darEntrada de PECA deve delegar, retornar o saldo e publicar evento")
     void darEntrada_devePublicarEventoParaPeca() {
         UUID id = UUID.randomUUID();
-        when(estoqueService.darEntrada(id, TipoItem.PECA, 5)).thenReturn(15);
+        when(estoqueService.darEntrada(id, TipoItem.PECA, 5, "Reposição")).thenReturn(15);
 
-        assertThat(service.darEntrada(id, TipoItem.PECA, 5)).isEqualTo(15);
+        assertThat(service.darEntrada(id, TipoItem.PECA, 5, "Reposição")).isEqualTo(15);
 
         org.mockito.Mockito.verify(eventPublisher).publishEvent(
                 org.mockito.ArgumentMatchers.any(
@@ -370,9 +435,9 @@ class EstoqueApplicationServiceTest {
     @DisplayName("darEntrada de ACESSORIO deve delegar e retornar o saldo sem publicar evento")
     void darEntrada_naoDevePublicarEventoParaAcessorio() {
         UUID id = UUID.randomUUID();
-        when(estoqueService.darEntrada(id, TipoItem.ACESSORIO, 3)).thenReturn(8);
+        when(estoqueService.darEntrada(id, TipoItem.ACESSORIO, 3, null)).thenReturn(8);
 
-        assertThat(service.darEntrada(id, TipoItem.ACESSORIO, 3)).isEqualTo(8);
+        assertThat(service.darEntrada(id, TipoItem.ACESSORIO, 3, null)).isEqualTo(8);
 
         org.mockito.Mockito.verifyNoInteractions(eventPublisher);
     }
@@ -381,17 +446,17 @@ class EstoqueApplicationServiceTest {
     @DisplayName("darSaida deve delegar para o domain service e retornar o saldo")
     void darSaida_deveDelegar() {
         UUID id = UUID.randomUUID();
-        when(estoqueService.darSaida(id, TipoItem.ACESSORIO, 3)).thenReturn(2);
+        when(estoqueService.darSaida(id, TipoItem.ACESSORIO, 3, "Uso em conserto")).thenReturn(2);
 
-        assertThat(service.darSaida(id, TipoItem.ACESSORIO, 3)).isEqualTo(2);
+        assertThat(service.darSaida(id, TipoItem.ACESSORIO, 3, "Uso em conserto")).isEqualTo(2);
     }
 
     @Test
     @DisplayName("ajustarQuantidade deve delegar para o domain service e retornar o saldo")
     void ajustarQuantidade_deveDelegar() {
         UUID id = UUID.randomUUID();
-        when(estoqueService.ajustar(id, TipoItem.PECA, 0)).thenReturn(0);
+        when(estoqueService.ajustar(id, TipoItem.PECA, 0, "Contagem de inventário")).thenReturn(0);
 
-        assertThat(service.ajustarQuantidade(id, TipoItem.PECA, 0)).isEqualTo(0);
+        assertThat(service.ajustarQuantidade(id, TipoItem.PECA, 0, "Contagem de inventário")).isEqualTo(0);
     }
 }

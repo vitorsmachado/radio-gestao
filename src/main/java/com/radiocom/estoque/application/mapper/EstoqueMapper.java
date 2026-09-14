@@ -136,6 +136,8 @@ public class EstoqueMapper {
                 .quantidadeMinima(p.getQuantidadeMinima())
                 .status(p.getStatus())
                 .catalogoModeloId(p.getCatalogoModelo() != null ? p.getCatalogoModelo().getId() : null)
+                .observacoes(p.getObservacoes())
+                .localizacaoFisica(p.getLocalizacaoFisica())
                 .emFalta(emFalta)
                 .estoqueBaixo(estoqueBaixo)
                 .modelosCompativeis(p.getModelosCompativeis().stream()
@@ -148,6 +150,7 @@ public class EstoqueMapper {
 
     public void updateEntityFromDTO(PecaUpdateDTO dto, Peca p) {
         if (dto == null) return;
+        if (dto.getCodigo() != null && !dto.getCodigo().isBlank()) p.setCodigo(dto.getCodigo().trim());
         if (dto.getDescricao() != null) p.setDescricao(dto.getDescricao());
         if (dto.getQuantidadeMinima() != null) p.setQuantidadeMinima(dto.getQuantidadeMinima());
         if (dto.getObservacoes() != null) p.setObservacoes(dto.getObservacoes());
