@@ -1,7 +1,10 @@
 package com.radiocom.cliente.domain.service;
 
 import com.radiocom.cliente.domain.model.Cliente;
+import com.radiocom.cliente.domain.model.ClienteStatusHistorico;
+import com.radiocom.cliente.domain.model.enums.StatusCliente;
 import com.radiocom.cliente.domain.repository.ClienteRepository;
+import com.radiocom.cliente.domain.repository.ClienteStatusHistoricoRepository;
 import com.radiocom.shared.exception.DomainException;
 import com.radiocom.shared.validation.CpfCnpjValidator;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,7 @@ import java.util.stream.Collectors;
 public class ClienteDomainService {
 
     private final ClienteRepository clienteRepository;
+    private final ClienteStatusHistoricoRepository statusHistoricoRepository;
 
     @Transactional(readOnly = true)
     public Cliente buscarPorId(UUID id) {
@@ -50,25 +54,43 @@ public class ClienteDomainService {
     }
 
     @Transactional
-    public Cliente inativarCliente(UUID id) {
+    public Cliente inativarCliente(UUID id, String motivo) {
         Cliente cliente = buscarPorId(id);
         validarClienteAtivo(cliente);
+        StatusCliente statusAnterior = cliente.getStatus();
         cliente.inativar();
-        return clienteRepository.save(cliente);
+        Cliente salvo = clienteRepository.save(cliente);
+        registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), motivo);
+        return salvo;
     }
 
     @Transactional
-    public Cliente bloquearCliente(UUID id) {
+    public Cliente bloquearCliente(UUID id, String motivo) {
         Cliente cliente = buscarPorId(id);
+        StatusCliente statusAnterior = cliente.getStatus();
         cliente.bloquear();
-        return clienteRepository.save(cliente);
+        Cliente salvo = clienteRepository.save(cliente);
+        registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), motivo);
+        return salvo;
     }
 
     @Transactional
-    public Cliente ativarCliente(UUID id) {
+    public Cliente ativarCliente(UUID id, String motivo) {
         Cliente cliente = buscarPorId(id);
+        StatusCliente statusAnterior = cliente.getStatus();
         cliente.ativar();
-        return clienteRepository.save(cliente);
+        Cliente salvo = clienteRepository.save(cliente);
+        registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), motivo);
+        return salvo;
+    }
+
+    private void registrarTransicaoStatus(UUID clienteId, StatusCliente statusAnterior, StatusCliente statusNovo, String motivo) {
+        statusHistoricoRepository.save(ClienteStatusHistorico.builder()
+                .clienteId(clienteId)
+                .statusAnterior(statusAnterior)
+                .statusNovo(statusNovo)
+                .motivo(motivo != null && !motivo.isBlank() ? motivo.trim() : null)
+                .build());
     }
 
     public void validarDocumentoUnico(String documento, UUID idAtual) {

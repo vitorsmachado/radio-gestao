@@ -4,6 +4,7 @@ import com.radiocom.cliente.application.dto.ClienteCreateDTO;
 import com.radiocom.cliente.application.dto.ClienteDTO;
 import com.radiocom.cliente.application.dto.ClienteUpdateDTO;
 import com.radiocom.cliente.application.dto.ContatoDTO;
+import com.radiocom.cliente.application.dto.MotivoDTO;
 import com.radiocom.cliente.application.dto.PostoDTO;
 import com.radiocom.cliente.application.dto.PostoUpdateDTO;
 import com.radiocom.cliente.application.mapper.ClienteMapper;
@@ -223,12 +224,45 @@ class ClienteApplicationServiceTest {
     // ===== status =====
 
     @Test
-    @DisplayName("ativar deve delegar para o domain service")
+    @DisplayName("ativar deve delegar para o domain service repassando o motivo")
     void ativar_deveDelegarParaDomainService() {
-        when(domainService.ativarCliente(clienteId)).thenReturn(cliente);
+        when(domainService.ativarCliente(clienteId, "Pagamento regularizado")).thenReturn(cliente);
         when(mapper.toDTO(cliente)).thenReturn(clienteDTO);
 
-        assertThat(service.ativar(clienteId)).isEqualTo(clienteDTO);
+        MotivoDTO dto = MotivoDTO.builder().motivo("Pagamento regularizado").build();
+
+        assertThat(service.ativar(clienteId, dto)).isEqualTo(clienteDTO);
+    }
+
+    @Test
+    @DisplayName("ativar sem corpo deve repassar motivo nulo")
+    void ativar_semCorpo_deveRepassarMotivoNulo() {
+        when(domainService.ativarCliente(clienteId, null)).thenReturn(cliente);
+        when(mapper.toDTO(cliente)).thenReturn(clienteDTO);
+
+        assertThat(service.ativar(clienteId, null)).isEqualTo(clienteDTO);
+    }
+
+    @Test
+    @DisplayName("bloquear deve delegar para o domain service repassando o motivo")
+    void bloquear_deveDelegarParaDomainService() {
+        when(domainService.bloquearCliente(clienteId, "Inadimplência")).thenReturn(cliente);
+        when(mapper.toDTO(cliente)).thenReturn(clienteDTO);
+
+        MotivoDTO dto = MotivoDTO.builder().motivo("Inadimplência").build();
+
+        assertThat(service.bloquear(clienteId, dto)).isEqualTo(clienteDTO);
+    }
+
+    @Test
+    @DisplayName("inativar deve delegar para o domain service repassando o motivo")
+    void inativar_deveDelegarParaDomainService() {
+        when(domainService.inativarCliente(clienteId, "Encerramento de contrato")).thenReturn(cliente);
+        when(mapper.toDTO(cliente)).thenReturn(clienteDTO);
+
+        MotivoDTO dto = MotivoDTO.builder().motivo("Encerramento de contrato").build();
+
+        assertThat(service.inativar(clienteId, dto)).isEqualTo(clienteDTO);
     }
 
     // ===== busca por outros módulos =====

@@ -1,15 +1,18 @@
 package com.radiocom.cliente.unit.domain.service;
 
 import com.radiocom.cliente.domain.model.Cliente;
+import com.radiocom.cliente.domain.model.ClienteStatusHistorico;
 import com.radiocom.cliente.domain.model.enums.StatusCliente;
 import com.radiocom.cliente.domain.model.enums.TipoPessoa;
 import com.radiocom.cliente.domain.repository.ClienteRepository;
+import com.radiocom.cliente.domain.repository.ClienteStatusHistoricoRepository;
 import com.radiocom.cliente.domain.service.ClienteDomainService;
 import com.radiocom.shared.exception.DomainException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,6 +23,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,6 +31,7 @@ import static org.mockito.Mockito.when;
 class ClienteDomainServiceTest {
 
     @Mock private ClienteRepository clienteRepository;
+    @Mock private ClienteStatusHistoricoRepository statusHistoricoRepository;
 
     @InjectMocks
     private ClienteDomainService service;
@@ -92,7 +97,7 @@ class ClienteDomainServiceTest {
         when(clienteRepository.findById(clienteId)).thenReturn(Optional.of(cliente));
         when(clienteRepository.save(any(Cliente.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Cliente resultado = service.inativarCliente(clienteId);
+        Cliente resultado = service.inativarCliente(clienteId, null);
 
         assertThat(resultado.getStatus()).isEqualTo(StatusCliente.INATIVO);
     }
@@ -103,7 +108,7 @@ class ClienteDomainServiceTest {
         cliente.bloquear();
         when(clienteRepository.findById(clienteId)).thenReturn(Optional.of(cliente));
 
-        assertThatThrownBy(() -> service.inativarCliente(clienteId))
+        assertThatThrownBy(() -> service.inativarCliente(clienteId, null))
                 .isInstanceOf(DomainException.class)
                 .hasMessageContaining("não está ativo");
     }
@@ -114,7 +119,7 @@ class ClienteDomainServiceTest {
         when(clienteRepository.findById(clienteId)).thenReturn(Optional.of(cliente));
         when(clienteRepository.save(any(Cliente.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Cliente resultado = service.bloquearCliente(clienteId);
+        Cliente resultado = service.bloquearCliente(clienteId, null);
 
         assertThat(resultado.getStatus()).isEqualTo(StatusCliente.BLOQUEADO);
     }
@@ -126,9 +131,40 @@ class ClienteDomainServiceTest {
         when(clienteRepository.findById(clienteId)).thenReturn(Optional.of(cliente));
         when(clienteRepository.save(any(Cliente.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Cliente resultado = service.ativarCliente(clienteId);
+        Cliente resultado = service.ativarCliente(clienteId, null);
 
         assertThat(resultado.getStatus()).isEqualTo(StatusCliente.ATIVO);
+    }
+
+    @Test
+    @DisplayName("bloquearCliente deve registrar histórico com motivo, status anterior e novo")
+    void bloquearCliente_deveRegistrarHistoricoComMotivo() {
+        when(clienteRepository.findById(clienteId)).thenReturn(Optional.of(cliente));
+        when(clienteRepository.save(any(Cliente.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.bloquearCliente(clienteId, "Inadimplência recorrente");
+
+        ArgumentCaptor<ClienteStatusHistorico> captor = ArgumentCaptor.forClass(ClienteStatusHistorico.class);
+        verify(statusHistoricoRepository).save(captor.capture());
+        ClienteStatusHistorico historico = captor.getValue();
+        assertThat(historico.getClienteId()).isEqualTo(clienteId);
+        assertThat(historico.getStatusAnterior()).isEqualTo(StatusCliente.ATIVO);
+        assertThat(historico.getStatusNovo()).isEqualTo(StatusCliente.BLOQUEADO);
+        assertThat(historico.getMotivo()).isEqualTo("Inadimplência recorrente");
+    }
+
+    @Test
+    @DisplayName("ativarCliente com motivo em branco deve registrar histórico sem motivo")
+    void ativarCliente_comMotivoEmBranco_deveRegistrarSemMotivo() {
+        cliente.bloquear();
+        when(clienteRepository.findById(clienteId)).thenReturn(Optional.of(cliente));
+        when(clienteRepository.save(any(Cliente.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.ativarCliente(clienteId, "   ");
+
+        ArgumentCaptor<ClienteStatusHistorico> captor = ArgumentCaptor.forClass(ClienteStatusHistorico.class);
+        verify(statusHistoricoRepository).save(captor.capture());
+        assertThat(captor.getValue().getMotivo()).isNull();
     }
 
     // ===== validarDocumentoUnico =====

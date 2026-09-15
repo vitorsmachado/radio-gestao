@@ -4,6 +4,7 @@ import com.radiocom.cliente.application.dto.ClienteCreateDTO;
 import com.radiocom.cliente.application.dto.ClienteDTO;
 import com.radiocom.cliente.application.dto.ClienteUpdateDTO;
 import com.radiocom.cliente.application.dto.ContatoDTO;
+import com.radiocom.cliente.application.dto.MotivoDTO;
 import com.radiocom.cliente.application.dto.ContatoUpdateDTO;
 import com.radiocom.cliente.application.dto.PostoDTO;
 import com.radiocom.cliente.application.dto.PostoUpdateDTO;
@@ -107,21 +108,24 @@ public class ClienteController {
     // ========== AÇÕES DE STATUS ==========
 
     @PatchMapping("/{id}/ativar")
-    @Operation(summary = "Ativar cliente")
-    public ResponseEntity<ClienteDTO> ativar(@PathVariable UUID id) {
-        return ResponseEntity.ok(clienteService.ativar(id));
+    @Operation(summary = "Ativar cliente", description = "Motivo é opcional.")
+    public ResponseEntity<ClienteDTO> ativar(
+            @PathVariable UUID id, @RequestBody(required = false) @Valid MotivoDTO dto) {
+        return ResponseEntity.ok(clienteService.ativar(id, dto));
     }
 
     @PatchMapping("/{id}/inativar")
-    @Operation(summary = "Inativar cliente")
-    public ResponseEntity<ClienteDTO> inativar(@PathVariable UUID id) {
-        return ResponseEntity.ok(clienteService.inativar(id));
+    @Operation(summary = "Inativar cliente", description = "Motivo é opcional.")
+    public ResponseEntity<ClienteDTO> inativar(
+            @PathVariable UUID id, @RequestBody(required = false) @Valid MotivoDTO dto) {
+        return ResponseEntity.ok(clienteService.inativar(id, dto));
     }
 
     @PatchMapping("/{id}/bloquear")
-    @Operation(summary = "Bloquear cliente")
-    public ResponseEntity<ClienteDTO> bloquear(@PathVariable UUID id) {
-        return ResponseEntity.ok(clienteService.bloquear(id));
+    @Operation(summary = "Bloquear cliente", description = "Motivo é opcional.")
+    public ResponseEntity<ClienteDTO> bloquear(
+            @PathVariable UUID id, @RequestBody(required = false) @Valid MotivoDTO dto) {
+        return ResponseEntity.ok(clienteService.bloquear(id, dto));
     }
 
     // ========== GESTÃO DE POSTOS ==========

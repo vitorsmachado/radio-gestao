@@ -4,6 +4,7 @@ import com.radiocom.cliente.application.dto.ClienteCreateDTO;
 import com.radiocom.cliente.application.dto.ClienteDTO;
 import com.radiocom.cliente.application.dto.ClienteUpdateDTO;
 import com.radiocom.cliente.application.dto.ContatoDTO;
+import com.radiocom.cliente.application.dto.MotivoDTO;
 import com.radiocom.cliente.application.dto.ContatoUpdateDTO;
 import com.radiocom.cliente.application.dto.PostoDTO;
 import com.radiocom.cliente.application.dto.PostoUpdateDTO;
@@ -150,18 +151,18 @@ public class ClienteApplicationService {
     }
 
     @Transactional
-    public ClienteDTO ativar(UUID id) {
-        return mapper.toDTO(domainService.ativarCliente(id));
+    public ClienteDTO ativar(UUID id, MotivoDTO dto) {
+        return mapper.toDTO(domainService.ativarCliente(id, dto != null ? dto.getMotivo() : null));
     }
 
     @Transactional
-    public ClienteDTO bloquear(UUID id) {
-        return mapper.toDTO(domainService.bloquearCliente(id));
+    public ClienteDTO bloquear(UUID id, MotivoDTO dto) {
+        return mapper.toDTO(domainService.bloquearCliente(id, dto != null ? dto.getMotivo() : null));
     }
 
     @Transactional
-    public ClienteDTO inativar(UUID id) {
-        return mapper.toDTO(domainService.inativarCliente(id));
+    public ClienteDTO inativar(UUID id, MotivoDTO dto) {
+        return mapper.toDTO(domainService.inativarCliente(id, dto != null ? dto.getMotivo() : null));
     }
 
     // ========== GESTÃO DE POSTOS ==========

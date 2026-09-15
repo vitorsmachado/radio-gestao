@@ -6,6 +6,7 @@ import com.radiocom.cliente.application.dto.ClienteCreateDTO;
 import com.radiocom.cliente.application.dto.ClienteDTO;
 import com.radiocom.cliente.application.dto.ClienteUpdateDTO;
 import com.radiocom.cliente.application.dto.ContatoDTO;
+import com.radiocom.cliente.application.dto.MotivoDTO;
 import com.radiocom.cliente.application.dto.PostoDTO;
 import com.radiocom.cliente.application.service.ClienteApplicationService;
 import com.radiocom.cliente.domain.model.enums.StatusCliente;
@@ -32,6 +33,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -167,11 +170,42 @@ class ClienteControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /v1/clientes/{id}/ativar deve retornar 200")
-    void ativar_deveRetornar200() throws Exception {
-        when(clienteService.ativar(clienteId)).thenReturn(clienteDTO);
+    @DisplayName("PATCH /v1/clientes/{id}/ativar sem corpo deve retornar 200")
+    void ativar_semCorpo_deveRetornar200() throws Exception {
+        when(clienteService.ativar(eq(clienteId), isNull())).thenReturn(clienteDTO);
 
         mockMvc.perform(patch("/v1/clientes/{id}/ativar", clienteId).with(csrf()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("PATCH /v1/clientes/{id}/ativar com motivo deve repassar o motivo")
+    void ativar_comMotivo_deveRepassarMotivo() throws Exception {
+        MotivoDTO dto = MotivoDTO.builder().motivo("Pagamento regularizado").build();
+        when(clienteService.ativar(eq(clienteId), any(MotivoDTO.class))).thenReturn(clienteDTO);
+
+        mockMvc.perform(patch("/v1/clientes/{id}/ativar", clienteId)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("PATCH /v1/clientes/{id}/bloquear deve retornar 200")
+    void bloquear_deveRetornar200() throws Exception {
+        when(clienteService.bloquear(eq(clienteId), isNull())).thenReturn(clienteDTO);
+
+        mockMvc.perform(patch("/v1/clientes/{id}/bloquear", clienteId).with(csrf()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("PATCH /v1/clientes/{id}/inativar deve retornar 200")
+    void inativar_deveRetornar200() throws Exception {
+        when(clienteService.inativar(eq(clienteId), isNull())).thenReturn(clienteDTO);
+
+        mockMvc.perform(patch("/v1/clientes/{id}/inativar", clienteId).with(csrf()))
                 .andExpect(status().isOk());
     }
 
