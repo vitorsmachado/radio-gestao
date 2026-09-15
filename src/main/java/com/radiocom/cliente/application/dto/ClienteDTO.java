@@ -23,6 +23,8 @@ public class ClienteDTO {
 
     private UUID id;
 
+    private Integer numeroIdentificacao;
+
     @NotNull(message = "Tipo de pessoa é obrigatório")
     private TipoPessoa tipo;
 

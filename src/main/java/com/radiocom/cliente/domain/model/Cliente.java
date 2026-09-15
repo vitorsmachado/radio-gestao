@@ -32,6 +32,11 @@ import java.util.UUID;
 @ToString(callSuper = true, exclude = {"contatos", "postos"})
 public class Cliente extends BaseEntity {
 
+    /** Número interno do cliente (não é o documento) — atribuído na criação, editável depois. */
+    @NotNull
+    @Column(name = "numero_identificacao", nullable = false, unique = true)
+    private Integer numeroIdentificacao;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo", nullable = false, length = 20)

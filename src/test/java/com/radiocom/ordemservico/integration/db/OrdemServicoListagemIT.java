@@ -41,6 +41,7 @@ class OrdemServicoListagemIT extends PostgresIntegrationTestBase {
     @DisplayName("listar sem nenhum filtro deve executar sem erro de tipo de parâmetro")
     void listar_semFiltros_naoDeveLancarErroDeTipo() {
         Cliente cliente = clienteRepository.save(Cliente.builder()
+                .numeroIdentificacao(Math.abs(UUID.randomUUID().hashCode()))
                 .tipo(TipoPessoa.PESSOA_JURIDICA)
                 .documento("11222333000181")
                 .nomeRazaoSocial("Cliente Listagem IT")
@@ -56,6 +57,7 @@ class OrdemServicoListagemIT extends PostgresIntegrationTestBase {
     @DisplayName("listar por numero da OS deve encontrar a OS correspondente")
     void listar_porNumero_deveEncontrar() {
         Cliente cliente = clienteRepository.save(Cliente.builder()
+                .numeroIdentificacao(Math.abs(UUID.randomUUID().hashCode()))
                 .tipo(TipoPessoa.PESSOA_JURIDICA)
                 .documento("22333444000155")
                 .nomeRazaoSocial("Cliente Busca Numero")
@@ -71,6 +73,7 @@ class OrdemServicoListagemIT extends PostgresIntegrationTestBase {
     @DisplayName("listar por NS do item deve encontrar a OS correspondente")
     void listar_porNumeroSerieDoItem_deveEncontrar() {
         Cliente cliente = clienteRepository.save(Cliente.builder()
+                .numeroIdentificacao(Math.abs(UUID.randomUUID().hashCode()))
                 .tipo(TipoPessoa.PESSOA_JURIDICA)
                 .documento("33444555000122")
                 .nomeRazaoSocial("Cliente Busca NS")
@@ -90,6 +93,7 @@ class OrdemServicoListagemIT extends PostgresIntegrationTestBase {
     @DisplayName("listar por codigo do cliente do item deve encontrar a OS correspondente")
     void listar_porCodigoClienteDoItem_deveEncontrar() {
         Cliente cliente = clienteRepository.save(Cliente.builder()
+                .numeroIdentificacao(Math.abs(UUID.randomUUID().hashCode()))
                 .tipo(TipoPessoa.PESSOA_JURIDICA)
                 .documento("44555666000199")
                 .nomeRazaoSocial("Cliente Busca Codigo")
@@ -110,6 +114,7 @@ class OrdemServicoListagemIT extends PostgresIntegrationTestBase {
     void listar_porNomeDoCliente_deveEncontrarEPreencherDadosDoCliente() {
         String nomeUnico = "Cliente Unico " + UUID.randomUUID();
         Cliente cliente = clienteRepository.save(Cliente.builder()
+                .numeroIdentificacao(Math.abs(UUID.randomUUID().hashCode()))
                 .tipo(TipoPessoa.PESSOA_JURIDICA)
                 .documento("55666777000133")
                 .nomeRazaoSocial(nomeUnico)
@@ -136,6 +141,7 @@ class OrdemServicoListagemIT extends PostgresIntegrationTestBase {
     @DisplayName("listar com periodo deve filtrar pela data de abertura")
     void listar_comPeriodo_deveFiltrarPelaDataDeAbertura() {
         Cliente cliente = clienteRepository.save(Cliente.builder()
+                .numeroIdentificacao(Math.abs(UUID.randomUUID().hashCode()))
                 .tipo(TipoPessoa.PESSOA_JURIDICA)
                 .documento("66777888000144")
                 .nomeRazaoSocial("Cliente Periodo")

@@ -59,9 +59,11 @@ public class ClienteController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os clientes")
+    @Operation(summary = "Listar todos os clientes",
+            description = "Ordenado por número de identificação (mais recente primeiro) por padrão.")
     public ResponseEntity<Page<ClienteDTO>> listarTodos(
-            @PageableDefault(size = 20, sort = "nomeRazaoSocial") Pageable pageable) {
+            @PageableDefault(size = 20, sort = "numeroIdentificacao", direction = org.springframework.data.domain.Sort.Direction.DESC)
+            Pageable pageable) {
         return ResponseEntity.ok(clienteService.listarTodos(pageable));
     }
 

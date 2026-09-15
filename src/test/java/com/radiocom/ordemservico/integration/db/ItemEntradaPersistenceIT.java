@@ -41,6 +41,7 @@ class ItemEntradaPersistenceIT extends PostgresIntegrationTestBase {
     @DisplayName("adicionarItemConserto deve persistir com item_entrada_id preenchido e sobreviver a um reload")
     void adicionarItemConserto_devePersistirComFkPreenchida() {
         Cliente cliente = Cliente.builder()
+                .numeroIdentificacao(Math.abs(java.util.UUID.randomUUID().hashCode()))
                 .tipo(TipoPessoa.PESSOA_JURIDICA)
                 .documento("11222333000181")
                 .nomeRazaoSocial("Cliente IT Persistência")

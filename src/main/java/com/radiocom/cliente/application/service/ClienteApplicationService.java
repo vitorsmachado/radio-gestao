@@ -15,6 +15,7 @@ import com.radiocom.cliente.domain.model.enums.StatusCliente;
 import com.radiocom.cliente.domain.model.enums.TipoPessoa;
 import com.radiocom.cliente.domain.repository.ClienteRepository;
 import com.radiocom.cliente.domain.service.ClienteDomainService;
+import com.radiocom.cliente.domain.service.NumeroClienteGenerator;
 import com.radiocom.shared.exception.DomainException;
 import com.radiocom.shared.validation.CpfCnpjValidator;
 
@@ -37,6 +38,7 @@ public class ClienteApplicationService {
 
     private final ClienteRepository clienteRepository;
     private final ClienteDomainService domainService;
+    private final NumeroClienteGenerator numeroClienteGenerator;
     private final ClienteMapper mapper;
 
     @Transactional
@@ -58,6 +60,7 @@ public class ClienteApplicationService {
         Cliente cliente = mapper.toEntity(dto);
         cliente.setDocumento(documentoLimpo);
         cliente.setTipo(tipo);
+        cliente.setNumeroIdentificacao(numeroClienteGenerator.gerarNumero());
 
         Cliente salvo = clienteRepository.save(cliente);
         log.info("Cliente criado: {} - {}", salvo.getId(),
@@ -128,6 +131,12 @@ public class ClienteApplicationService {
         log.info("Atualizando cliente: {}", id);
 
         Cliente cliente = domainService.buscarPorId(id);
+
+        if (dto.getNumeroIdentificacao() != null
+                && !dto.getNumeroIdentificacao().equals(cliente.getNumeroIdentificacao())
+                && clienteRepository.existsByNumeroIdentificacaoAndIdNot(dto.getNumeroIdentificacao(), id)) {
+            throw new DomainException("Número de identificação já está em uso: " + dto.getNumeroIdentificacao());
+        }
 
         // tipo e documento são imutáveis — use os endpoints dedicados para
         // transições de status (/ativar, /inativar, /bloquear)

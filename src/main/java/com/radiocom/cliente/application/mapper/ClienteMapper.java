@@ -133,6 +133,7 @@ public class ClienteMapper {
      */
     public void updateEntityFromDTO(ClienteUpdateDTO dto, Cliente entity) {
         if (dto == null) return;
+        if (dto.getNumeroIdentificacao() != null) entity.setNumeroIdentificacao(dto.getNumeroIdentificacao());
         if (dto.getNomeRazaoSocial() != null) entity.setNomeRazaoSocial(dto.getNomeRazaoSocial());
         if (dto.getNomeFantasia() != null) entity.setNomeFantasia(dto.getNomeFantasia());
         if (dto.getInscricaoEstadual() != null) entity.setInscricaoEstadual(dto.getInscricaoEstadual());

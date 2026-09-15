@@ -16,6 +16,7 @@ import com.radiocom.cliente.domain.model.enums.TipoContato;
 import com.radiocom.cliente.domain.model.enums.TipoPessoa;
 import com.radiocom.cliente.domain.repository.ClienteRepository;
 import com.radiocom.cliente.domain.service.ClienteDomainService;
+import com.radiocom.cliente.domain.service.NumeroClienteGenerator;
 import com.radiocom.shared.exception.DomainException;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +44,7 @@ class ClienteApplicationServiceTest {
 
     @Mock private ClienteRepository clienteRepository;
     @Mock private ClienteDomainService domainService;
+    @Mock private NumeroClienteGenerator numeroClienteGenerator;
     @Mock private ClienteMapper mapper;
 
     @InjectMocks
@@ -110,6 +112,25 @@ class ClienteApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("criar deve atribuir o numeroIdentificacao gerado")
+    void criar_deveAtribuirNumeroIdentificacaoGerado() {
+        ClienteCreateDTO dto = ClienteCreateDTO.builder()
+                .documento("11222333000181")
+                .nomeRazaoSocial("Radio Comunicacao LTDA")
+                .build();
+
+        Cliente entidadeMapeada = new Cliente();
+        when(mapper.toEntity(dto)).thenReturn(entidadeMapeada);
+        when(numeroClienteGenerator.gerarNumero()).thenReturn(42);
+        when(clienteRepository.save(any(Cliente.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(mapper.toDTO(any(Cliente.class))).thenReturn(clienteDTO);
+
+        service.criar(dto);
+
+        assertThat(entidadeMapeada.getNumeroIdentificacao()).isEqualTo(42);
+    }
+
+    @Test
     @DisplayName("criar deve lançar exceção quando documento é inválido")
     void criar_deveLancarExcecaoQuandoDocumentoInvalido() {
         ClienteCreateDTO dto = ClienteCreateDTO.builder()
@@ -150,6 +171,53 @@ class ClienteApplicationServiceTest {
 
         verify(mapper).updateEntityFromDTO(dto, cliente);
         verify(clienteRepository).save(cliente);
+    }
+
+    @Test
+    @DisplayName("atualizar deve permitir alterar o numeroIdentificacao quando não há conflito")
+    void atualizar_devePermitirAlterarNumeroIdentificacao() {
+        ReflectionTestUtils.setField(cliente, "numeroIdentificacao", 10);
+        ClienteUpdateDTO dto = ClienteUpdateDTO.builder().numeroIdentificacao(20).build();
+
+        when(domainService.buscarPorId(clienteId)).thenReturn(cliente);
+        when(clienteRepository.existsByNumeroIdentificacaoAndIdNot(20, clienteId)).thenReturn(false);
+        when(clienteRepository.save(cliente)).thenReturn(cliente);
+        when(mapper.toDTO(cliente)).thenReturn(clienteDTO);
+
+        service.atualizar(clienteId, dto);
+
+        verify(mapper).updateEntityFromDTO(dto, cliente);
+    }
+
+    @Test
+    @DisplayName("atualizar deve rejeitar numeroIdentificacao já usado por outro cliente")
+    void atualizar_deveRejeitarNumeroIdentificacaoDuplicado() {
+        ReflectionTestUtils.setField(cliente, "numeroIdentificacao", 10);
+        ClienteUpdateDTO dto = ClienteUpdateDTO.builder().numeroIdentificacao(99).build();
+
+        when(domainService.buscarPorId(clienteId)).thenReturn(cliente);
+        when(clienteRepository.existsByNumeroIdentificacaoAndIdNot(99, clienteId)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.atualizar(clienteId, dto))
+                .isInstanceOf(DomainException.class)
+                .hasMessageContaining("Número de identificação já está em uso");
+
+        verify(clienteRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("atualizar não deve validar duplicidade quando o numeroIdentificacao enviado é o mesmo já cadastrado")
+    void atualizar_naoDeveValidarQuandoNumeroIdentificacaoIgual() {
+        ReflectionTestUtils.setField(cliente, "numeroIdentificacao", 10);
+        ClienteUpdateDTO dto = ClienteUpdateDTO.builder().numeroIdentificacao(10).build();
+
+        when(domainService.buscarPorId(clienteId)).thenReturn(cliente);
+        when(clienteRepository.save(cliente)).thenReturn(cliente);
+        when(mapper.toDTO(cliente)).thenReturn(clienteDTO);
+
+        service.atualizar(clienteId, dto);
+
+        verify(clienteRepository, never()).existsByNumeroIdentificacaoAndIdNot(any(), any());
     }
 
     // ===== status =====

@@ -1,6 +1,7 @@
 package com.radiocom.cliente.application.dto;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +20,9 @@ import lombok.Data;
 @Data
 @Builder
 public class ClienteUpdateDTO {
+
+    @Positive(message = "Número de identificação deve ser positivo")
+    private Integer numeroIdentificacao;
 
     @Size(max = 255, message = "Nome/Razão Social deve ter no máximo 255 caracteres")
     private String nomeRazaoSocial;

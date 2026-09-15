@@ -23,6 +23,8 @@ public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
 
     boolean existsByDocumento(String documento);
 
+    boolean existsByNumeroIdentificacaoAndIdNot(Integer numeroIdentificacao, UUID id);
+
     @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END FROM Cliente c WHERE c.documento = :documento AND c.id != :id")
     boolean existsByDocumentoAndIdNot(@Param("documento") String documento, @Param("id") UUID id);
 
