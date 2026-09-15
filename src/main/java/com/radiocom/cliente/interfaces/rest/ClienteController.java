@@ -60,12 +60,16 @@ public class ClienteController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os clientes",
-            description = "Ordenado por número de identificação (mais recente primeiro) por padrão.")
+    @Operation(summary = "Listar clientes com busca e filtro de status",
+            description = "Ordenado por número de identificação (mais recente primeiro) por padrão. "
+                    + "'busca' casa com nome/razão social, nome fantasia, documento, número de identificação, "
+                    + "e nome de posto ou contato. 'status' é opcional — sem ele, retorna todos os status.")
     public ResponseEntity<Page<ClienteDTO>> listarTodos(
+            @RequestParam(required = false) String busca,
+            @RequestParam(required = false) StatusCliente status,
             @PageableDefault(size = 20, sort = "numeroIdentificacao", direction = org.springframework.data.domain.Sort.Direction.DESC)
             Pageable pageable) {
-        return ResponseEntity.ok(clienteService.listarTodos(pageable));
+        return ResponseEntity.ok(clienteService.listar(busca, status, pageable));
     }
 
     @PutMapping("/{id}")

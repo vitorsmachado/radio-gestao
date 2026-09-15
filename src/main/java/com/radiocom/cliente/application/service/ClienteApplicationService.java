@@ -85,9 +85,15 @@ public class ClienteApplicationService {
         return mapper.toDTO(domainService.buscarPorDocumento(documento));
     }
 
+    /**
+     * Listagem geral com busca opcional (nome/razão social, nome fantasia,
+     * documento, número de identificação, nome de posto ou de contato) e
+     * filtro opcional por status.
+     */
     @Transactional(readOnly = true)
-    public Page<ClienteDTO> listarTodos(Pageable pageable) {
-        return clienteRepository.findAll(pageable).map(mapper::toDTO);
+    public Page<ClienteDTO> listar(String busca, StatusCliente status, Pageable pageable) {
+        String buscaTratada = busca != null && !busca.isBlank() ? busca.trim() : null;
+        return clienteRepository.buscar(buscaTratada, status, pageable).map(mapper::toDTO);
     }
 
     @Transactional(readOnly = true)

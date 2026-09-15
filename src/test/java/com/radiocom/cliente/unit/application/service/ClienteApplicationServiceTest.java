@@ -221,6 +221,34 @@ class ClienteApplicationServiceTest {
         verify(clienteRepository, never()).existsByNumeroIdentificacaoAndIdNot(any(), any());
     }
 
+    // ===== listar =====
+
+    @Test
+    @DisplayName("listar deve repassar busca e status pro repositório")
+    void listar_deveRepassarBuscaEStatus() {
+        var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        when(clienteRepository.buscar("Radio", StatusCliente.ATIVO, pageable))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(cliente), pageable, 1));
+        when(mapper.toDTO(cliente)).thenReturn(clienteDTO);
+
+        var resultado = service.listar("Radio", StatusCliente.ATIVO, pageable);
+
+        assertThat(resultado.getContent()).containsExactly(clienteDTO);
+    }
+
+    @Test
+    @DisplayName("listar deve tratar busca em branco como nula")
+    void listar_deveTratarBuscaEmBrancoComoNula() {
+        var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        when(clienteRepository.buscar(null, null, pageable))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(cliente), pageable, 1));
+        when(mapper.toDTO(cliente)).thenReturn(clienteDTO);
+
+        service.listar("   ", null, pageable);
+
+        verify(clienteRepository).buscar(null, null, pageable);
+    }
+
     // ===== status =====
 
     @Test

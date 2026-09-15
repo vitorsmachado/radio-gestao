@@ -148,9 +148,20 @@ class ClienteControllerTest {
     @DisplayName("GET /v1/clientes deve retornar 200 com página de clientes")
     void listarTodos_deveRetornar200() throws Exception {
         Page<ClienteDTO> pagina = new PageImpl<>(List.of(clienteDTO), PageRequest.of(0, 20), 1);
-        when(clienteService.listarTodos(any())).thenReturn(pagina);
+        when(clienteService.listar(any(), any(), any())).thenReturn(pagina);
 
         mockMvc.perform(get("/v1/clientes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(clienteId.toString()));
+    }
+
+    @Test
+    @DisplayName("GET /v1/clientes?busca=&status= deve repassar os filtros")
+    void listarTodos_deveRepassarBuscaEStatus() throws Exception {
+        Page<ClienteDTO> pagina = new PageImpl<>(List.of(clienteDTO), PageRequest.of(0, 20), 1);
+        when(clienteService.listar(eq("Radio"), eq(StatusCliente.ATIVO), any())).thenReturn(pagina);
+
+        mockMvc.perform(get("/v1/clientes").param("busca", "Radio").param("status", "ATIVO"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(clienteId.toString()));
     }

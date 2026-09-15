@@ -40,6 +40,23 @@ public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
             + "c.documento LIKE CONCAT('%', :busca, '%')")
     java.util.List<Cliente> buscarPorNomeOuDocumento(@Param("busca") String busca);
 
+    /**
+     * Listagem geral com busca opcional (nome/razão social, nome fantasia,
+     * documento, número de identificação, nome de posto ou de contato) e
+     * filtro opcional por status.
+     */
+    @Query("SELECT c FROM Cliente c WHERE "
+            + "(:busca IS NULL OR "
+            + "   LOWER(c.nomeRazaoSocial) LIKE LOWER(CONCAT('%', :busca, '%')) OR "
+            + "   LOWER(c.nomeFantasia) LIKE LOWER(CONCAT('%', :busca, '%')) OR "
+            + "   c.documento LIKE CONCAT('%', :busca, '%') OR "
+            + "   CAST(c.numeroIdentificacao AS string) LIKE CONCAT('%', :busca, '%') OR "
+            + "   EXISTS (SELECT 1 FROM Posto p WHERE p.cliente = c AND LOWER(p.nome) LIKE LOWER(CONCAT('%', :busca, '%'))) OR "
+            + "   EXISTS (SELECT 1 FROM Contato ct WHERE ct.cliente = c AND LOWER(ct.nome) LIKE LOWER(CONCAT('%', :busca, '%')))"
+            + ") AND "
+            + "(:status IS NULL OR c.status = :status)")
+    Page<Cliente> buscar(@Param("busca") String busca, @Param("status") StatusCliente status, Pageable pageable);
+
     @EntityGraph(attributePaths = {"contatos", "postos"})
     Optional<Cliente> findWithRelationsById(UUID id);
 }
