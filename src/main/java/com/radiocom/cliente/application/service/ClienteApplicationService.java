@@ -107,6 +107,22 @@ public class ClienteApplicationService {
                 .map(mapper::toDTO);
     }
 
+    /** Usado por outros módulos (ex: busca de OS) pra resolver clientes por nome ou documento. */
+    @Transactional(readOnly = true)
+    public List<ClienteDTO> buscarPorNomeOuDocumento(String busca) {
+        return clienteRepository.buscarPorNomeOuDocumento(busca).stream()
+                .map(mapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    /** Usado por outros módulos pra resolver em lote os dados de exibição (nome/documento) de um conjunto de clientes. */
+    @Transactional(readOnly = true)
+    public List<ClienteDTO> buscarPorIds(List<UUID> ids) {
+        return clienteRepository.findAllById(ids).stream()
+                .map(mapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public ClienteDTO atualizar(UUID id, ClienteUpdateDTO dto) {
         log.info("Atualizando cliente: {}", id);

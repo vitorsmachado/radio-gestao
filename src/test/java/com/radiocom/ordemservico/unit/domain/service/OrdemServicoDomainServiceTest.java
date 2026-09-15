@@ -85,6 +85,21 @@ class OrdemServicoDomainServiceTest {
     }
 
     @Test
+    @DisplayName("buscar deve delegar pro repositório com os filtros informados")
+    void buscar_deveDelegarParaORepositorio() {
+        var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        List<UUID> clienteIdsMatched = List.of(clienteId);
+        var dataInicial = java.time.LocalDateTime.of(2026, 3, 1, 0, 0);
+        var dataFinal = java.time.LocalDateTime.of(2026, 3, 31, 23, 59);
+        when(osRepository.buscar("OS-2026", clienteIdsMatched, dataInicial, dataFinal, pageable))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(os), pageable, 1));
+
+        var resultado = service.buscar("OS-2026", clienteIdsMatched, dataInicial, dataFinal, pageable);
+
+        assertThat(resultado.getContent()).containsExactly(os);
+    }
+
+    @Test
     @DisplayName("iniciarAndamento deve mudar status e salvar")
     void iniciarAndamento_deveMudarStatusESalvar() {
         when(osRepository.findById(osId)).thenReturn(Optional.of(os));

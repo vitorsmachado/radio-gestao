@@ -32,6 +32,12 @@ public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
 
     Page<Cliente> findByNomeRazaoSocialContainingIgnoreCase(String nome, Pageable pageable);
 
+    /** Usado por outros módulos (ex: busca de OS) pra resolver clientes por nome ou documento, sem paginação. */
+    @Query("SELECT c FROM Cliente c WHERE "
+            + "LOWER(c.nomeRazaoSocial) LIKE LOWER(CONCAT('%', :busca, '%')) OR "
+            + "c.documento LIKE CONCAT('%', :busca, '%')")
+    java.util.List<Cliente> buscarPorNomeOuDocumento(@Param("busca") String busca);
+
     @EntityGraph(attributePaths = {"contatos", "postos"})
     Optional<Cliente> findWithRelationsById(UUID id);
 }

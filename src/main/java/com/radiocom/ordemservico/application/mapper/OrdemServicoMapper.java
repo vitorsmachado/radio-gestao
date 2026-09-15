@@ -28,12 +28,29 @@ public class OrdemServicoMapper {
                 .status(os.getStatus())
                 .dataAbertura(os.getDataAbertura())
                 .dataConclusao(os.getDataConclusao())
+                .dataAtualizacao(os.getDataAtualizacao())
                 .observacoes(os.getObservacoes())
                 .build();
     }
 
     public List<OrdemServicoDTO> toDTOList(Collection<OrdemServico> entities) {
         return entities.stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
+    /** clienteNome/clienteDocumento vêm nulos quando o cliente não é encontrado na resolução em lote. */
+    public OrdemServicoResumoDTO toResumoDTO(OrdemServico os, String clienteNome, String clienteDocumento) {
+        if (os == null) return null;
+        return OrdemServicoResumoDTO.builder()
+                .id(os.getId())
+                .numero(os.getNumero())
+                .clienteId(os.getClienteId())
+                .clienteNome(clienteNome)
+                .clienteDocumento(clienteDocumento)
+                .solicitante(os.getSolicitante())
+                .status(os.getStatus())
+                .dataAbertura(os.getDataAbertura())
+                .dataAtualizacao(os.getDataAtualizacao())
+                .build();
     }
 
     // ========== ITEM DE ENTRADA ==========
@@ -47,6 +64,7 @@ public class OrdemServicoMapper {
                 .descricao(dto.getDescricao())
                 .numeroSerie(dto.getNumeroSerie())
                 .patrimonio(dto.getPatrimonio())
+                .codigoCliente(dto.getCodigoCliente())
                 .marca(dto.getMarca())
                 .modelo(dto.getModelo())
                 .defeitoRelatado(dto.getDefeitoRelatado())
@@ -65,6 +83,7 @@ public class OrdemServicoMapper {
                 .descricao(item.getDescricao())
                 .numeroSerie(item.getNumeroSerie())
                 .patrimonio(item.getPatrimonio())
+                .codigoCliente(item.getCodigoCliente())
                 .marca(item.getMarca())
                 .modelo(item.getModelo())
                 .defeitoRelatado(item.getDefeitoRelatado())

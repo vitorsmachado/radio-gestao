@@ -62,6 +62,28 @@ class ItemEntradaApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("criar deve mapear o codigoCliente informado")
+    void criar_deveMapearCodigoCliente() {
+        ItemEntradaCreateDTO dto = ItemEntradaCreateDTO.builder()
+                .osId(item.getOsId())
+                .tipoItem(TipoItem.EQUIPAMENTO)
+                .descricao("Rádio Motorola EP450")
+                .codigoCliente("TAG-CLIENTE-042")
+                .build();
+        ItemEntrada itemComCodigo = ItemEntrada.builder()
+                .osId(item.getOsId())
+                .tipoItem(TipoItem.EQUIPAMENTO)
+                .descricao("Rádio Motorola EP450")
+                .codigoCliente("TAG-CLIENTE-042")
+                .build();
+        when(itemDomainService.criar(any(ItemEntrada.class))).thenReturn(itemComCodigo);
+
+        ItemEntradaDTO resultado = service.criar(dto);
+
+        assertThat(resultado.getCodigoCliente()).isEqualTo("TAG-CLIENTE-042");
+    }
+
+    @Test
     @DisplayName("avaliar deve delegar para o domain service")
     void avaliar_deveDelegar() {
         item.avaliar("Capacitor queimado", false);

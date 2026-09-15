@@ -36,6 +36,9 @@ public class ItemEntradaCreateDTO {
     private String patrimonio;
 
     @Size(max = 100)
+    private String codigoCliente;
+
+    @Size(max = 100)
     private String marca;
 
     @Size(max = 100)

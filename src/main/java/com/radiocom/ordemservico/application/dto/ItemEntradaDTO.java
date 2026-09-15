@@ -25,6 +25,7 @@ public class ItemEntradaDTO {
     private String descricao;
     private String numeroSerie;
     private String patrimonio;
+    private String codigoCliente;
     private String marca;
     private String modelo;
     private String defeitoRelatado;

@@ -7,6 +7,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -14,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,6 +53,21 @@ public class OrdemServicoController {
     @Operation(summary = "Listar OS por cliente")
     public ResponseEntity<List<OrdemServicoDTO>> listarPorCliente(@RequestParam UUID clienteId) {
         return ResponseEntity.ok(service.listarPorCliente(clienteId));
+    }
+
+    @GetMapping("/busca")
+    @Operation(summary = "Listagem geral de OS com busca e filtros",
+            description = "Ordenado por número (mais recente primeiro) por padrão — sobrescrevível via "
+                    + "?sort=dataAtualizacao,desc ou ?sort=dataAbertura,desc. 'busca' casa com número da OS, "
+                    + "N/S ou código do cliente dos itens, e nome/documento do cliente. Período opcional "
+                    + "filtra pela data de abertura.")
+    public ResponseEntity<Page<OrdemServicoResumoDTO>> listar(
+            @RequestParam(required = false) String busca,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicial,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFinal,
+            @PageableDefault(size = 20, sort = "numero", direction = org.springframework.data.domain.Sort.Direction.DESC)
+            Pageable pageable) {
+        return ResponseEntity.ok(service.listar(busca, dataInicial, dataFinal, pageable));
     }
 
     @PatchMapping("/{id}/iniciar-andamento")

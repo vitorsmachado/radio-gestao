@@ -1,23 +1,37 @@
 package com.radiocom.ordemservico.application.service;
 
+import com.radiocom.cliente.application.dto.ClienteDTO;
+import com.radiocom.cliente.application.service.ClienteApplicationService;
 import com.radiocom.ordemservico.application.dto.*;
 import com.radiocom.ordemservico.application.mapper.OrdemServicoMapper;
 import com.radiocom.ordemservico.domain.model.OrdemServico;
 import com.radiocom.ordemservico.domain.service.OrdemServicoDomainService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class OrdemServicoApplicationService {
 
+    /** UUID sentinela — usado no lugar de uma lista vazia pra evitar "IN ()" no SQL quando nenhum cliente casa com a busca. */
+    private static final UUID CLIENTE_ID_INEXISTENTE = new UUID(0, 0);
+
     private final OrdemServicoDomainService osDomainService;
+    private final ClienteApplicationService clienteApplicationService;
     private final OrdemServicoMapper mapper;
 
     @Transactional
@@ -42,6 +56,41 @@ public class OrdemServicoApplicationService {
     @Transactional(readOnly = true)
     public List<OrdemServicoDTO> listarPorCliente(UUID clienteId) {
         return mapper.toDTOList(osDomainService.listarPorCliente(clienteId));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OrdemServicoResumoDTO> listar(String busca, LocalDate dataInicial, LocalDate dataFinal, Pageable pageable) {
+        String buscaTratada = busca != null && !busca.isBlank() ? busca.trim() : null;
+
+        List<UUID> clienteIdsMatched = List.of(CLIENTE_ID_INEXISTENTE);
+        if (buscaTratada != null) {
+            List<UUID> encontrados = clienteApplicationService.buscarPorNomeOuDocumento(buscaTratada).stream()
+                    .map(ClienteDTO::getId)
+                    .collect(Collectors.toList());
+            if (!encontrados.isEmpty()) {
+                clienteIdsMatched = encontrados;
+            }
+        }
+
+        LocalDateTime dataInicialDT = dataInicial != null ? dataInicial.atStartOfDay() : null;
+        LocalDateTime dataFinalDT = dataFinal != null ? dataFinal.atTime(LocalTime.MAX) : null;
+
+        Page<OrdemServico> pagina = osDomainService.buscar(buscaTratada, clienteIdsMatched, dataInicialDT, dataFinalDT, pageable);
+
+        List<UUID> clienteIdsDaPagina = pagina.getContent().stream()
+                .map(OrdemServico::getClienteId)
+                .distinct()
+                .collect(Collectors.toList());
+        Map<UUID, ClienteDTO> clientesPorId = clienteIdsDaPagina.isEmpty()
+                ? Map.of()
+                : clienteApplicationService.buscarPorIds(clienteIdsDaPagina).stream()
+                        .collect(Collectors.toMap(ClienteDTO::getId, Function.identity()));
+
+        return pagina.map(os -> {
+            ClienteDTO cliente = clientesPorId.get(os.getClienteId());
+            return mapper.toResumoDTO(os, cliente != null ? cliente.getNomeRazaoSocial() : null,
+                    cliente != null ? cliente.getDocumento() : null);
+        });
     }
 
     @Transactional

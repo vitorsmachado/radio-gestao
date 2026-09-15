@@ -6,9 +6,12 @@ import com.radiocom.ordemservico.domain.repository.ItemEntradaRepository;
 import com.radiocom.ordemservico.domain.repository.OrdemServicoRepository;
 import com.radiocom.shared.exception.DomainException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,6 +38,12 @@ public class OrdemServicoDomainService {
     @Transactional(readOnly = true)
     public List<OrdemServico> listarPorCliente(UUID clienteId) {
         return osRepository.findByClienteId(clienteId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OrdemServico> buscar(String busca, List<UUID> clienteIdsMatched,
+                                      LocalDateTime dataInicial, LocalDateTime dataFinal, Pageable pageable) {
+        return osRepository.buscar(busca, clienteIdsMatched, dataInicial, dataFinal, pageable);
     }
 
     @Transactional

@@ -163,6 +163,30 @@ class ClienteApplicationServiceTest {
         assertThat(service.ativar(clienteId)).isEqualTo(clienteDTO);
     }
 
+    // ===== busca por outros módulos =====
+
+    @Test
+    @DisplayName("buscarPorNomeOuDocumento deve delegar pro repositório e mapear a lista")
+    void buscarPorNomeOuDocumento_deveDelegarEMapear() {
+        when(clienteRepository.buscarPorNomeOuDocumento("Radio")).thenReturn(java.util.List.of(cliente));
+        when(mapper.toDTO(cliente)).thenReturn(clienteDTO);
+
+        var resultado = service.buscarPorNomeOuDocumento("Radio");
+
+        assertThat(resultado).containsExactly(clienteDTO);
+    }
+
+    @Test
+    @DisplayName("buscarPorIds deve delegar pro repositório e mapear a lista")
+    void buscarPorIds_deveDelegarEMapear() {
+        when(clienteRepository.findAllById(java.util.List.of(clienteId))).thenReturn(java.util.List.of(cliente));
+        when(mapper.toDTO(cliente)).thenReturn(clienteDTO);
+
+        var resultado = service.buscarPorIds(java.util.List.of(clienteId));
+
+        assertThat(resultado).containsExactly(clienteDTO);
+    }
+
     // ===== postos =====
 
     @Test

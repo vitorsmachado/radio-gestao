@@ -9,22 +9,24 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Linha da listagem geral de OS — inclui nome/documento do cliente (resolvidos
+ * em lote a partir do módulo Cliente) pra evitar que o front precise buscar
+ * cada cliente individualmente pra montar a lista.
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrdemServicoDTO {
+public class OrdemServicoResumoDTO {
 
     private UUID id;
     private String numero;
     private UUID clienteId;
-    private UUID postoId;
-    private UUID tecnicoId;
+    private String clienteNome;
+    private String clienteDocumento;
     private String solicitante;
-    private String recebedorNome;
     private StatusOS status;
     private LocalDateTime dataAbertura;
-    private LocalDateTime dataConclusao;
     private LocalDateTime dataAtualizacao;
-    private String observacoes;
 }

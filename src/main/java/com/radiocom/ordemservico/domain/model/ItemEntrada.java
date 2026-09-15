@@ -55,6 +55,10 @@ public class ItemEntrada extends BaseEntity {
     @Column(name = "patrimonio", length = 50)
     private String patrimonio;
 
+    /** Identificação própria do cliente pro item (tag/código interno dele, distinto do nosso patrimônio). */
+    @Column(name = "codigo_cliente", length = 100)
+    private String codigoCliente;
+
     @Column(name = "marca", length = 100)
     private String marca;
 

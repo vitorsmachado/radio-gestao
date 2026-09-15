@@ -116,6 +116,35 @@ class OrdemServicoControllerTest {
     }
 
     @Test
+    @DisplayName("GET /busca deve retornar 200 com a página")
+    void listar_deveRetornar200() throws Exception {
+        OrdemServicoResumoDTO resumo = OrdemServicoResumoDTO.builder()
+                .id(osId).numero("OS-2026-0001").clienteId(clienteId)
+                .clienteNome("Radio Comunicacao").clienteDocumento("11222333000181")
+                .status(StatusOS.ABERTA).build();
+        var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        when(service.listar(any(), any(), any(), any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(resumo), pageable, 1));
+
+        mockMvc.perform(get("/v1/ordens-servico/busca").param("busca", "Radio"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].clienteNome").value("Radio Comunicacao"));
+    }
+
+    @Test
+    @DisplayName("GET /busca com periodo deve repassar as datas")
+    void listar_deveRepassarPeriodo() throws Exception {
+        var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        when(service.listar(eq(null), eq(java.time.LocalDate.of(2026, 3, 1)), eq(java.time.LocalDate.of(2026, 3, 31)), any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(), pageable, 0));
+
+        mockMvc.perform(get("/v1/ordens-servico/busca")
+                        .param("dataInicial", "2026-03-01")
+                        .param("dataFinal", "2026-03-31"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     @DisplayName("PATCH /{id}/confirmar-entrega deve retornar 200")
     void confirmarEntrega_deveRetornar200() throws Exception {
         osDTO.setStatus(StatusOS.CONCLUIDA);

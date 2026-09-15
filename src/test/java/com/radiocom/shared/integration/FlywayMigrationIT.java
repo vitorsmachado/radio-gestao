@@ -50,6 +50,6 @@ class FlywayMigrationIT extends PostgresIntegrationTestBase {
             }
         }
 
-        assertThat(versoes).containsExactly("1", "2", "3", "4", "5", "6", "7", "8");
+        assertThat(versoes).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9");
     }
 }
