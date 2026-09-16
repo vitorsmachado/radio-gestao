@@ -80,6 +80,13 @@ public class ClienteApplicationService {
         return mapper.toDTO(domainService.buscarPorId(id));
     }
 
+    /** Equipamentos e acessórios de propriedade do cliente, pra aba Garantia do detalhe. */
+    @Transactional(readOnly = true)
+    public List<com.radiocom.estoque.application.dto.ItemGarantiaDTO> listarItensGarantia(UUID id) {
+        domainService.buscarPorId(id); // valida que o cliente existe
+        return estoqueApplicationService.listarItensDoCliente(id);
+    }
+
     @Transactional(readOnly = true)
     public ClienteDTO buscarPorIdCompleto(UUID id) {
         return mapper.toDTO(domainService.buscarPorIdComRelacionamentos(id));

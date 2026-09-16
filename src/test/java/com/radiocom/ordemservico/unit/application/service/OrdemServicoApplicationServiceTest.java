@@ -5,6 +5,7 @@ import com.radiocom.cliente.application.service.ClienteApplicationService;
 import com.radiocom.ordemservico.application.dto.*;
 import com.radiocom.ordemservico.application.mapper.OrdemServicoMapper;
 import com.radiocom.ordemservico.application.service.OrdemServicoApplicationService;
+import com.radiocom.ordemservico.domain.model.ItemEntrada;
 import com.radiocom.ordemservico.domain.model.OrdemServico;
 import com.radiocom.ordemservico.domain.service.OrdemServicoDomainService;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,6 +77,31 @@ class OrdemServicoApplicationServiceTest {
 
         assertThat(resultado).hasSize(1);
         assertThat(resultado.get(0).getNumero()).isEqualTo("OS-2026-0001");
+    }
+
+    @Test
+    @DisplayName("listarHistoricoPorItemEstoque deve resolver numero e status da OS de cada passagem")
+    void listarHistoricoPorItemEstoque_deveResolverDadosDaOS() {
+        UUID itemEstoqueId = UUID.randomUUID();
+        ItemEntrada item = ItemEntrada.builder().osId(osId)
+                .status(com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada.ENTREGUE).build();
+        when(osDomainService.listarItensPorItemEstoque(itemEstoqueId)).thenReturn(List.of(item));
+        when(osDomainService.listarPorIds(List.of(osId))).thenReturn(List.of(os));
+
+        var resultado = service.listarHistoricoPorItemEstoque(itemEstoqueId);
+
+        assertThat(resultado).hasSize(1);
+        assertThat(resultado.get(0).getOsNumero()).isEqualTo("OS-2026-0001");
+        assertThat(resultado.get(0).getItemStatus()).isEqualTo(com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada.ENTREGUE);
+    }
+
+    @Test
+    @DisplayName("listarHistoricoPorItemEstoque deve retornar vazio quando o item nunca passou por uma OS")
+    void listarHistoricoPorItemEstoque_deveRetornarVazioQuandoSemPassagens() {
+        UUID itemEstoqueId = UUID.randomUUID();
+        when(osDomainService.listarItensPorItemEstoque(itemEstoqueId)).thenReturn(List.of());
+
+        assertThat(service.listarHistoricoPorItemEstoque(itemEstoqueId)).isEmpty();
     }
 
     @Test

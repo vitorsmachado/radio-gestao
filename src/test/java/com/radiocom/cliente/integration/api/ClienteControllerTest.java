@@ -145,6 +145,17 @@ class ClienteControllerTest {
     }
 
     @Test
+    @DisplayName("GET /v1/clientes/{id}/itens-garantia deve retornar 200 com a lista")
+    void listarItensGarantia_deveRetornar200() throws Exception {
+        var item = com.radiocom.estoque.application.dto.ItemGarantiaDTO.builder().codigo("EQ-1").descricao("Rádio").build();
+        when(clienteService.listarItensGarantia(clienteId)).thenReturn(List.of(item));
+
+        mockMvc.perform(get("/v1/clientes/{id}/itens-garantia", clienteId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].codigo").value("EQ-1"));
+    }
+
+    @Test
     @DisplayName("GET /v1/clientes deve retornar 200 com página de clientes")
     void listarTodos_deveRetornar200() throws Exception {
         Page<ClienteDTO> pagina = new PageImpl<>(List.of(clienteDTO), PageRequest.of(0, 20), 1);

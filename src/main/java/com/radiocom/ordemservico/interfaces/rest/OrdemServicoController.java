@@ -55,6 +55,13 @@ public class OrdemServicoController {
         return ResponseEntity.ok(service.listarPorCliente(clienteId));
     }
 
+    @GetMapping("/itens/{itemEstoqueId}/historico")
+    @Operation(summary = "Histórico de OS de um equipamento/acessório",
+            description = "Usado pela aba Garantia do detalhe do cliente.")
+    public ResponseEntity<List<HistoricoOSItemDTO>> listarHistoricoPorItemEstoque(@PathVariable UUID itemEstoqueId) {
+        return ResponseEntity.ok(service.listarHistoricoPorItemEstoque(itemEstoqueId));
+    }
+
     @GetMapping("/busca")
     @Operation(summary = "Listagem geral de OS com busca e filtros",
             description = "Ordenado por número (mais recente primeiro) por padrão — sobrescrevível via "

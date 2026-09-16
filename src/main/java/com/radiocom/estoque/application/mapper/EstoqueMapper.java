@@ -210,6 +210,36 @@ public class EstoqueMapper {
         if (dto.getPossuiPatrimonio() != null) cm.setPossuiPatrimonio(dto.getPossuiPatrimonio());
     }
 
+    // ========== GARANTIA (itens do cliente) ==========
+
+    public ItemGarantiaDTO toGarantiaDTO(Equipamento e) {
+        if (e == null) return null;
+        return ItemGarantiaDTO.builder()
+                .id(e.getId())
+                .tipoItem(e.getTipo())
+                .codigo(e.getCodigo())
+                .descricao(e.getDescricao())
+                .numeroSerie(e.getNumeroSerie())
+                .patrimonio(e.getPatrimonio())
+                .garantiaFim(e.getGarantiaFim())
+                .emGarantia(e.emGarantia())
+                .build();
+    }
+
+    public ItemGarantiaDTO toGarantiaDTO(Acessorio a) {
+        if (a == null) return null;
+        return ItemGarantiaDTO.builder()
+                .id(a.getId())
+                .tipoItem(a.getTipo())
+                .codigo(a.getCodigo())
+                .descricao(a.getDescricao())
+                .numeroSerie(a.getNumeroSerie())
+                .patrimonio(a.getPatrimonio())
+                .garantiaFim(a.getGarantiaFim())
+                .emGarantia(a.emGarantia())
+                .build();
+    }
+
     // ========== MOVIMENTAÇÃO DE ESTOQUE ==========
 
     public MovimentacaoEstoqueDTO toDTO(MovimentacaoEstoque m) {

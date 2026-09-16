@@ -3,6 +3,7 @@ package com.radiocom.estoque.unit.application.service;
 import com.radiocom.estoque.application.dto.*;
 import com.radiocom.estoque.application.mapper.EstoqueMapper;
 import com.radiocom.estoque.application.service.EstoqueApplicationService;
+import com.radiocom.estoque.domain.model.Acessorio;
 import com.radiocom.estoque.domain.model.CatalogoModelo;
 import com.radiocom.estoque.domain.model.Equipamento;
 import com.radiocom.estoque.domain.model.Peca;
@@ -474,6 +475,39 @@ class EstoqueApplicationServiceTest {
         var resultado = service.listarPecas(pageable, null, modeloId);
 
         assertThat(resultado.getContent()).hasSize(1);
+    }
+
+    // ===== Garantia (usada pelo módulo Cliente) =====
+
+    @Test
+    @DisplayName("listarItensDoCliente deve unir equipamentos e acessórios do cliente")
+    void listarItensDoCliente_deveUnirEquipamentosEAcessorios() {
+        UUID clienteId = UUID.randomUUID();
+        Equipamento equipamento = Equipamento.builder()
+                .codigo("EQ-1").descricao("Rádio").tipo(TipoItem.EQUIPAMENTO)
+                .proprietario(ProprietarioEquipamento.CLIENTE).clienteId(clienteId)
+                .faixa(FaixaEquipamento.VHF).numeroSerie("NS-1").build();
+        Acessorio acessorio = Acessorio.builder()
+                .codigo("AC-1").descricao("Bateria").tipo(TipoItem.ACESSORIO)
+                .proprietario(ProprietarioEquipamento.CLIENTE).clienteId(clienteId)
+                .tipoAcessorio(TipoAcessorio.BATERIA).build();
+
+        when(equipamentoRepository.findByClienteId(clienteId)).thenReturn(java.util.List.of(equipamento));
+        when(acessorioRepository.findByClienteId(clienteId)).thenReturn(java.util.List.of(acessorio));
+
+        var resultado = service.listarItensDoCliente(clienteId);
+
+        assertThat(resultado).extracting("codigo").containsExactlyInAnyOrder("EQ-1", "AC-1");
+    }
+
+    @Test
+    @DisplayName("listarItensDoCliente deve retornar vazio quando o cliente não tem itens")
+    void listarItensDoCliente_deveRetornarVazioQuandoSemItens() {
+        UUID clienteId = UUID.randomUUID();
+        when(equipamentoRepository.findByClienteId(clienteId)).thenReturn(java.util.List.of());
+        when(acessorioRepository.findByClienteId(clienteId)).thenReturn(java.util.List.of());
+
+        assertThat(service.listarItensDoCliente(clienteId)).isEmpty();
     }
 
     // ===== Busca cruzada (usada pelo módulo Cliente) =====

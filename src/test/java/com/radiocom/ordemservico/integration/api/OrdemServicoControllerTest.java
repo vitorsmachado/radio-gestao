@@ -116,6 +116,18 @@ class OrdemServicoControllerTest {
     }
 
     @Test
+    @DisplayName("GET /itens/{itemEstoqueId}/historico deve retornar 200 com a lista")
+    void listarHistoricoPorItemEstoque_deveRetornar200() throws Exception {
+        UUID itemEstoqueId = UUID.randomUUID();
+        HistoricoOSItemDTO historico = HistoricoOSItemDTO.builder().osNumero("OS-2026-0001").build();
+        when(service.listarHistoricoPorItemEstoque(itemEstoqueId)).thenReturn(List.of(historico));
+
+        mockMvc.perform(get("/v1/ordens-servico/itens/{itemEstoqueId}/historico", itemEstoqueId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].osNumero").value("OS-2026-0001"));
+    }
+
+    @Test
     @DisplayName("GET /busca deve retornar 200 com a página")
     void listar_deveRetornar200() throws Exception {
         OrdemServicoResumoDTO resumo = OrdemServicoResumoDTO.builder()

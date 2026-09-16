@@ -17,6 +17,8 @@ public interface AcessorioRepository extends JpaRepository<Acessorio, UUID> {
 
     Optional<Acessorio> findByPatrimonio(String patrimonio);
 
+    List<Acessorio> findByClienteId(UUID clienteId);
+
     /** Usado pelo módulo Cliente pra resolver, na busca geral, quais clientes têm um acessório com esse N/S ou código próprio. */
     @Query("SELECT DISTINCT a.clienteId FROM Acessorio a WHERE a.clienteId IS NOT NULL AND ("
             + "LOWER(a.numeroSerie) LIKE LOWER(CONCAT('%', :busca, '%')) OR "

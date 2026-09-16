@@ -90,6 +90,15 @@ public class EstoqueApplicationService {
         return equipamentoService.listarPorProprietario(proprietario).stream().map(mapper::toDTO).toList();
     }
 
+    /** Usado pelo módulo Cliente pra montar a aba Garantia — equipamentos e acessórios de propriedade do cliente. */
+    @Transactional(readOnly = true)
+    public List<ItemGarantiaDTO> listarItensDoCliente(UUID clienteId) {
+        List<ItemGarantiaDTO> itens = new java.util.ArrayList<>();
+        equipamentoRepository.findByClienteId(clienteId).forEach(e -> itens.add(mapper.toGarantiaDTO(e)));
+        acessorioRepository.findByClienteId(clienteId).forEach(a -> itens.add(mapper.toGarantiaDTO(a)));
+        return itens;
+    }
+
     /** Usado pelo módulo Cliente pra resolver, na busca geral, quais clientes têm um equipamento ou acessório com esse N/S ou código próprio. */
     @Transactional(readOnly = true)
     public List<UUID> buscarClienteIdsPorNumeroSerieOuCodigoCliente(String busca) {

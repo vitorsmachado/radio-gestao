@@ -223,6 +223,31 @@ class ClienteApplicationServiceTest {
         verify(clienteRepository, never()).existsByNumeroIdentificacaoAndIdNot(any(), any());
     }
 
+    // ===== listarItensGarantia =====
+
+    @Test
+    @DisplayName("listarItensGarantia deve validar que o cliente existe e delegar pro Estoque")
+    void listarItensGarantia_deveValidarClienteEDelegar() {
+        var item = com.radiocom.estoque.application.dto.ItemGarantiaDTO.builder().codigo("EQ-1").build();
+        when(domainService.buscarPorId(clienteId)).thenReturn(cliente);
+        when(estoqueApplicationService.listarItensDoCliente(clienteId)).thenReturn(java.util.List.of(item));
+
+        var resultado = service.listarItensGarantia(clienteId);
+
+        assertThat(resultado).containsExactly(item);
+    }
+
+    @Test
+    @DisplayName("listarItensGarantia deve lançar exceção quando o cliente não existe")
+    void listarItensGarantia_deveLancarExcecaoQuandoClienteNaoExiste() {
+        when(domainService.buscarPorId(clienteId)).thenThrow(new DomainException("Cliente não encontrado: " + clienteId));
+
+        assertThatThrownBy(() -> service.listarItensGarantia(clienteId))
+                .isInstanceOf(DomainException.class);
+
+        verify(estoqueApplicationService, never()).listarItensDoCliente(any());
+    }
+
     // ===== listar =====
 
     @Test

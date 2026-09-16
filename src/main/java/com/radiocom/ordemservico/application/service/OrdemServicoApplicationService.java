@@ -4,6 +4,7 @@ import com.radiocom.cliente.application.dto.ClienteDTO;
 import com.radiocom.cliente.application.service.ClienteApplicationService;
 import com.radiocom.ordemservico.application.dto.*;
 import com.radiocom.ordemservico.application.mapper.OrdemServicoMapper;
+import com.radiocom.ordemservico.domain.model.ItemEntrada;
 import com.radiocom.ordemservico.domain.model.OrdemServico;
 import com.radiocom.ordemservico.domain.service.OrdemServicoDomainService;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +57,28 @@ public class OrdemServicoApplicationService {
     @Transactional(readOnly = true)
     public List<OrdemServicoDTO> listarPorCliente(UUID clienteId) {
         return mapper.toDTOList(osDomainService.listarPorCliente(clienteId));
+    }
+
+    /** Usado pela aba Garantia do cliente — todas as passagens de um equipamento/acessório por uma OS. */
+    @Transactional(readOnly = true)
+    public List<HistoricoOSItemDTO> listarHistoricoPorItemEstoque(UUID itemEstoqueId) {
+        List<ItemEntrada> itens = osDomainService.listarItensPorItemEstoque(itemEstoqueId);
+        if (itens.isEmpty()) return List.of();
+
+        List<UUID> osIds = itens.stream().map(ItemEntrada::getOsId).distinct().collect(Collectors.toList());
+        Map<UUID, OrdemServico> osPorId = osDomainService.listarPorIds(osIds).stream()
+                .collect(Collectors.toMap(OrdemServico::getId, Function.identity()));
+
+        return itens.stream().map(item -> {
+            OrdemServico os = osPorId.get(item.getOsId());
+            return HistoricoOSItemDTO.builder()
+                    .osId(item.getOsId())
+                    .osNumero(os != null ? os.getNumero() : null)
+                    .osStatus(os != null ? os.getStatus() : null)
+                    .itemStatus(item.getStatus())
+                    .dataAbertura(os != null ? os.getDataAbertura() : null)
+                    .build();
+        }).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

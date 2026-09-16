@@ -40,6 +40,17 @@ public class OrdemServicoDomainService {
         return osRepository.findByClienteIdOrderByDataAberturaDesc(clienteId);
     }
 
+    /** Usado pela aba Garantia do cliente — todas as passagens de um item por uma OS. */
+    @Transactional(readOnly = true)
+    public List<ItemEntrada> listarItensPorItemEstoque(UUID itemEstoqueId) {
+        return itemEntradaRepository.findByItemEstoqueIdOrderByDataCriacaoDesc(itemEstoqueId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrdemServico> listarPorIds(List<UUID> ids) {
+        return osRepository.findAllById(ids);
+    }
+
     @Transactional(readOnly = true)
     public Page<OrdemServico> buscar(String busca, List<UUID> clienteIdsMatched,
                                       LocalDateTime dataInicial, LocalDateTime dataFinal, Pageable pageable) {

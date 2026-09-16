@@ -133,6 +133,24 @@ class OrdemServicoDomainServiceTest {
         verify(osRepository).save(os);
     }
 
+    @Test
+    @DisplayName("listarItensPorItemEstoque deve delegar pro repositório")
+    void listarItensPorItemEstoque_deveDelegar() {
+        UUID itemEstoqueId = UUID.randomUUID();
+        ItemEntrada item = ItemEntrada.builder().osId(osId).build();
+        when(itemEntradaRepository.findByItemEstoqueIdOrderByDataCriacaoDesc(itemEstoqueId)).thenReturn(List.of(item));
+
+        assertThat(service.listarItensPorItemEstoque(itemEstoqueId)).containsExactly(item);
+    }
+
+    @Test
+    @DisplayName("listarPorIds deve delegar pro repositório")
+    void listarPorIds_deveDelegar() {
+        when(osRepository.findAllById(List.of(osId))).thenReturn(List.of(os));
+
+        assertThat(service.listarPorIds(List.of(osId))).containsExactly(os);
+    }
+
     // ===== moverItem =====
 
     @Test

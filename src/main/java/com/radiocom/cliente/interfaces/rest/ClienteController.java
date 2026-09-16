@@ -53,6 +53,13 @@ public class ClienteController {
         return ResponseEntity.ok(clienteService.buscarPorIdCompleto(id));
     }
 
+    @GetMapping("/{id}/itens-garantia")
+    @Operation(summary = "Listar equipamentos e acessórios de propriedade do cliente",
+            description = "Usado pela aba Garantia do detalhe do cliente.")
+    public ResponseEntity<List<com.radiocom.estoque.application.dto.ItemGarantiaDTO>> listarItensGarantia(@PathVariable UUID id) {
+        return ResponseEntity.ok(clienteService.listarItensGarantia(id));
+    }
+
     @GetMapping("/documento/{documento}")
     @Operation(summary = "Buscar cliente por documento (CPF ou CNPJ)")
     public ResponseEntity<ClienteDTO> buscarPorDocumento(@PathVariable String documento) {

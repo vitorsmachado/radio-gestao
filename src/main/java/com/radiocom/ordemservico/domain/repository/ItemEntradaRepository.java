@@ -17,6 +17,9 @@ public interface ItemEntradaRepository extends JpaRepository<ItemEntrada, UUID> 
 
     List<ItemEntrada> findByOrcamentoId(UUID orcamentoId);
 
+    /** Usado pela aba Garantia do cliente — todas as passagens de um equipamento/acessório por uma OS. */
+    List<ItemEntrada> findByItemEstoqueIdOrderByDataCriacaoDesc(UUID itemEstoqueId);
+
     /**
      * Itens aguardando uma peça específica — usado quando a peça recebe
      * entrada no estoque, para saber quais itens podem voltar pra fila.
