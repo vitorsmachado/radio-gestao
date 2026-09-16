@@ -77,7 +77,7 @@ class OrdemServicoDomainServiceTest {
     @Test
     @DisplayName("listarPorCliente deve retornar as OS do cliente")
     void listarPorCliente_deveRetornarOSDoCliente() {
-        when(osRepository.findByClienteId(clienteId)).thenReturn(List.of(os));
+        when(osRepository.findByClienteIdOrderByDataAberturaDesc(clienteId)).thenReturn(List.of(os));
 
         List<OrdemServico> resultado = service.listarPorCliente(clienteId);
 

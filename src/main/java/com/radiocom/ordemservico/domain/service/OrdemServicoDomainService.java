@@ -37,7 +37,7 @@ public class OrdemServicoDomainService {
 
     @Transactional(readOnly = true)
     public List<OrdemServico> listarPorCliente(UUID clienteId) {
-        return osRepository.findByClienteId(clienteId);
+        return osRepository.findByClienteIdOrderByDataAberturaDesc(clienteId);
     }
 
     @Transactional(readOnly = true)

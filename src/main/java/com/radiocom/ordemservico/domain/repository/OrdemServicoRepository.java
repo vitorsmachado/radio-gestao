@@ -18,7 +18,7 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, UUID
 
     Optional<OrdemServico> findByNumero(String numero);
 
-    List<OrdemServico> findByClienteId(UUID clienteId);
+    List<OrdemServico> findByClienteIdOrderByDataAberturaDesc(UUID clienteId);
 
     /**
      * Listagem geral com busca opcional (número da OS, NS/código do cliente
