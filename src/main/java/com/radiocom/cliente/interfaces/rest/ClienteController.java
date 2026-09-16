@@ -66,6 +66,13 @@ public class ClienteController {
         return ResponseEntity.ok(clienteService.buscarPorDocumento(documento));
     }
 
+    @GetMapping("/consulta-cnpj/{cnpj}")
+    @Operation(summary = "Consultar CNPJ na Receita Federal (ReceitaWS)",
+            description = "Usado pra pré-preencher o formulário de cadastro/edição. Não persiste nada.")
+    public ResponseEntity<com.radiocom.cliente.application.dto.ConsultaCnpjDTO> consultarCNPJ(@PathVariable String cnpj) {
+        return ResponseEntity.ok(clienteService.consultarCNPJ(cnpj));
+    }
+
     @GetMapping
     @Operation(summary = "Listar clientes com busca e filtro de status",
             description = "Ordenado por número de identificação (mais recente primeiro) por padrão. "

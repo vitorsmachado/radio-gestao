@@ -3,7 +3,9 @@ package com.radiocom.cliente.application.service;
 import com.radiocom.cliente.application.dto.ClienteCreateDTO;
 import com.radiocom.cliente.application.dto.ClienteDTO;
 import com.radiocom.cliente.application.dto.ClienteUpdateDTO;
+import com.radiocom.cliente.application.dto.ConsultaCnpjDTO;
 import com.radiocom.cliente.application.dto.ContatoDTO;
+import com.radiocom.cliente.application.dto.EnderecoDTO;
 import com.radiocom.cliente.application.dto.MotivoDTO;
 import com.radiocom.cliente.application.dto.ContatoUpdateDTO;
 import com.radiocom.cliente.application.dto.PostoDTO;
@@ -17,6 +19,8 @@ import com.radiocom.cliente.domain.model.enums.TipoPessoa;
 import com.radiocom.cliente.domain.repository.ClienteRepository;
 import com.radiocom.cliente.domain.service.ClienteDomainService;
 import com.radiocom.cliente.domain.service.NumeroClienteGenerator;
+import com.radiocom.cliente.infrastructure.external.ReceitaWSClient;
+import com.radiocom.cliente.infrastructure.external.dto.ReceitaWSResponse;
 import com.radiocom.estoque.application.service.EstoqueApplicationService;
 import com.radiocom.shared.exception.DomainException;
 import com.radiocom.shared.validation.CpfCnpjValidator;
@@ -45,6 +49,7 @@ public class ClienteApplicationService {
     private final ClienteDomainService domainService;
     private final NumeroClienteGenerator numeroClienteGenerator;
     private final EstoqueApplicationService estoqueApplicationService;
+    private final ReceitaWSClient receitaWSClient;
     private final ClienteMapper mapper;
 
     @Transactional
@@ -78,6 +83,32 @@ public class ClienteApplicationService {
     @Transactional(readOnly = true)
     public ClienteDTO buscarPorId(UUID id) {
         return mapper.toDTO(domainService.buscarPorId(id));
+    }
+
+    /** Consulta dados públicos de um CNPJ na ReceitaWS pra pré-preencher o formulário de cliente. */
+    @Transactional(readOnly = true)
+    public ConsultaCnpjDTO consultarCNPJ(String cnpj) {
+        String cnpjLimpo = CpfCnpjValidator.clean(cnpj);
+        ReceitaWSResponse dados = receitaWSClient.consultarCNPJ(cnpjLimpo)
+                .orElseThrow(() -> new DomainException("Não foi possível consultar o CNPJ na Receita Federal: " + cnpj));
+
+        boolean temEndereco = dados.getLogradouro() != null && !dados.getLogradouro().isBlank();
+
+        return ConsultaCnpjDTO.builder()
+                .nomeRazaoSocial(dados.getNome())
+                .nomeFantasia(dados.getFantasia())
+                .endereco(temEndereco
+                        ? EnderecoDTO.builder()
+                                .cep(dados.getCep() != null ? dados.getCep().replaceAll("\\D", "") : null)
+                                .logradouro(dados.getLogradouro())
+                                .numero(dados.getNumero())
+                                .complemento(dados.getComplemento())
+                                .bairro(dados.getBairro())
+                                .cidade(dados.getMunicipio())
+                                .estado(dados.getUf())
+                                .build()
+                        : null)
+                .build();
     }
 
     /** Equipamentos e acessórios de propriedade do cliente, pra aba Garantia do detalhe. */

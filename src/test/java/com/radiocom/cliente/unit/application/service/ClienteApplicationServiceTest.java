@@ -48,6 +48,7 @@ class ClienteApplicationServiceTest {
     @Mock private ClienteDomainService domainService;
     @Mock private NumeroClienteGenerator numeroClienteGenerator;
     @Mock private EstoqueApplicationService estoqueApplicationService;
+    @Mock private com.radiocom.cliente.infrastructure.external.ReceitaWSClient receitaWSClient;
     @Mock private ClienteMapper mapper;
 
     @InjectMocks
@@ -221,6 +222,51 @@ class ClienteApplicationServiceTest {
         service.atualizar(clienteId, dto);
 
         verify(clienteRepository, never()).existsByNumeroIdentificacaoAndIdNot(any(), any());
+    }
+
+    // ===== consultarCNPJ =====
+
+    @Test
+    @DisplayName("consultarCNPJ deve mapear os dados retornados pela ReceitaWS")
+    void consultarCNPJ_deveMapearDados() {
+        var resposta = new com.radiocom.cliente.infrastructure.external.dto.ReceitaWSResponse();
+        resposta.setStatus("OK");
+        resposta.setNome("Radio Comunicacao LTDA");
+        resposta.setFantasia("Radiocom");
+        resposta.setLogradouro("Rua X");
+        resposta.setCep("01310100");
+        resposta.setMunicipio("São Paulo");
+        resposta.setUf("SP");
+        when(receitaWSClient.consultarCNPJ("11222333000181")).thenReturn(java.util.Optional.of(resposta));
+
+        var resultado = service.consultarCNPJ("11.222.333/0001-81");
+
+        assertThat(resultado.getNomeRazaoSocial()).isEqualTo("Radio Comunicacao LTDA");
+        assertThat(resultado.getNomeFantasia()).isEqualTo("Radiocom");
+        assertThat(resultado.getEndereco().getLogradouro()).isEqualTo("Rua X");
+        assertThat(resultado.getEndereco().getCidade()).isEqualTo("São Paulo");
+    }
+
+    @Test
+    @DisplayName("consultarCNPJ deve lançar exceção quando a ReceitaWS não encontra o CNPJ")
+    void consultarCNPJ_deveLancarExcecaoQuandoNaoEncontrado() {
+        when(receitaWSClient.consultarCNPJ("11222333000181")).thenReturn(java.util.Optional.empty());
+
+        assertThatThrownBy(() -> service.consultarCNPJ("11222333000181"))
+                .isInstanceOf(DomainException.class);
+    }
+
+    @Test
+    @DisplayName("consultarCNPJ deve retornar endereco nulo quando a ReceitaWS não retorna logradouro")
+    void consultarCNPJ_deveRetornarEnderecoNuloQuandoSemLogradouro() {
+        var resposta = new com.radiocom.cliente.infrastructure.external.dto.ReceitaWSResponse();
+        resposta.setStatus("OK");
+        resposta.setNome("Radio Comunicacao LTDA");
+        when(receitaWSClient.consultarCNPJ("11222333000181")).thenReturn(java.util.Optional.of(resposta));
+
+        var resultado = service.consultarCNPJ("11222333000181");
+
+        assertThat(resultado.getEndereco()).isNull();
     }
 
     // ===== listarItensGarantia =====

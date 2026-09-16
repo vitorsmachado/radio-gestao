@@ -125,6 +125,28 @@ class ClienteControllerTest {
     }
 
     @Test
+    @DisplayName("GET /v1/clientes/consulta-cnpj/{cnpj} deve retornar 200 com os dados")
+    void consultarCNPJ_deveRetornar200() throws Exception {
+        var dados = com.radiocom.cliente.application.dto.ConsultaCnpjDTO.builder()
+                .nomeRazaoSocial("Radio Comunicacao LTDA").nomeFantasia("Radiocom").build();
+        when(clienteService.consultarCNPJ("11222333000181")).thenReturn(dados);
+
+        mockMvc.perform(get("/v1/clientes/consulta-cnpj/{cnpj}", "11222333000181"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nomeRazaoSocial").value("Radio Comunicacao LTDA"));
+    }
+
+    @Test
+    @DisplayName("GET /v1/clientes/consulta-cnpj/{cnpj} deve retornar 400 quando não encontrado")
+    void consultarCNPJ_deveRetornar400QuandoNaoEncontrado() throws Exception {
+        when(clienteService.consultarCNPJ("11222333000181"))
+                .thenThrow(new DomainException("Não foi possível consultar o CNPJ na Receita Federal: 11222333000181"));
+
+        mockMvc.perform(get("/v1/clientes/consulta-cnpj/{cnpj}", "11222333000181"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("GET /v1/clientes/{id} deve retornar 200 com o cliente")
     void buscarPorId_deveRetornar200() throws Exception {
         when(clienteService.buscarPorId(clienteId)).thenReturn(clienteDTO);

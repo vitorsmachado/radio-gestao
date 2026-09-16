@@ -21,6 +21,10 @@ jwt:
   secret: chave-secreta-de-teste-nao-usar-em-producao
   expiration: 3600000
 
+integracao:
+  receitaws:
+    habilitado: false
+
 logging:
   level:
     com.radiocom: INFO

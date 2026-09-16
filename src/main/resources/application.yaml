@@ -37,6 +37,13 @@ jwt:
   secret: ${JWT_SECRET:minha-chave-secreta-temporaria-MUDAR-EM-PRODUCAO}
   expiration: ${JWT_EXPIRATION:86400000}
 
+# ---- Integrações ----
+integracao:
+  receitaws:
+    url: https://www.receitaws.com.br/v1/cnpj/
+    timeout: ${RECEITAWS_TIMEOUT:10000}
+    habilitado: ${RECEITAWS_HABILITADO:true}
+
 # ---- Actuator / Observabilidade ----
 management:
   endpoints:
