@@ -18,6 +18,7 @@ import com.radiocom.cliente.domain.model.enums.TipoPessoa;
 import com.radiocom.cliente.domain.repository.ClienteRepository;
 import com.radiocom.cliente.domain.service.ClienteDomainService;
 import com.radiocom.cliente.domain.service.NumeroClienteGenerator;
+import com.radiocom.estoque.application.service.EstoqueApplicationService;
 import com.radiocom.shared.exception.DomainException;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +47,7 @@ class ClienteApplicationServiceTest {
     @Mock private ClienteRepository clienteRepository;
     @Mock private ClienteDomainService domainService;
     @Mock private NumeroClienteGenerator numeroClienteGenerator;
+    @Mock private EstoqueApplicationService estoqueApplicationService;
     @Mock private ClienteMapper mapper;
 
     @InjectMocks
@@ -227,7 +229,8 @@ class ClienteApplicationServiceTest {
     @DisplayName("listar deve repassar busca e status pro repositório")
     void listar_deveRepassarBuscaEStatus() {
         var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-        when(clienteRepository.buscar("Radio", StatusCliente.ATIVO, pageable))
+        when(estoqueApplicationService.buscarClienteIdsPorNumeroSerieOuCodigoCliente("Radio")).thenReturn(java.util.List.of());
+        when(clienteRepository.buscar(eq("Radio"), any(), eq(StatusCliente.ATIVO), eq(pageable)))
                 .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(cliente), pageable, 1));
         when(mapper.toDTO(cliente)).thenReturn(clienteDTO);
 
@@ -237,16 +240,49 @@ class ClienteApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("listar deve tratar busca em branco como nula")
+    @DisplayName("listar deve tratar busca em branco como nula e não consultar o Estoque")
     void listar_deveTratarBuscaEmBrancoComoNula() {
         var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-        when(clienteRepository.buscar(null, null, pageable))
+        when(clienteRepository.buscar(eq(null), any(), eq(null), eq(pageable)))
                 .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(cliente), pageable, 1));
         when(mapper.toDTO(cliente)).thenReturn(clienteDTO);
 
         service.listar("   ", null, pageable);
 
-        verify(clienteRepository).buscar(null, null, pageable);
+        verify(clienteRepository).buscar(eq(null), any(), eq(null), eq(pageable));
+        verify(estoqueApplicationService, never()).buscarClienteIdsPorNumeroSerieOuCodigoCliente(any());
+    }
+
+    @Test
+    @DisplayName("listar sem correspondencia no Estoque deve passar lista sentinela pro repositório")
+    void listar_semCorrespondenciaNoEstoque_devePassarListaSentinela() {
+        var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        when(estoqueApplicationService.buscarClienteIdsPorNumeroSerieOuCodigoCliente("NS-000")).thenReturn(java.util.List.of());
+        when(clienteRepository.buscar(eq("NS-000"), any(), eq(null), eq(pageable)))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(), pageable, 0));
+
+        service.listar("NS-000", null, pageable);
+
+        org.mockito.ArgumentCaptor<java.util.List<UUID>> captor = org.mockito.ArgumentCaptor.forClass(java.util.List.class);
+        verify(clienteRepository).buscar(eq("NS-000"), captor.capture(), eq(null), eq(pageable));
+        assertThat(captor.getValue()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("listar com correspondencia no Estoque deve repassar os clienteIds encontrados")
+    void listar_comCorrespondenciaNoEstoque_devePassarIdsEncontrados() {
+        var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        UUID clienteIdDoEquipamento = UUID.randomUUID();
+        when(estoqueApplicationService.buscarClienteIdsPorNumeroSerieOuCodigoCliente("NS-123"))
+                .thenReturn(java.util.List.of(clienteIdDoEquipamento));
+        when(clienteRepository.buscar(eq("NS-123"), any(), eq(null), eq(pageable)))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(), pageable, 0));
+
+        service.listar("NS-123", null, pageable);
+
+        org.mockito.ArgumentCaptor<java.util.List<UUID>> captor = org.mockito.ArgumentCaptor.forClass(java.util.List.class);
+        verify(clienteRepository).buscar(eq("NS-123"), captor.capture(), eq(null), eq(pageable));
+        assertThat(captor.getValue()).containsExactly(clienteIdDoEquipamento);
     }
 
     // ===== status =====

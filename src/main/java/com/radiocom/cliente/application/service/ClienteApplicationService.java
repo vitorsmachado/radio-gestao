@@ -17,6 +17,7 @@ import com.radiocom.cliente.domain.model.enums.TipoPessoa;
 import com.radiocom.cliente.domain.repository.ClienteRepository;
 import com.radiocom.cliente.domain.service.ClienteDomainService;
 import com.radiocom.cliente.domain.service.NumeroClienteGenerator;
+import com.radiocom.estoque.application.service.EstoqueApplicationService;
 import com.radiocom.shared.exception.DomainException;
 import com.radiocom.shared.validation.CpfCnpjValidator;
 
@@ -37,9 +38,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ClienteApplicationService {
 
+    /** UUID sentinela — usado no lugar de uma lista vazia pra evitar "IN ()" no SQL quando nenhum item bate com a busca. */
+    private static final UUID ID_INEXISTENTE = new UUID(0, 0);
+
     private final ClienteRepository clienteRepository;
     private final ClienteDomainService domainService;
     private final NumeroClienteGenerator numeroClienteGenerator;
+    private final EstoqueApplicationService estoqueApplicationService;
     private final ClienteMapper mapper;
 
     @Transactional
@@ -93,7 +98,16 @@ public class ClienteApplicationService {
     @Transactional(readOnly = true)
     public Page<ClienteDTO> listar(String busca, StatusCliente status, Pageable pageable) {
         String buscaTratada = busca != null && !busca.isBlank() ? busca.trim() : null;
-        return clienteRepository.buscar(buscaTratada, status, pageable).map(mapper::toDTO);
+
+        List<UUID> itemClienteIdsMatched = List.of(ID_INEXISTENTE);
+        if (buscaTratada != null) {
+            List<UUID> encontrados = estoqueApplicationService.buscarClienteIdsPorNumeroSerieOuCodigoCliente(buscaTratada);
+            if (!encontrados.isEmpty()) {
+                itemClienteIdsMatched = encontrados;
+            }
+        }
+
+        return clienteRepository.buscar(buscaTratada, itemClienteIdsMatched, status, pageable).map(mapper::toDTO);
     }
 
     @Transactional(readOnly = true)

@@ -25,6 +25,7 @@ public class AcessorioDTO {
     private TipoAcessorio tipoAcessorio;
     private ProprietarioEquipamento proprietario;
     private UUID clienteId;
+    private String codigoCliente;
     private String numeroSerie;
     private String patrimonio;
     private Integer quantidadeDisponivel;

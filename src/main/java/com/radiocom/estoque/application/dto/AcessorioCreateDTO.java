@@ -31,6 +31,9 @@ public class AcessorioCreateDTO {
 
     private UUID clienteId;
 
+    @Size(max = 100)
+    private String codigoCliente; // Identificação própria do cliente pro item
+
     @Size(max = 50)
     private String numeroSerie; // Se rastreado individualmente
 

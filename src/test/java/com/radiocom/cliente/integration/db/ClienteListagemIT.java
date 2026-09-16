@@ -8,6 +8,12 @@ import com.radiocom.cliente.domain.model.enums.StatusCliente;
 import com.radiocom.cliente.domain.model.enums.TipoContato;
 import com.radiocom.cliente.domain.model.enums.TipoPessoa;
 import com.radiocom.cliente.domain.repository.ClienteRepository;
+import com.radiocom.estoque.application.dto.AcessorioCreateDTO;
+import com.radiocom.estoque.application.dto.EquipamentoCreateDTO;
+import com.radiocom.estoque.application.service.EstoqueApplicationService;
+import com.radiocom.estoque.domain.model.enums.FaixaEquipamento;
+import com.radiocom.estoque.domain.model.enums.ProprietarioEquipamento;
+import com.radiocom.estoque.domain.model.enums.TipoAcessorio;
 import com.radiocom.shared.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +36,7 @@ class ClienteListagemIT extends PostgresIntegrationTestBase {
 
     @Autowired private ClienteRepository clienteRepository;
     @Autowired private ClienteApplicationService clienteService;
+    @Autowired private EstoqueApplicationService estoqueService;
 
     @Test
     @DisplayName("listar sem nenhum filtro deve executar sem erro de tipo de parâmetro")
@@ -126,6 +133,52 @@ class ClienteListagemIT extends PostgresIntegrationTestBase {
 
         assertThat(pagina.getContent()).hasSize(1);
         assertThat(paginaVazia.getContent()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("listar por N/S de equipamento do cliente deve encontrar o cliente")
+    void listar_porNumeroSerieDeEquipamento_deveEncontrar() {
+        Cliente cliente = clienteRepository.save(Cliente.builder()
+                .numeroIdentificacao(Math.abs(UUID.randomUUID().hashCode()))
+                .tipo(TipoPessoa.PESSOA_JURIDICA)
+                .documento(documentoUnico())
+                .nomeRazaoSocial("Cliente Com Equipamento")
+                .build());
+        String ns = "NS-" + UUID.randomUUID();
+        estoqueService.criarEquipamento(EquipamentoCreateDTO.builder()
+                .proprietario(ProprietarioEquipamento.CLIENTE)
+                .clienteId(cliente.getId())
+                .numeroSerie(ns)
+                .faixa(FaixaEquipamento.VHF)
+                .descricao("Rádio do cliente")
+                .build());
+
+        var pagina = clienteService.listar(ns, null, PageRequest.of(0, 20));
+
+        assertThat(pagina.getContent()).extracting("id").containsExactly(cliente.getId());
+    }
+
+    @Test
+    @DisplayName("listar por codigo do cliente de acessório deve encontrar o cliente")
+    void listar_porCodigoClienteDeAcessorio_deveEncontrar() {
+        Cliente cliente = clienteRepository.save(Cliente.builder()
+                .numeroIdentificacao(Math.abs(UUID.randomUUID().hashCode()))
+                .tipo(TipoPessoa.PESSOA_JURIDICA)
+                .documento(documentoUnico())
+                .nomeRazaoSocial("Cliente Com Acessorio")
+                .build());
+        String codigoCliente = "TAG-" + UUID.randomUUID();
+        estoqueService.criarAcessorio(AcessorioCreateDTO.builder()
+                .descricao("Bateria do cliente")
+                .tipoAcessorio(TipoAcessorio.BATERIA)
+                .proprietario(ProprietarioEquipamento.CLIENTE)
+                .clienteId(cliente.getId())
+                .codigoCliente(codigoCliente)
+                .build());
+
+        var pagina = clienteService.listar(codigoCliente, null, PageRequest.of(0, 20));
+
+        assertThat(pagina.getContent()).extracting("id").containsExactly(cliente.getId());
     }
 
     private String documentoUnico() {

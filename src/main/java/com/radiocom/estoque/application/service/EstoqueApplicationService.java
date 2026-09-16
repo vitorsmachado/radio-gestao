@@ -90,6 +90,15 @@ public class EstoqueApplicationService {
         return equipamentoService.listarPorProprietario(proprietario).stream().map(mapper::toDTO).toList();
     }
 
+    /** Usado pelo módulo Cliente pra resolver, na busca geral, quais clientes têm um equipamento ou acessório com esse N/S ou código próprio. */
+    @Transactional(readOnly = true)
+    public List<UUID> buscarClienteIdsPorNumeroSerieOuCodigoCliente(String busca) {
+        java.util.Set<UUID> ids = new java.util.LinkedHashSet<>();
+        ids.addAll(equipamentoRepository.buscarClienteIdsPorNumeroSerieOuCodigoCliente(busca));
+        ids.addAll(acessorioRepository.buscarClienteIdsPorNumeroSerieOuCodigoCliente(busca));
+        return new java.util.ArrayList<>(ids);
+    }
+
     @Transactional
     public EquipamentoDTO atualizarEquipamento(UUID id, EquipamentoUpdateDTO dto) {
         Equipamento equipamento = equipamentoService.buscarPorId(id);

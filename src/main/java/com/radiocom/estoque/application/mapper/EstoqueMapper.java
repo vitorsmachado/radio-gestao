@@ -21,6 +21,7 @@ public class EstoqueMapper {
                 .numeroSerie(dto.getNumeroSerie())
                 .patrimonio(dto.getPatrimonio())
                 .clienteId(dto.getClienteId())
+                .codigoCliente(dto.getCodigoCliente())
                 .faixa(dto.getFaixa())
                 .garantiaFim(dto.getGarantiaFim())
                 .especificacoes(dto.getEspecificacoes() != null
@@ -39,6 +40,7 @@ public class EstoqueMapper {
                 .numeroSerie(e.getNumeroSerie())
                 .patrimonio(e.getPatrimonio())
                 .clienteId(e.getClienteId())
+                .codigoCliente(e.getCodigoCliente())
                 .faixa(e.getFaixa())
                 .estado(e.getEstado())
                 .status(e.getStatus())
@@ -53,6 +55,7 @@ public class EstoqueMapper {
     public void updateEntityFromDTO(EquipamentoUpdateDTO dto, Equipamento e) {
         if (dto == null) return;
         if (dto.getDescricao() != null) e.setDescricao(dto.getDescricao());
+        if (dto.getCodigoCliente() != null) e.setCodigoCliente(dto.getCodigoCliente());
         if (dto.getGarantiaFim() != null) e.setGarantiaFim(dto.getGarantiaFim());
         if (dto.getEspecificacoes() != null) e.setEspecificacoes(dto.getEspecificacoes());
         if (dto.getObservacoes() != null) e.setObservacoes(dto.getObservacoes());
@@ -69,6 +72,7 @@ public class EstoqueMapper {
                 .tipoAcessorio(dto.getTipoAcessorio())
                 .proprietario(dto.getProprietario())
                 .clienteId(dto.getClienteId())
+                .codigoCliente(dto.getCodigoCliente())
                 .numeroSerie(dto.getNumeroSerie())
                 .patrimonio(dto.getPatrimonio())
                 .quantidadeDisponivel(dto.getQuantidadeDisponivel() != null ? dto.getQuantidadeDisponivel() : 0)
@@ -86,6 +90,7 @@ public class EstoqueMapper {
                 .tipoAcessorio(a.getTipoAcessorio())
                 .proprietario(a.getProprietario())
                 .clienteId(a.getClienteId())
+                .codigoCliente(a.getCodigoCliente())
                 .numeroSerie(a.getNumeroSerie())
                 .patrimonio(a.getPatrimonio())
                 .quantidadeDisponivel(a.getQuantidadeDisponivel())
@@ -104,6 +109,7 @@ public class EstoqueMapper {
     public void updateEntityFromDTO(AcessorioUpdateDTO dto, Acessorio a) {
         if (dto == null) return;
         if (dto.getDescricao() != null) a.setDescricao(dto.getDescricao());
+        if (dto.getCodigoCliente() != null) a.setCodigoCliente(dto.getCodigoCliente());
         if (dto.getQuantidadeMinima() != null) a.setQuantidadeMinima(dto.getQuantidadeMinima());
         if (dto.getGarantiaFim() != null) a.setGarantiaFim(dto.getGarantiaFim());
         if (dto.getObservacoes() != null) a.setObservacoes(dto.getObservacoes());

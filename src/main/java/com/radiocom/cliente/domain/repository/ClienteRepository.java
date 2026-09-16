@@ -42,8 +42,12 @@ public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
 
     /**
      * Listagem geral com busca opcional (nome/razão social, nome fantasia,
-     * documento, número de identificação, nome de posto ou de contato) e
-     * filtro opcional por status.
+     * documento, número de identificação, nome de posto ou de contato, ou
+     * clienteIdsMatched — resolvido pelo módulo Estoque a partir de N/S ou
+     * código do cliente de um equipamento/acessório) e filtro opcional por
+     * status. clienteIdsMatched nunca deve ser vazio — quando não há
+     * equipamento/acessório correspondente, passe uma lista com um UUID que
+     * nunca existirá (evita "IN ()" vazio no SQL).
      */
     @Query("SELECT c FROM Cliente c WHERE "
             + "(:busca IS NULL OR "
@@ -52,10 +56,12 @@ public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
             + "   c.documento LIKE CONCAT('%', :busca, '%') OR "
             + "   CAST(c.numeroIdentificacao AS string) LIKE CONCAT('%', :busca, '%') OR "
             + "   EXISTS (SELECT 1 FROM Posto p WHERE p.cliente = c AND LOWER(p.nome) LIKE LOWER(CONCAT('%', :busca, '%'))) OR "
-            + "   EXISTS (SELECT 1 FROM Contato ct WHERE ct.cliente = c AND LOWER(ct.nome) LIKE LOWER(CONCAT('%', :busca, '%')))"
+            + "   EXISTS (SELECT 1 FROM Contato ct WHERE ct.cliente = c AND LOWER(ct.nome) LIKE LOWER(CONCAT('%', :busca, '%'))) OR "
+            + "   c.id IN :itemClienteIdsMatched"
             + ") AND "
             + "(:status IS NULL OR c.status = :status)")
-    Page<Cliente> buscar(@Param("busca") String busca, @Param("status") StatusCliente status, Pageable pageable);
+    Page<Cliente> buscar(@Param("busca") String busca, @Param("itemClienteIdsMatched") java.util.List<UUID> itemClienteIdsMatched,
+                          @Param("status") StatusCliente status, Pageable pageable);
 
     @EntityGraph(attributePaths = {"contatos", "postos"})
     Optional<Cliente> findWithRelationsById(UUID id);

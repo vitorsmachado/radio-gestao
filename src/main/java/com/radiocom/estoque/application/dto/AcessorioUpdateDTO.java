@@ -18,6 +18,9 @@ public class AcessorioUpdateDTO {
     @Size(max = 255)
     private String descricao;
 
+    @Size(max = 100)
+    private String codigoCliente;
+
     @PositiveOrZero
     private Integer quantidadeMinima;
 

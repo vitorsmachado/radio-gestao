@@ -27,6 +27,7 @@ public class EquipamentoDTO {
     private String numeroSerie;
     private String patrimonio;
     private UUID clienteId;
+    private String codigoCliente;
     private FaixaEquipamento faixa;
     private EstadoEquipamento estado;
     private StatusItem status;

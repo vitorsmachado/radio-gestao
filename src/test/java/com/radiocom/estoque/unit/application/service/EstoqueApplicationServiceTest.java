@@ -78,6 +78,25 @@ class EstoqueApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("criarEquipamento deve mapear o codigoCliente informado")
+    void criarEquipamento_deveMapearCodigoCliente() {
+        EquipamentoCreateDTO dto = EquipamentoCreateDTO.builder()
+                .proprietario(ProprietarioEquipamento.CLIENTE)
+                .clienteId(UUID.randomUUID())
+                .codigoCliente("TAG-CLIENTE-001")
+                .numeroSerie("NS-002")
+                .faixa(FaixaEquipamento.VHF)
+                .descricao("Rádio VHF")
+                .build();
+
+        when(equipamentoRepository.save(any(Equipamento.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        EquipamentoDTO resultado = service.criarEquipamento(dto);
+
+        assertThat(resultado.getCodigoCliente()).isEqualTo("TAG-CLIENTE-001");
+    }
+
+    @Test
     @DisplayName("criarEquipamento deve lançar exceção quando NS já cadastrado")
     void criarEquipamento_deveLancarExcecaoQuandoNSDuplicado() {
         EquipamentoCreateDTO dto = EquipamentoCreateDTO.builder()
@@ -157,6 +176,24 @@ class EstoqueApplicationServiceTest {
         AcessorioDTO resultado = service.criarAcessorio(dto);
 
         assertThat(resultado.getTipoAcessorio()).isEqualTo(TipoAcessorio.BATERIA);
+    }
+
+    @Test
+    @DisplayName("criarAcessorio deve mapear o codigoCliente informado")
+    void criarAcessorio_deveMapearCodigoCliente() {
+        AcessorioCreateDTO dto = AcessorioCreateDTO.builder()
+                .descricao("Bateria BP-227")
+                .tipoAcessorio(TipoAcessorio.BATERIA)
+                .clienteId(UUID.randomUUID())
+                .codigoCliente("TAG-CLIENTE-002")
+                .quantidadeDisponivel(5)
+                .build();
+
+        when(acessorioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        AcessorioDTO resultado = service.criarAcessorio(dto);
+
+        assertThat(resultado.getCodigoCliente()).isEqualTo("TAG-CLIENTE-002");
     }
 
     @Test
@@ -437,6 +474,34 @@ class EstoqueApplicationServiceTest {
         var resultado = service.listarPecas(pageable, null, modeloId);
 
         assertThat(resultado.getContent()).hasSize(1);
+    }
+
+    // ===== Busca cruzada (usada pelo módulo Cliente) =====
+
+    @Test
+    @DisplayName("buscarClienteIdsPorNumeroSerieOuCodigoCliente deve unir e deduplicar resultados de equipamento e acessório")
+    void buscarClienteIdsPorNumeroSerieOuCodigoCliente_deveUnirEDeduplicar() {
+        UUID clienteComum = UUID.randomUUID();
+        UUID clienteSoEquipamento = UUID.randomUUID();
+        UUID clienteSoAcessorio = UUID.randomUUID();
+
+        when(equipamentoRepository.buscarClienteIdsPorNumeroSerieOuCodigoCliente("NS-123"))
+                .thenReturn(java.util.List.of(clienteComum, clienteSoEquipamento));
+        when(acessorioRepository.buscarClienteIdsPorNumeroSerieOuCodigoCliente("NS-123"))
+                .thenReturn(java.util.List.of(clienteComum, clienteSoAcessorio));
+
+        var resultado = service.buscarClienteIdsPorNumeroSerieOuCodigoCliente("NS-123");
+
+        assertThat(resultado).containsExactlyInAnyOrder(clienteComum, clienteSoEquipamento, clienteSoAcessorio);
+    }
+
+    @Test
+    @DisplayName("buscarClienteIdsPorNumeroSerieOuCodigoCliente deve retornar vazio quando nenhum item corresponde")
+    void buscarClienteIdsPorNumeroSerieOuCodigoCliente_deveRetornarVazioQuandoSemCorrespondencia() {
+        when(equipamentoRepository.buscarClienteIdsPorNumeroSerieOuCodigoCliente("inexistente")).thenReturn(java.util.List.of());
+        when(acessorioRepository.buscarClienteIdsPorNumeroSerieOuCodigoCliente("inexistente")).thenReturn(java.util.List.of());
+
+        assertThat(service.buscarClienteIdsPorNumeroSerieOuCodigoCliente("inexistente")).isEmpty();
     }
 
     // ===== Movimentação =====

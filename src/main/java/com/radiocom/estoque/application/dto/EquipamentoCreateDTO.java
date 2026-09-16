@@ -32,6 +32,9 @@ public class EquipamentoCreateDTO {
 
     private UUID clienteId; // Obrigatório se proprietario = CLIENTE
 
+    @Size(max = 100)
+    private String codigoCliente; // Identificação própria do cliente pro item
+
     @NotNull
     private FaixaEquipamento faixa;
 

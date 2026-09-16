@@ -18,6 +18,9 @@ public class EquipamentoUpdateDTO {
     @Size(max = 255)
     private String descricao;
 
+    @Size(max = 100)
+    private String codigoCliente;
+
     private LocalDate garantiaFim;
 
     private Map<String, String> especificacoes;
