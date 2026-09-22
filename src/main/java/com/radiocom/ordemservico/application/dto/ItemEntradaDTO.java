@@ -21,11 +21,15 @@ public class ItemEntradaDTO {
     private UUID osId;
     private UUID orcamentoId;
     private UUID itemEstoqueId;
+    private UUID catalogoModeloId;
+    /** Resolvido à parte (não vem do mapper puro) — preço de referência do modelo de catálogo, quando houver. */
+    private BigDecimal catalogoValorReferencia;
     private TipoItem tipoItem;
     private String descricao;
     private String numeroSerie;
     private String patrimonio;
     private String codigoCliente;
+    private Integer quantidade;
     private String marca;
     private String modelo;
     private String defeitoRelatado;

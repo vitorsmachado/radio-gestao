@@ -2,8 +2,11 @@ package com.radiocom.ordemservico.domain.service;
 
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
 import com.radiocom.ordemservico.domain.model.OrdemServico;
+import com.radiocom.ordemservico.domain.model.OrdemServicoStatusHistorico;
+import com.radiocom.ordemservico.domain.model.enums.StatusOS;
 import com.radiocom.ordemservico.domain.repository.ItemEntradaRepository;
 import com.radiocom.ordemservico.domain.repository.OrdemServicoRepository;
+import com.radiocom.ordemservico.domain.repository.OrdemServicoStatusHistoricoRepository;
 import com.radiocom.shared.exception.DomainException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +24,7 @@ public class OrdemServicoDomainService {
 
     private final OrdemServicoRepository osRepository;
     private final ItemEntradaRepository itemEntradaRepository;
+    private final OrdemServicoStatusHistoricoRepository statusHistoricoRepository;
     private final NumeroOSGenerator numeroGenerator;
 
     @Transactional(readOnly = true)
@@ -59,35 +63,62 @@ public class OrdemServicoDomainService {
 
     @Transactional
     public OrdemServico criar(UUID clienteId, UUID postoId, UUID tecnicoId, String solicitante) {
-        OrdemServico os = OrdemServico.builder()
+        return criar(clienteId, postoId, tecnicoId, solicitante, null, null);
+    }
+
+    @Transactional
+    public OrdemServico criar(UUID clienteId, UUID postoId, UUID tecnicoId, String solicitante,
+                               LocalDateTime dataAbertura, String observacoes) {
+        OrdemServico.OrdemServicoBuilder builder = OrdemServico.builder()
                 .numero(numeroGenerator.gerarNumero())
                 .clienteId(clienteId)
                 .postoId(postoId)
                 .tecnicoId(tecnicoId)
                 .solicitante(solicitante)
-                .build();
-        return osRepository.save(os);
+                .observacoes(observacoes);
+        if (dataAbertura != null) {
+            builder.dataAbertura(dataAbertura);
+        }
+        return osRepository.save(builder.build());
     }
 
     @Transactional
     public OrdemServico iniciarAndamento(UUID id) {
         OrdemServico os = buscarPorId(id);
+        StatusOS statusAnterior = os.getStatus();
         os.iniciarAndamento();
-        return osRepository.save(os);
+        OrdemServico salva = osRepository.save(os);
+        registrarTransicaoStatus(id, statusAnterior, salva.getStatus(), null);
+        return salva;
     }
 
     @Transactional
     public OrdemServico confirmarEntrega(UUID id, String nomeRecebedor) {
         OrdemServico os = buscarPorId(id);
+        StatusOS statusAnterior = os.getStatus();
         os.confirmarEntrega(nomeRecebedor);
-        return osRepository.save(os);
+        OrdemServico salva = osRepository.save(os);
+        registrarTransicaoStatus(id, statusAnterior, salva.getStatus(), null);
+        return salva;
     }
 
     @Transactional
     public OrdemServico cancelar(UUID id, String motivo) {
         OrdemServico os = buscarPorId(id);
+        StatusOS statusAnterior = os.getStatus();
         os.cancelar(motivo);
-        return osRepository.save(os);
+        OrdemServico salva = osRepository.save(os);
+        registrarTransicaoStatus(id, statusAnterior, salva.getStatus(), motivo);
+        return salva;
+    }
+
+    private void registrarTransicaoStatus(UUID ordemServicoId, StatusOS statusAnterior, StatusOS statusNovo, String motivo) {
+        statusHistoricoRepository.save(OrdemServicoStatusHistorico.builder()
+                .ordemServicoId(ordemServicoId)
+                .statusAnterior(statusAnterior)
+                .statusNovo(statusNovo)
+                .motivo(motivo != null && !motivo.isBlank() ? motivo.trim() : null)
+                .build());
     }
 
     // ===== MOVIMENTAÇÃO DE ITENS ENTRE OS =====
@@ -133,8 +164,7 @@ public class OrdemServicoDomainService {
 
             OrdemServico origem = buscarPorId(origemId);
             if (!origem.isEncerrada()) {
-                origem.cancelar("Itens unidos à OS " + destino.getNumero());
-                osRepository.save(origem);
+                cancelar(origemId, "Itens unidos à OS " + destino.getNumero());
             }
         }
         return destino;

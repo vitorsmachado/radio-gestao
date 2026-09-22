@@ -16,8 +16,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -67,6 +71,15 @@ public class CatalogoModeloService {
     @Transactional(readOnly = true)
     public List<String> listarMarcas() {
         return repository.listarMarcas();
+    }
+
+    /** Usado por outros módulos (ex.: ItemEntrada) pra resolver o valor de referência sem expor a entidade. */
+    @Transactional(readOnly = true)
+    public Map<UUID, BigDecimal> buscarValoresReferenciaPorIds(Collection<UUID> ids) {
+        if (ids == null || ids.isEmpty()) return Map.of();
+        return repository.findAllById(ids).stream()
+                .filter(c -> c.getValorReferencia() != null)
+                .collect(Collectors.toMap(CatalogoModelo::getId, CatalogoModelo::getValorReferencia));
     }
 
     @Transactional

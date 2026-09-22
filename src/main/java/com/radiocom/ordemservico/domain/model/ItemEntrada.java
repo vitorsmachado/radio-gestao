@@ -40,6 +40,10 @@ public class ItemEntrada extends BaseEntity {
     @Column(name = "item_estoque_id")
     private UUID itemEstoqueId; // Equipamento/Acessorio no Estoque (proprietário CLIENTE)
 
+    /** Modelo do catálogo escolhido na entrada — sugestão opcional, traz valor de referência e serve pra filtrar por modelo nos relatórios. */
+    @Column(name = "catalogo_modelo_id")
+    private UUID catalogoModeloId;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_item", nullable = false, length = 20)
@@ -58,6 +62,17 @@ public class ItemEntrada extends BaseEntity {
     /** Identificação própria do cliente pro item (tag/código interno dele, distinto do nosso patrimônio). */
     @Column(name = "codigo_cliente", length = 100)
     private String codigoCliente;
+
+    /**
+     * Quantidade de unidades que esta linha representa. Só faz sentido
+     * &gt; 1 para acessório não rastreado individualmente (sem N/S nem
+     * patrimônio) — ex: "3 antenas modelo X". Equipamento e qualquer item
+     * rastreado por N/S/patrimônio ficam sempre em 1.
+     */
+    @NotNull
+    @Column(name = "quantidade", nullable = false)
+    @Builder.Default
+    private Integer quantidade = 1;
 
     @Column(name = "marca", length = 100)
     private String marca;

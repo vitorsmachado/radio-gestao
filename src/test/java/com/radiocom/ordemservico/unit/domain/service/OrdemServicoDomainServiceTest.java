@@ -4,6 +4,7 @@ import com.radiocom.ordemservico.domain.model.ItemEntrada;
 import com.radiocom.ordemservico.domain.model.OrdemServico;
 import com.radiocom.ordemservico.domain.repository.ItemEntradaRepository;
 import com.radiocom.ordemservico.domain.repository.OrdemServicoRepository;
+import com.radiocom.ordemservico.domain.repository.OrdemServicoStatusHistoricoRepository;
 import com.radiocom.ordemservico.domain.service.NumeroOSGenerator;
 import com.radiocom.ordemservico.domain.service.OrdemServicoDomainService;
 import com.radiocom.shared.exception.DomainException;
@@ -31,6 +32,7 @@ class OrdemServicoDomainServiceTest {
 
     @Mock private OrdemServicoRepository osRepository;
     @Mock private ItemEntradaRepository itemEntradaRepository;
+    @Mock private OrdemServicoStatusHistoricoRepository statusHistoricoRepository;
     @Mock private NumeroOSGenerator numeroGenerator;
 
     @InjectMocks

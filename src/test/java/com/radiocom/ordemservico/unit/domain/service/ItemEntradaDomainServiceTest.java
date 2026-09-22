@@ -7,6 +7,7 @@ import com.radiocom.ordemservico.domain.model.ItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
 import com.radiocom.ordemservico.domain.repository.ItemEntradaRepository;
+import com.radiocom.ordemservico.domain.repository.ItemEntradaStatusHistoricoRepository;
 import com.radiocom.ordemservico.domain.service.ItemEntradaDomainService;
 import com.radiocom.shared.exception.DomainException;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +35,7 @@ import static org.mockito.Mockito.when;
 class ItemEntradaDomainServiceTest {
 
     @Mock private ItemEntradaRepository itemEntradaRepository;
+    @Mock private ItemEntradaStatusHistoricoRepository statusHistoricoRepository;
     @Mock private EstoqueDomainService estoqueDomainService;
 
     @InjectMocks

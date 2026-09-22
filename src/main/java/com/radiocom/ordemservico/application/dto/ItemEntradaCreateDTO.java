@@ -22,6 +22,9 @@ public class ItemEntradaCreateDTO {
 
     private UUID itemEstoqueId;
 
+    /** Modelo do catálogo escolhido na entrada — opcional, só uma sugestão/referência. */
+    private UUID catalogoModeloId;
+
     @NotNull
     private TipoItem tipoItem;
 
@@ -37,6 +40,9 @@ public class ItemEntradaCreateDTO {
 
     @Size(max = 100)
     private String codigoCliente;
+
+    /** Opcional — se ausente, assume 1. &gt; 1 só é permitido sem número de série/patrimônio. */
+    private Integer quantidade;
 
     @Size(max = 100)
     private String marca;

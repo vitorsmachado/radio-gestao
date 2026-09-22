@@ -1,5 +1,6 @@
 package com.radiocom.ordemservico.unit.application.service;
 
+import com.radiocom.estoque.application.service.CatalogoModeloService;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import com.radiocom.ordemservico.application.dto.*;
 import com.radiocom.ordemservico.application.mapper.OrdemServicoMapper;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.when;
 class ItemEntradaApplicationServiceTest {
 
     @Mock private ItemEntradaDomainService itemDomainService;
+    @Mock private CatalogoModeloService catalogoModeloService;
 
     private ItemEntradaApplicationService service;
 
@@ -36,7 +38,7 @@ class ItemEntradaApplicationServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ItemEntradaApplicationService(itemDomainService, new OrdemServicoMapper());
+        service = new ItemEntradaApplicationService(itemDomainService, new OrdemServicoMapper(), catalogoModeloService);
         itemId = UUID.randomUUID();
         item = ItemEntrada.builder()
                 .osId(UUID.randomUUID())

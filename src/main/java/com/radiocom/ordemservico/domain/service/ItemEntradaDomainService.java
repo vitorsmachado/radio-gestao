@@ -4,8 +4,11 @@ import com.radiocom.estoque.domain.model.enums.TipoItem;
 import com.radiocom.estoque.domain.service.EstoqueDomainService;
 import com.radiocom.ordemservico.domain.model.ItemConserto;
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
+import com.radiocom.ordemservico.domain.model.ItemEntradaStatusHistorico;
+import com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
 import com.radiocom.ordemservico.domain.repository.ItemEntradaRepository;
+import com.radiocom.ordemservico.domain.repository.ItemEntradaStatusHistoricoRepository;
 import com.radiocom.shared.exception.DomainException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +22,7 @@ import java.util.UUID;
 public class ItemEntradaDomainService {
 
     private final ItemEntradaRepository itemEntradaRepository;
+    private final ItemEntradaStatusHistoricoRepository statusHistoricoRepository;
     private final EstoqueDomainService estoqueDomainService;
 
     @Transactional(readOnly = true)
@@ -34,14 +38,18 @@ public class ItemEntradaDomainService {
 
     @Transactional
     public ItemEntrada criar(ItemEntrada item) {
+        validarQuantidade(item);
         return itemEntradaRepository.save(item);
     }
 
     @Transactional
     public ItemEntrada avaliar(UUID id, String avaliacaoTecnica, boolean semDefeito) {
         ItemEntrada item = buscarPorId(id);
+        StatusItemEntrada statusAnterior = item.getStatus();
         item.avaliar(avaliacaoTecnica, semDefeito);
-        return itemEntradaRepository.save(item);
+        ItemEntrada salvo = itemEntradaRepository.save(item);
+        registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), null);
+        return salvo;
     }
 
     @Transactional
@@ -54,25 +62,34 @@ public class ItemEntradaDomainService {
     @Transactional
     public ItemEntrada enviarParaAutorizacao(UUID id) {
         ItemEntrada item = buscarPorId(id);
+        StatusItemEntrada statusAnterior = item.getStatus();
         item.enviarParaAutorizacao();
-        return itemEntradaRepository.save(item);
+        ItemEntrada salvo = itemEntradaRepository.save(item);
+        registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), null);
+        return salvo;
     }
 
     /**
      * Autoriza o conserto e decide sozinho o próximo passo: se todas as
      * peças do conserto estão disponíveis em estoque, o item já entra na
      * fila de manutenção; se faltar alguma, vai direto para aguardando peça.
+     * Cada sub-transição (autorizar, e depois fila/aguardando peça) vira um
+     * registro de histórico próprio.
      */
     @Transactional
     public ItemEntrada autorizar(UUID id) {
         ItemEntrada item = buscarPorId(id);
+        StatusItemEntrada statusAnterior = item.getStatus();
         item.autorizar();
+        registrarTransicaoStatus(id, statusAnterior, item.getStatus(), null);
 
+        StatusItemEntrada antesDaFila = item.getStatus();
         if (pecasDisponiveis(item)) {
             item.iniciarFilaManutencao();
         } else {
             item.marcarAguardandoPeca();
         }
+        registrarTransicaoStatus(id, antesDaFila, item.getStatus(), null);
 
         return itemEntradaRepository.save(item);
     }
@@ -80,15 +97,21 @@ public class ItemEntradaDomainService {
     @Transactional
     public ItemEntrada naoAutorizar(UUID id, String motivo) {
         ItemEntrada item = buscarPorId(id);
+        StatusItemEntrada statusAnterior = item.getStatus();
         item.naoAutorizar(motivo);
-        return itemEntradaRepository.save(item);
+        ItemEntrada salvo = itemEntradaRepository.save(item);
+        registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), motivo);
+        return salvo;
     }
 
     @Transactional
     public ItemEntrada iniciarManutencao(UUID id) {
         ItemEntrada item = buscarPorId(id);
+        StatusItemEntrada statusAnterior = item.getStatus();
         item.iniciarManutencao();
-        return itemEntradaRepository.save(item);
+        ItemEntrada salvo = itemEntradaRepository.save(item);
+        registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), null);
+        return salvo;
     }
 
     /**
@@ -99,29 +122,41 @@ public class ItemEntradaDomainService {
     @Transactional
     public ItemEntrada marcarAguardandoPeca(UUID id) {
         ItemEntrada item = buscarPorId(id);
+        StatusItemEntrada statusAnterior = item.getStatus();
         item.marcarAguardandoPeca();
-        return itemEntradaRepository.save(item);
+        ItemEntrada salvo = itemEntradaRepository.save(item);
+        registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), null);
+        return salvo;
     }
 
     @Transactional
     public ItemEntrada concluirManutencao(UUID id) {
         ItemEntrada item = buscarPorId(id);
+        StatusItemEntrada statusAnterior = item.getStatus();
         item.concluirManutencao();
-        return itemEntradaRepository.save(item);
+        ItemEntrada salvo = itemEntradaRepository.save(item);
+        registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), null);
+        return salvo;
     }
 
     @Transactional
     public ItemEntrada aguardarEntrega(UUID id) {
         ItemEntrada item = buscarPorId(id);
+        StatusItemEntrada statusAnterior = item.getStatus();
         item.aguardarEntrega();
-        return itemEntradaRepository.save(item);
+        ItemEntrada salvo = itemEntradaRepository.save(item);
+        registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), null);
+        return salvo;
     }
 
     @Transactional
     public ItemEntrada entregar(UUID id) {
         ItemEntrada item = buscarPorId(id);
+        StatusItemEntrada statusAnterior = item.getStatus();
         item.entregar();
-        return itemEntradaRepository.save(item);
+        ItemEntrada salvo = itemEntradaRepository.save(item);
+        registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), null);
+        return salvo;
     }
 
     /**
@@ -132,13 +167,39 @@ public class ItemEntradaDomainService {
     @Transactional
     public void retomarItensAguardandoPeca(UUID itemEstoqueId) {
         List<ItemEntrada> aguardando = itemEntradaRepository.findByStatusAndItemEstoqueId(
-                com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada.AGUARDANDO_PECA, itemEstoqueId);
+                StatusItemEntrada.AGUARDANDO_PECA, itemEstoqueId);
 
         for (ItemEntrada item : aguardando) {
             if (pecasDisponiveis(item)) {
+                StatusItemEntrada statusAnterior = item.getStatus();
                 item.retomarAposPeca();
                 itemEntradaRepository.save(item);
+                registrarTransicaoStatus(item.getId(), statusAnterior, item.getStatus(), null);
             }
+        }
+    }
+
+    private void registrarTransicaoStatus(UUID itemEntradaId, StatusItemEntrada statusAnterior,
+                                           StatusItemEntrada statusNovo, String motivo) {
+        statusHistoricoRepository.save(ItemEntradaStatusHistorico.builder()
+                .itemEntradaId(itemEntradaId)
+                .statusAnterior(statusAnterior)
+                .statusNovo(statusNovo)
+                .motivo(motivo != null && !motivo.isBlank() ? motivo.trim() : null)
+                .build());
+    }
+
+    private void validarQuantidade(ItemEntrada item) {
+        int quantidade = item.getQuantidade() != null ? item.getQuantidade() : 1;
+        boolean rastreado = (item.getNumeroSerie() != null && !item.getNumeroSerie().isBlank())
+                || (item.getPatrimonio() != null && !item.getPatrimonio().isBlank());
+        if (quantidade > 1 && rastreado) {
+            throw new DomainException(
+                    "Item com quantidade maior que 1 não pode ter número de série nem patrimônio — "
+                            + "use uma linha por unidade rastreada.");
+        }
+        if (quantidade < 1) {
+            throw new DomainException("Quantidade deve ser maior ou igual a 1.");
         }
     }
 
