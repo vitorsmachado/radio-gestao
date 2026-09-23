@@ -9,6 +9,7 @@ import com.radiocom.ordemservico.domain.model.ItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
 import com.radiocom.ordemservico.domain.service.ItemEntradaDomainService;
+import com.radiocom.ordemservico.sugestao.application.service.SugestaoTextoService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,7 @@ class ItemEntradaApplicationServiceTest {
 
     @Mock private ItemEntradaDomainService itemDomainService;
     @Mock private CatalogoModeloService catalogoModeloService;
+    @Mock private SugestaoTextoService sugestaoTextoService;
 
     private ItemEntradaApplicationService service;
 
@@ -38,7 +40,7 @@ class ItemEntradaApplicationServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ItemEntradaApplicationService(itemDomainService, new OrdemServicoMapper(), catalogoModeloService);
+        service = new ItemEntradaApplicationService(itemDomainService, new OrdemServicoMapper(), catalogoModeloService, sugestaoTextoService);
         itemId = UUID.randomUUID();
         item = ItemEntrada.builder()
                 .osId(UUID.randomUUID())

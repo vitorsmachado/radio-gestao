@@ -43,7 +43,7 @@ class PecaListagemIT extends PostgresIntegrationTestBase {
                 .quantidadeDisponivel(5)
                 .build());
 
-        var pagina = estoqueService.listarPecas(PageRequest.of(0, 20), null, null);
+        var pagina = estoqueService.listarPecas(PageRequest.of(0, 20), null, null, null);
 
         assertThat(pagina.getContent()).isNotEmpty();
     }
@@ -56,7 +56,7 @@ class PecaListagemIT extends PostgresIntegrationTestBase {
                 .quantidadeDisponivel(0)
                 .build());
 
-        var pagina = estoqueService.listarPecas(PageRequest.of(0, 20), CriticidadeEstoque.EM_FALTA, null);
+        var pagina = estoqueService.listarPecas(PageRequest.of(0, 20), CriticidadeEstoque.EM_FALTA, null, null);
 
         assertThat(pagina.getContent()).allMatch(PecaDTO::isEmFalta);
     }
@@ -80,7 +80,7 @@ class PecaListagemIT extends PostgresIntegrationTestBase {
                 .quantidadeDisponivel(10)
                 .build());
 
-        var pagina = estoqueService.listarPecas(PageRequest.of(0, 20), CriticidadeEstoque.CRITICO, null);
+        var pagina = estoqueService.listarPecas(PageRequest.of(0, 20), CriticidadeEstoque.CRITICO, null, null);
 
         assertThat(pagina.getContent()).allMatch(p -> p.isEmFalta() || p.isEstoqueBaixo());
     }
@@ -103,7 +103,7 @@ class PecaListagemIT extends PostgresIntegrationTestBase {
                 .descricao("Peça sem compatibilidade " + UUID.randomUUID())
                 .build());
 
-        var pagina = estoqueService.listarPecas(PageRequest.of(0, 20), null, modelo.getId());
+        var pagina = estoqueService.listarPecas(PageRequest.of(0, 20), null, modelo.getId(), null);
 
         assertThat(pagina.getContent()).extracting(PecaDTO::getId).containsExactly(pecaCompativel.getId());
     }

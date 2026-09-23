@@ -415,10 +415,10 @@ class EstoqueApplicationServiceTest {
     void listarPecas_semFiltros_deveChamarBuscarSemRestricao() {
         Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(5).build();
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-        when(pecaRepository.buscar(null, false, false, false, pageable)).thenReturn(
+        when(pecaRepository.buscar(null, null, false, false, false, pageable)).thenReturn(
                 new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
 
-        var resultado = service.listarPecas(pageable, null, null);
+        var resultado = service.listarPecas(pageable, null, null, null);
 
         assertThat(resultado.getTotalElements()).isEqualTo(1);
         assertThat(resultado.getContent().get(0).getDescricao()).isEqualTo("Antena UHF");
@@ -429,10 +429,10 @@ class EstoqueApplicationServiceTest {
     void listarPecas_emFalta_deveChamarBuscarComEmFaltaTrue() {
         Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(0).build();
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-        when(pecaRepository.buscar(null, true, false, false, pageable)).thenReturn(
+        when(pecaRepository.buscar(null, null, true, false, false, pageable)).thenReturn(
                 new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
 
-        var resultado = service.listarPecas(pageable, CriticidadeEstoque.EM_FALTA, null);
+        var resultado = service.listarPecas(pageable, CriticidadeEstoque.EM_FALTA, null, null);
 
         assertThat(resultado.getContent().get(0).isEmFalta()).isTrue();
     }
@@ -442,10 +442,10 @@ class EstoqueApplicationServiceTest {
     void listarPecas_estoqueBaixo_deveChamarBuscarComEstoqueBaixoTrue() {
         Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(2).quantidadeMinima(5).build();
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-        when(pecaRepository.buscar(null, false, true, false, pageable)).thenReturn(
+        when(pecaRepository.buscar(null, null, false, true, false, pageable)).thenReturn(
                 new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
 
-        var resultado = service.listarPecas(pageable, CriticidadeEstoque.ESTOQUE_BAIXO, null);
+        var resultado = service.listarPecas(pageable, CriticidadeEstoque.ESTOQUE_BAIXO, null, null);
 
         assertThat(resultado.getContent().get(0).isEstoqueBaixo()).isTrue();
     }
@@ -455,10 +455,10 @@ class EstoqueApplicationServiceTest {
     void listarPecas_critico_deveChamarBuscarComCriticoTrue() {
         Peca peca = Peca.builder().descricao("Antena UHF").quantidadeDisponivel(0).build();
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-        when(pecaRepository.buscar(null, false, false, true, pageable)).thenReturn(
+        when(pecaRepository.buscar(null, null, false, false, true, pageable)).thenReturn(
                 new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
 
-        var resultado = service.listarPecas(pageable, CriticidadeEstoque.CRITICO, null);
+        var resultado = service.listarPecas(pageable, CriticidadeEstoque.CRITICO, null, null);
 
         assertThat(resultado.getContent()).hasSize(1);
     }
@@ -469,10 +469,10 @@ class EstoqueApplicationServiceTest {
         UUID modeloId = UUID.randomUUID();
         Peca peca = Peca.builder().descricao("Bateria BP-227").build();
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-        when(pecaRepository.buscar(modeloId, false, false, false, pageable)).thenReturn(
+        when(pecaRepository.buscar(modeloId, null, false, false, false, pageable)).thenReturn(
                 new org.springframework.data.domain.PageImpl<>(java.util.List.of(peca), pageable, 1));
 
-        var resultado = service.listarPecas(pageable, null, modeloId);
+        var resultado = service.listarPecas(pageable, null, modeloId, null);
 
         assertThat(resultado.getContent()).hasSize(1);
     }

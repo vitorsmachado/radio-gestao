@@ -57,6 +57,31 @@ public class ItemEntradaController {
         return ResponseEntity.ok(itemService.atualizarAvaliacao(id, dto));
     }
 
+    @PatchMapping("/{id}/iniciar-avaliacao")
+    @Operation(summary = "Técnico começa a avaliar o item",
+            description = "Marca o item como 'em avaliação' — fica visível que já tem alguém mexendo nele.")
+    public ResponseEntity<ItemEntradaDTO> iniciarAvaliacao(@PathVariable UUID id) {
+        return ResponseEntity.ok(itemService.iniciarAvaliacao(id));
+    }
+
+    @PatchMapping("/{id}/avaliacao-tecnica")
+    @Operation(summary = "Salvar o laudo técnico estruturado da tela do técnico",
+            description = "Resultado (ajuste/orçamento/sem defeito/sem conserto) + defeito encontrado, causa, "
+                    + "solução recomendada e observações técnicas. Peças continuam sendo adicionadas via "
+                    + "POST /{id}/itens-conserto, uma chamada por peça escolhida.")
+    public ResponseEntity<ItemEntradaDTO> salvarAvaliacaoTecnica(
+            @PathVariable UUID id, @Valid @RequestBody SalvarAvaliacaoTecnicaDTO dto) {
+        return ResponseEntity.ok(itemService.salvarAvaliacaoTecnica(id, dto));
+    }
+
+    @PatchMapping("/{id}/confirmar-aguardando-peca")
+    @Operation(summary = "Confirmar que o item está mesmo preso esperando peça",
+            description = "Não muda o status — só manda o item pro final da fila de manutenção. Volta "
+                    + "automaticamente como próximo a ser feito assim que a peça chegar no estoque.")
+    public ResponseEntity<ItemEntradaDTO> confirmarAguardandoPeca(@PathVariable UUID id) {
+        return ResponseEntity.ok(itemService.confirmarAguardandoPeca(id));
+    }
+
     @PatchMapping("/{id}/enviar-autorizacao")
     @Operation(summary = "Marcar orçamento como apresentado ao cliente")
     public ResponseEntity<ItemEntradaDTO> enviarParaAutorizacao(@PathVariable UUID id) {

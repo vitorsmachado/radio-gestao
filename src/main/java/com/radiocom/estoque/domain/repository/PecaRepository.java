@@ -16,13 +16,18 @@ public interface PecaRepository extends JpaRepository<Peca, UUID> {
     boolean existsByCodigoIgnoreCase(String codigo);
 
     /**
-     * Listagem combinada: emFalta/estoqueBaixo/critico/modeloCompativelId são
-     * filtros independentes e opcionais (false/null = sem restrição), podendo
-     * ser combinados livremente. "critico" é a união de emFalta OU
-     * estoqueBaixo (usado pela aba "Estoque crítico" do front).
+     * Listagem combinada: emFalta/estoqueBaixo/critico/modeloCompativelId/busca
+     * são filtros independentes e opcionais (false/null = sem restrição),
+     * podendo ser combinados livremente. "critico" é a união de emFalta OU
+     * estoqueBaixo (usado pela aba "Estoque crítico" do front). "busca" cobre
+     * código e descrição — usada quando o item de entrada não tem modelo de
+     * catálogo resolvido pra filtrar por compatibilidade.
      */
     @Query("SELECT DISTINCT p FROM Peca p LEFT JOIN p.modelosCompativeis m WHERE "
             + "(:modeloCompativelId IS NULL OR m.id = :modeloCompativelId) AND "
+            + "(:busca IS NULL OR "
+            + "   LOWER(p.codigo) LIKE LOWER(CONCAT('%', :busca, '%')) OR "
+            + "   LOWER(p.descricao) LIKE LOWER(CONCAT('%', :busca, '%'))) AND "
             + "(:emFalta = FALSE OR p.quantidadeDisponivel = 0) AND "
             + "(:estoqueBaixo = FALSE OR (p.quantidadeMinima IS NOT NULL "
             + "   AND p.quantidadeDisponivel <= p.quantidadeMinima AND p.quantidadeDisponivel > 0)) AND "
@@ -30,6 +35,7 @@ public interface PecaRepository extends JpaRepository<Peca, UUID> {
             + "   AND p.quantidadeDisponivel <= p.quantidadeMinima AND p.quantidadeDisponivel > 0))")
     Page<Peca> buscar(
             @Param("modeloCompativelId") UUID modeloCompativelId,
+            @Param("busca") String busca,
             @Param("emFalta") boolean emFalta,
             @Param("estoqueBaixo") boolean estoqueBaixo,
             @Param("critico") boolean critico,

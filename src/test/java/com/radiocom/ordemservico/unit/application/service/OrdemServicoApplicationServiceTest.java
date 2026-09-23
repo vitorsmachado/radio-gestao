@@ -230,4 +230,82 @@ class OrdemServicoApplicationServiceTest {
 
         assertThat(resultado.getId()).isEqualTo(osId);
     }
+
+    // ===== listarFilaManutencao / reordenarFila =====
+
+    @Test
+    @DisplayName("listarFilaManutencao deve ordenar por bloco, depois posicaoFila asc")
+    void listarFilaManutencao_deveOrdenarPorBlocoEPosicaoFila() {
+        OrdemServico osEmAvaliacao = criarOS("OS-2026-0100", 100L);
+        OrdemServico osManutencao = criarOS("OS-2026-0101", 100L);
+        OrdemServico osAvaliacaoPrimeira = criarOS("OS-2026-0102", 1L);
+        OrdemServico osAvaliacaoSegunda = criarOS("OS-2026-0103", 2L);
+        OrdemServico osAvaliacaoTerceira = criarOS("OS-2026-0104", 3L);
+        OrdemServico osAguardandoPecaConfirmado = criarOS("OS-2026-0105", 100L);
+
+        ItemEntrada itemEmAvaliacao = criarItem(osEmAvaliacao.getId(), com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada.EM_AVALIACAO);
+        ItemEntrada itemManutencao = criarItem(osManutencao.getId(), com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada.PENDENTE_MANUTENCAO);
+        ItemEntrada itemAvaliacaoPrimeira = criarItem(osAvaliacaoPrimeira.getId(), com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada.PENDENTE_AVALIACAO);
+        ItemEntrada itemAvaliacaoSegunda = criarItem(osAvaliacaoSegunda.getId(), com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada.PENDENTE_AVALIACAO);
+        ItemEntrada itemAvaliacaoTerceira = criarItem(osAvaliacaoTerceira.getId(), com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada.PENDENTE_AVALIACAO);
+        ItemEntrada itemAguardandoPecaConfirmado = criarItem(osAguardandoPecaConfirmado.getId(), com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada.AGUARDANDO_PECA);
+        itemAguardandoPecaConfirmado.setConfirmadoAguardandoPecaEm(java.time.LocalDateTime.now());
+
+        List<ItemEntrada> todosOsItens = List.of(itemAvaliacaoTerceira, itemAguardandoPecaConfirmado, itemManutencao,
+                itemAvaliacaoPrimeira, itemEmAvaliacao, itemAvaliacaoSegunda);
+        when(osDomainService.listarItensNaFilaManutencao()).thenReturn(todosOsItens);
+
+        List<OrdemServico> todasAsOS = List.of(osEmAvaliacao, osManutencao, osAvaliacaoPrimeira,
+                osAvaliacaoSegunda, osAvaliacaoTerceira, osAguardandoPecaConfirmado);
+        when(osDomainService.listarPorIds(anyList())).thenReturn(todasAsOS);
+        when(clienteApplicationService.buscarPorIds(anyList())).thenReturn(List.of());
+
+        List<FilaManutencaoOSDTO> fila = service.listarFilaManutencao();
+
+        assertThat(fila).extracting(FilaManutencaoOSDTO::getOsNumero).containsExactly(
+                "OS-2026-0100", // em avaliação — bloco 1
+                "OS-2026-0101", // pendente manutenção — bloco 2
+                "OS-2026-0102", // pendente avaliação, posicaoFila 1
+                "OS-2026-0103", // pendente avaliação, posicaoFila 2
+                "OS-2026-0104", // pendente avaliação, posicaoFila 3
+                "OS-2026-0105"  // aguardando peça confirmado — sempre por último
+        );
+    }
+
+    @Test
+    @DisplayName("reordenarFila com SUBIR deve trocar de posição com a OS anterior do mesmo bloco")
+    void reordenarFila_subir_deveTrocarComAnterior() {
+        OrdemServico osPrimeira = criarOS("OS-2026-0200", 1L);
+        OrdemServico osSegunda = criarOS("OS-2026-0201", 2L);
+
+        ItemEntrada itemPrimeira = criarItem(osPrimeira.getId(), com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada.PENDENTE_AVALIACAO);
+        ItemEntrada itemSegunda = criarItem(osSegunda.getId(), com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada.PENDENTE_AVALIACAO);
+
+        when(osDomainService.listarItensNaFilaManutencao()).thenReturn(List.of(itemPrimeira, itemSegunda));
+        when(osDomainService.listarPorIds(anyList())).thenReturn(List.of(osPrimeira, osSegunda));
+        when(clienteApplicationService.buscarPorIds(anyList())).thenReturn(List.of());
+
+        List<FilaManutencaoOSDTO> fila = service.reordenarFila(osSegunda.getId(),
+                ReordenarFilaDTO.builder().acao(AcaoReordenarFila.SUBIR).build());
+
+        assertThat(fila).extracting(FilaManutencaoOSDTO::getOsNumero).containsExactly("OS-2026-0201", "OS-2026-0200");
+        verify(osDomainService).salvarTodas(anyList());
+    }
+
+    private OrdemServico criarOS(String numero, long posicaoFila) {
+        OrdemServico novaOs = OrdemServico.builder().numero(numero).clienteId(UUID.randomUUID()).posicaoFila(posicaoFila).build();
+        ReflectionTestUtils.setField(novaOs, "id", UUID.randomUUID());
+        return novaOs;
+    }
+
+    private ItemEntrada criarItem(UUID osIdDoItem, com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada status) {
+        ItemEntrada item = ItemEntrada.builder()
+                .osId(osIdDoItem)
+                .tipoItem(com.radiocom.estoque.domain.model.enums.TipoItem.EQUIPAMENTO)
+                .descricao("Rádio")
+                .status(status)
+                .build();
+        ReflectionTestUtils.setField(item, "id", UUID.randomUUID());
+        return item;
+    }
 }

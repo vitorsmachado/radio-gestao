@@ -7,6 +7,7 @@ package com.radiocom.ordemservico.domain.model.enums;
  */
 public enum StatusItemEntrada {
     PENDENTE_AVALIACAO("Pendente de avaliação"),
+    EM_AVALIACAO("Em avaliação"),
     AVALIADO("Avaliado"),
     PENDENTE_AUTORIZACAO("Pendente de autorização"),
     AUTORIZADO("Autorizado"),

@@ -1,6 +1,7 @@
 package com.radiocom.ordemservico.application.dto;
 
 import com.radiocom.estoque.domain.model.enums.TipoItem;
+import com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao;
 import com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,6 +40,13 @@ public class ItemEntradaDTO {
     private boolean garantia;
     private StatusItemEntrada status;
     private String motivoNaoAutorizado;
+    private ResultadoAvaliacao resultadoAvaliacao;
+    private String detalheAjuste;
+    private String defeitoEncontrado;
+    private String causaDefeito;
+    private String solucaoRecomendada;
+    private String observacoesTecnicas;
+    private LocalDateTime confirmadoAguardandoPecaEm;
     private List<ItemConsertoDTO> itensConserto;
     private BigDecimal valorTotalConserto;
 }

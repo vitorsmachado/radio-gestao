@@ -5,6 +5,8 @@ import com.radiocom.ordemservico.application.dto.*;
 import com.radiocom.ordemservico.application.mapper.OrdemServicoMapper;
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
 import com.radiocom.ordemservico.domain.service.ItemEntradaDomainService;
+import com.radiocom.ordemservico.sugestao.application.service.SugestaoTextoService;
+import com.radiocom.ordemservico.sugestao.domain.model.enums.CampoSugestao;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class ItemEntradaApplicationService {
     private final ItemEntradaDomainService itemDomainService;
     private final OrdemServicoMapper mapper;
     private final CatalogoModeloService catalogoModeloService;
+    private final SugestaoTextoService sugestaoTextoService;
 
     @Transactional
     public ItemEntradaDTO criar(ItemEntradaCreateDTO dto) {
@@ -50,6 +53,33 @@ public class ItemEntradaApplicationService {
     @Transactional
     public ItemEntradaDTO atualizarAvaliacao(UUID id, AvaliarItemDTO dto) {
         return comCatalogo(mapper.toDTO(itemDomainService.atualizarAvaliacao(id, dto.getAvaliacaoTecnica(), dto.isSemDefeito())));
+    }
+
+    @Transactional
+    public ItemEntradaDTO iniciarAvaliacao(UUID id) {
+        return comCatalogo(mapper.toDTO(itemDomainService.iniciarAvaliacao(id)));
+    }
+
+    /**
+     * Salva o laudo estruturado e registra cada campo de texto preenchido
+     * como sugestão futura (upsert por conteúdo — mais usadas sobem no
+     * autocomplete).
+     */
+    @Transactional
+    public ItemEntradaDTO salvarAvaliacaoTecnica(UUID id, SalvarAvaliacaoTecnicaDTO dto) {
+        ItemEntrada item = itemDomainService.salvarAvaliacaoTecnica(id, dto.getResultado(), dto.getDetalheAjuste(),
+                dto.getDefeitoEncontrado(), dto.getCausaDefeito(), dto.getSolucaoRecomendada(), dto.getObservacoesTecnicas(),
+                dto.isGarantia());
+        sugestaoTextoService.registrarUso(CampoSugestao.DEFEITO_ENCONTRADO, dto.getDefeitoEncontrado());
+        sugestaoTextoService.registrarUso(CampoSugestao.CAUSA_DEFEITO, dto.getCausaDefeito());
+        sugestaoTextoService.registrarUso(CampoSugestao.SOLUCAO_RECOMENDADA, dto.getSolucaoRecomendada());
+        sugestaoTextoService.registrarUso(CampoSugestao.OBSERVACOES_TECNICAS, dto.getObservacoesTecnicas());
+        return comCatalogo(mapper.toDTO(item));
+    }
+
+    @Transactional
+    public ItemEntradaDTO confirmarAguardandoPeca(UUID id) {
+        return comCatalogo(mapper.toDTO(itemDomainService.confirmarAguardandoPeca(id)));
     }
 
     @Transactional

@@ -155,13 +155,15 @@ public class EstoqueController {
     @Operation(summary = "Listar peças",
             description = "Ordenado por mais recente primeiro por padrão. Filtros opcionais e combináveis: "
                     + "criticidade (EM_FALTA = saldo zerado, ESTOQUE_BAIXO = saldo no mínimo ou abaixo, mas não "
-                    + "zerado) e compatibilidade com um modelo de equipamento do catálogo.")
+                    + "zerado), compatibilidade com um modelo de equipamento do catálogo, e busca textual "
+                    + "(código/descrição).")
     public ResponseEntity<Page<PecaDTO>> listarPecas(
             @RequestParam(required = false) CriticidadeEstoque criticidade,
             @RequestParam(required = false) UUID modeloCompativelId,
+            @RequestParam(required = false) String busca,
             @PageableDefault(size = 20, sort = "dataCriacao", direction = org.springframework.data.domain.Sort.Direction.DESC)
             Pageable pageable) {
-        return ResponseEntity.ok(estoqueService.listarPecas(pageable, criticidade, modeloCompativelId));
+        return ResponseEntity.ok(estoqueService.listarPecas(pageable, criticidade, modeloCompativelId, busca));
     }
 
     @GetMapping("/pecas/{id}")

@@ -200,11 +200,12 @@ public class EstoqueApplicationService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PecaDTO> listarPecas(Pageable pageable, CriticidadeEstoque criticidade, UUID modeloCompativelId) {
+    public Page<PecaDTO> listarPecas(Pageable pageable, CriticidadeEstoque criticidade, UUID modeloCompativelId, String busca) {
         boolean emFalta = criticidade == CriticidadeEstoque.EM_FALTA;
         boolean estoqueBaixo = criticidade == CriticidadeEstoque.ESTOQUE_BAIXO;
         boolean critico = criticidade == CriticidadeEstoque.CRITICO;
-        return pecaRepository.buscar(modeloCompativelId, emFalta, estoqueBaixo, critico, pageable).map(mapper::toDTO);
+        String buscaTratada = busca != null && !busca.isBlank() ? busca.trim() : null;
+        return pecaRepository.buscar(modeloCompativelId, buscaTratada, emFalta, estoqueBaixo, critico, pageable).map(mapper::toDTO);
     }
 
     @Transactional

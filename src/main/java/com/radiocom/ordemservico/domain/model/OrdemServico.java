@@ -64,11 +64,26 @@ public class OrdemServico extends BaseEntity {
     @Column(name = "observacoes", length = 2000)
     private String observacoes;
 
+    /**
+     * Posição manual dentro do seu bloco na fila de manutenção — só o admin
+     * altera (setas subir/descer ou arrastar). Só serve como critério de
+     * desempate entre OS do mesmo bloco; o valor em si não tem significado
+     * fora disso (é recalculado/renumerado a cada reordenação).
+     */
+    @NotNull
+    @Column(name = "posicao_fila", nullable = false)
+    @Builder.Default
+    private Long posicaoFila = System.currentTimeMillis();
+
     // ===== TRANSIÇÕES =====
 
     public void iniciarAndamento() {
         validarStatus("Iniciar andamento", StatusOS.ABERTA);
         this.status = StatusOS.EM_ANDAMENTO;
+    }
+
+    public void definirPosicaoFila(long novaPosicao) {
+        this.posicaoFila = novaPosicao;
     }
 
     /**

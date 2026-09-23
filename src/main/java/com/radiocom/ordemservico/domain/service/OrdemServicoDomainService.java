@@ -3,6 +3,7 @@ package com.radiocom.ordemservico.domain.service;
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
 import com.radiocom.ordemservico.domain.model.OrdemServico;
 import com.radiocom.ordemservico.domain.model.OrdemServicoStatusHistorico;
+import com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.StatusOS;
 import com.radiocom.ordemservico.domain.repository.ItemEntradaRepository;
 import com.radiocom.ordemservico.domain.repository.OrdemServicoRepository;
@@ -48,6 +49,14 @@ public class OrdemServicoDomainService {
     @Transactional(readOnly = true)
     public List<ItemEntrada> listarItensPorItemEstoque(UUID itemEstoqueId) {
         return itemEntradaRepository.findByItemEstoqueIdOrderByDataCriacaoDesc(itemEstoqueId);
+    }
+
+    /** Usado pela fila de manutenção do técnico. */
+    @Transactional(readOnly = true)
+    public List<ItemEntrada> listarItensNaFilaManutencao() {
+        return itemEntradaRepository.findByStatusIn(List.of(
+                StatusItemEntrada.EM_AVALIACAO, StatusItemEntrada.PENDENTE_AVALIACAO,
+                StatusItemEntrada.PENDENTE_MANUTENCAO, StatusItemEntrada.AGUARDANDO_PECA));
     }
 
     @Transactional(readOnly = true)
@@ -110,6 +119,12 @@ public class OrdemServicoDomainService {
         OrdemServico salva = osRepository.save(os);
         registrarTransicaoStatus(id, statusAnterior, salva.getStatus(), motivo);
         return salva;
+    }
+
+    /** Usado pela reordenação manual da fila de manutenção — as OS já vêm carregadas/mutadas pelo application service. */
+    @Transactional
+    public void salvarTodas(List<OrdemServico> ordens) {
+        ordens.forEach(osRepository::save);
     }
 
     private void registrarTransicaoStatus(UUID ordemServicoId, StatusOS statusAnterior, StatusOS statusNovo, String motivo) {

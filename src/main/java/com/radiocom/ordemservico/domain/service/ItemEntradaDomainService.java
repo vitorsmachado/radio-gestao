@@ -5,6 +5,7 @@ import com.radiocom.estoque.domain.service.EstoqueDomainService;
 import com.radiocom.ordemservico.domain.model.ItemConserto;
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
 import com.radiocom.ordemservico.domain.model.ItemEntradaStatusHistorico;
+import com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao;
 import com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
 import com.radiocom.ordemservico.domain.repository.ItemEntradaRepository;
@@ -56,6 +57,38 @@ public class ItemEntradaDomainService {
     public ItemEntrada atualizarAvaliacao(UUID id, String avaliacaoTecnica, boolean semDefeito) {
         ItemEntrada item = buscarPorId(id);
         item.atualizarAvaliacao(avaliacaoTecnica, semDefeito);
+        return itemEntradaRepository.save(item);
+    }
+
+    @Transactional
+    public ItemEntrada iniciarAvaliacao(UUID id) {
+        ItemEntrada item = buscarPorId(id);
+        StatusItemEntrada statusAnterior = item.getStatus();
+        item.iniciarAvaliacao();
+        ItemEntrada salvo = itemEntradaRepository.save(item);
+        registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), null);
+        return salvo;
+    }
+
+    @Transactional
+    public ItemEntrada salvarAvaliacaoTecnica(UUID id, ResultadoAvaliacao resultado, String detalheAjuste,
+                                               String defeitoEncontrado, String causaDefeito,
+                                               String solucaoRecomendada, String observacoesTecnicas,
+                                               boolean garantia) {
+        ItemEntrada item = buscarPorId(id);
+        StatusItemEntrada statusAnterior = item.getStatus();
+        item.salvarAvaliacaoTecnica(resultado, detalheAjuste, defeitoEncontrado, causaDefeito,
+                solucaoRecomendada, observacoesTecnicas, garantia);
+        ItemEntrada salvo = itemEntradaRepository.save(item);
+        registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), null);
+        return salvo;
+    }
+
+    /** Não muda status — só marca o timestamp que a fila de manutenção usa pra ordenar. */
+    @Transactional
+    public ItemEntrada confirmarAguardandoPeca(UUID id) {
+        ItemEntrada item = buscarPorId(id);
+        item.confirmarAguardandoPeca();
         return itemEntradaRepository.save(item);
     }
 

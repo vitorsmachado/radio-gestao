@@ -16,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -95,6 +96,24 @@ public class OrdemServicoController {
     public ResponseEntity<OrdemServicoDTO> cancelar(
             @PathVariable UUID id, @Valid @RequestBody MotivoDTO dto) {
         return ResponseEntity.ok(service.cancelar(id, dto));
+    }
+
+    @PatchMapping("/{id}/reordenar-fila")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Reordenar a OS na fila de manutenção",
+            description = "Somente ADMIN. Sobe/desce uma posição ou vai pra um índice específico (arrastar) — "
+                    + "sempre dentro do bloco em que a OS está agora. Devolve a fila inteira já reordenada.")
+    public ResponseEntity<List<FilaManutencaoOSDTO>> reordenarFila(
+            @PathVariable UUID id, @Valid @RequestBody ReordenarFilaDTO dto) {
+        return ResponseEntity.ok(service.reordenarFila(id, dto));
+    }
+
+    @GetMapping("/fila-manutencao")
+    @Operation(summary = "Fila de manutenção do técnico",
+            description = "Uma linha por OS com itens em status em avaliação, aguardando avaliação, "
+                    + "aguardando manutenção ou aguardando peça — já na ordem final de exibição.")
+    public ResponseEntity<List<FilaManutencaoOSDTO>> listarFilaManutencao() {
+        return ResponseEntity.ok(service.listarFilaManutencao());
     }
 
     @PostMapping("/{id}/dividir")

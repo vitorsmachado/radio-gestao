@@ -96,6 +96,13 @@ public class OrdemServicoMapper {
                 .garantia(item.isGarantia())
                 .status(item.getStatus())
                 .motivoNaoAutorizado(item.getMotivoNaoAutorizado())
+                .resultadoAvaliacao(item.getResultadoAvaliacao())
+                .detalheAjuste(item.getDetalheAjuste())
+                .defeitoEncontrado(item.getDefeitoEncontrado())
+                .causaDefeito(item.getCausaDefeito())
+                .solucaoRecomendada(item.getSolucaoRecomendada())
+                .observacoesTecnicas(item.getObservacoesTecnicas())
+                .confirmadoAguardandoPecaEm(item.getConfirmadoAguardandoPecaEm())
                 .itensConserto(toConsertoDTOList(item.getItensConserto()))
                 .valorTotalConserto(item.calcularTotalConserto())
                 .build();

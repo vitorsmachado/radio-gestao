@@ -1,6 +1,7 @@
 package com.radiocom.ordemservico.domain.model;
 
 import com.radiocom.estoque.domain.model.enums.TipoItem;
+import com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao;
 import com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada;
 import com.radiocom.shared.model.BaseEntity;
 import jakarta.persistence.*;
@@ -9,6 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -103,6 +105,34 @@ public class ItemEntrada extends BaseEntity {
     @Column(name = "motivo_nao_autorizado", length = 500)
     private String motivoNaoAutorizado;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "resultado_avaliacao", length = 20)
+    private ResultadoAvaliacao resultadoAvaliacao;
+
+    /** Só relevante quando resultadoAvaliacao = AJUSTE. */
+    @Column(name = "detalhe_ajuste", length = 500)
+    private String detalheAjuste;
+
+    @Column(name = "defeito_encontrado", length = 1000)
+    private String defeitoEncontrado;
+
+    @Column(name = "causa_defeito", length = 1000)
+    private String causaDefeito;
+
+    @Column(name = "solucao_recomendada", length = 1000)
+    private String solucaoRecomendada;
+
+    @Column(name = "observacoes_tecnicas", length = 1000)
+    private String observacoesTecnicas;
+
+    /**
+     * Marcado quando o técnico confirma "aguardando peça" de propósito (não é
+     * só o status automático) — a fila de manutenção usa isso pra mandar o
+     * item pro final, e pra saber que ele é o próximo assim que a peça chegar.
+     */
+    @Column(name = "confirmado_aguardando_peca_em")
+    private LocalDateTime confirmadoAguardandoPecaEm;
+
     @OneToMany(mappedBy = "itemEntrada", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<ItemConserto> itensConserto = new ArrayList<>();
@@ -110,9 +140,42 @@ public class ItemEntrada extends BaseEntity {
     // ===== AVALIAÇÃO =====
 
     public void avaliar(String avaliacaoTecnica, boolean semDefeito) {
-        validarStatus("Avaliar", StatusItemEntrada.PENDENTE_AVALIACAO);
+        validarStatus("Avaliar", StatusItemEntrada.PENDENTE_AVALIACAO, StatusItemEntrada.EM_AVALIACAO);
         this.avaliacaoTecnica = avaliacaoTecnica;
         this.semDefeito = semDefeito;
+        this.status = StatusItemEntrada.AVALIADO;
+    }
+
+    /**
+     * O técnico "reivindica" o item pra começar a preencher a avaliação —
+     * deixa visível pros outros que já tem alguém mexendo nele. Puramente um
+     * marcador de progresso; não é obrigatório salvar em seguida.
+     */
+    public void iniciarAvaliacao() {
+        validarStatus("Iniciar avaliação", StatusItemEntrada.PENDENTE_AVALIACAO);
+        this.status = StatusItemEntrada.EM_AVALIACAO;
+    }
+
+    /**
+     * Salva o laudo técnico estruturado da tela do técnico (resultado,
+     * detalhe do ajuste, defeito/causa/solução/observações). Deriva
+     * {@code semDefeito} do resultado pra manter toda a lógica existente
+     * (aguardarEntrega, temConserto) funcionando sem mudança.
+     */
+    public void salvarAvaliacaoTecnica(ResultadoAvaliacao resultado, String detalheAjuste,
+                                        String defeitoEncontrado, String causaDefeito,
+                                        String solucaoRecomendada, String observacoesTecnicas,
+                                        boolean garantia) {
+        validarStatus("Salvar avaliação técnica", StatusItemEntrada.PENDENTE_AVALIACAO, StatusItemEntrada.EM_AVALIACAO);
+        this.resultadoAvaliacao = resultado;
+        this.detalheAjuste = detalheAjuste;
+        this.defeitoEncontrado = defeitoEncontrado;
+        this.avaliacaoTecnica = defeitoEncontrado;
+        this.causaDefeito = causaDefeito;
+        this.solucaoRecomendada = solucaoRecomendada;
+        this.observacoesTecnicas = observacoesTecnicas;
+        this.semDefeito = resultado == ResultadoAvaliacao.SEM_DEFEITO;
+        this.garantia = garantia;
         this.status = StatusItemEntrada.AVALIADO;
     }
 
@@ -183,6 +246,18 @@ public class ItemEntrada extends BaseEntity {
     public void marcarAguardandoPeca() {
         validarStatus("Marcar aguardando peça", StatusItemEntrada.AUTORIZADO, StatusItemEntrada.EM_MANUTENCAO);
         this.status = StatusItemEntrada.AGUARDANDO_PECA;
+    }
+
+    /**
+     * O técnico confirma que já verificou e realmente está preso esperando a
+     * peça — diferente do status automático {@link #marcarAguardandoPeca},
+     * essa é uma decisão deliberada que manda o item pro final da fila de
+     * manutenção (fica lá até a peça chegar, quando volta automaticamente
+     * como o próximo a ser feito).
+     */
+    public void confirmarAguardandoPeca() {
+        validarStatus("Confirmar aguardando peça", StatusItemEntrada.AGUARDANDO_PECA);
+        this.confirmadoAguardandoPecaEm = LocalDateTime.now();
     }
 
     /**

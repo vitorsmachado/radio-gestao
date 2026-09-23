@@ -181,7 +181,7 @@ class EstoqueControllerTest {
     void listarPecas_deveRetornar200() throws Exception {
         PecaDTO pecaDTO = PecaDTO.builder().id(UUID.randomUUID()).descricao("Antena UHF").build();
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-        when(estoqueService.listarPecas(any(), any(), any()))
+        when(estoqueService.listarPecas(any(), any(), any(), any()))
                 .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(pecaDTO), pageable, 1));
 
         mockMvc.perform(get("/v1/estoque/pecas"))
@@ -193,7 +193,7 @@ class EstoqueControllerTest {
     @DisplayName("GET /pecas?criticidade=EM_FALTA deve repassar o filtro")
     void listarPecas_deveRepassarFiltroCriticidade() throws Exception {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-        when(estoqueService.listarPecas(any(), eq(CriticidadeEstoque.EM_FALTA), any()))
+        when(estoqueService.listarPecas(any(), eq(CriticidadeEstoque.EM_FALTA), any(), any()))
                 .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(), pageable, 0));
 
         mockMvc.perform(get("/v1/estoque/pecas").param("criticidade", "EM_FALTA"))
@@ -205,7 +205,7 @@ class EstoqueControllerTest {
     void listarPecas_deveRepassarFiltroModeloCompativel() throws Exception {
         UUID modeloId = UUID.randomUUID();
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
-        when(estoqueService.listarPecas(any(), any(), eq(modeloId)))
+        when(estoqueService.listarPecas(any(), any(), eq(modeloId), any()))
                 .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(), pageable, 0));
 
         mockMvc.perform(get("/v1/estoque/pecas").param("modeloCompativelId", modeloId.toString()))
