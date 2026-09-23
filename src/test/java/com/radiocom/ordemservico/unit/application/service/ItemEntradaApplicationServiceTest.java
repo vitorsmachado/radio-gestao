@@ -11,6 +11,7 @@ import com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao;
 import com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
 import com.radiocom.ordemservico.domain.service.ItemEntradaDomainService;
+import com.radiocom.ordemservico.garantia.domain.service.GarantiaPecaDomainService;
 import com.radiocom.ordemservico.sugestao.application.service.SugestaoTextoService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +23,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,6 +39,7 @@ class ItemEntradaApplicationServiceTest {
     @Mock private ItemEntradaDomainService itemDomainService;
     @Mock private CatalogoModeloService catalogoModeloService;
     @Mock private SugestaoTextoService sugestaoTextoService;
+    @Mock private GarantiaPecaDomainService garantiaPecaDomainService;
     @Mock private ApplicationEventPublisher eventPublisher;
 
     private ItemEntradaApplicationService service;
@@ -46,7 +49,7 @@ class ItemEntradaApplicationServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ItemEntradaApplicationService(itemDomainService, new OrdemServicoMapper(), catalogoModeloService, sugestaoTextoService, eventPublisher);
+        service = new ItemEntradaApplicationService(itemDomainService, new OrdemServicoMapper(), catalogoModeloService, sugestaoTextoService, garantiaPecaDomainService, eventPublisher);
         itemId = UUID.randomUUID();
         item = ItemEntrada.builder()
                 .osId(UUID.randomUUID())
@@ -178,7 +181,7 @@ class ItemEntradaApplicationServiceTest {
         SalvarAvaliacaoTecnicaDTO dto = SalvarAvaliacaoTecnicaDTO.builder()
                 .resultado(ResultadoAvaliacao.ORCAMENTO).defeitoEncontrado("Capacitor queimado").build();
         when(itemDomainService.salvarAvaliacaoTecnica(itemId, ResultadoAvaliacao.ORCAMENTO, null,
-                "Capacitor queimado", null, null, null, false)).thenReturn(item);
+                "Capacitor queimado", null, null, null, null)).thenReturn(item);
 
         service.salvarAvaliacaoTecnica(itemId, dto);
 
@@ -193,10 +196,45 @@ class ItemEntradaApplicationServiceTest {
         SalvarAvaliacaoTecnicaDTO dto = SalvarAvaliacaoTecnicaDTO.builder()
                 .resultado(ResultadoAvaliacao.SEM_DEFEITO).build();
         when(itemDomainService.salvarAvaliacaoTecnica(itemId, ResultadoAvaliacao.SEM_DEFEITO, null,
-                null, null, null, null, false)).thenReturn(item);
+                null, null, null, null, null)).thenReturn(item);
 
         service.salvarAvaliacaoTecnica(itemId, dto);
 
         verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("salvarAvaliacaoTecnica não deve publicar orçamento quando item foi coberto por garantia")
+    void salvarAvaliacaoTecnica_naoDevePublicarOrcamentoQuandoGarantia() {
+        UUID garantiaPecaId = UUID.randomUUID();
+        item.iniciarAvaliacao();
+        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.AJUSTE, null, "Bateria fraca", null, null, null, true);
+        SalvarAvaliacaoTecnicaDTO dto = SalvarAvaliacaoTecnicaDTO.builder()
+                .resultado(ResultadoAvaliacao.AJUSTE).defeitoEncontrado("Bateria fraca").garantiaPecaId(garantiaPecaId).build();
+        when(itemDomainService.salvarAvaliacaoTecnica(itemId, ResultadoAvaliacao.AJUSTE, null,
+                "Bateria fraca", null, null, null, garantiaPecaId)).thenReturn(item);
+
+        service.salvarAvaliacaoTecnica(itemId, dto);
+
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("salvarAvaliacaoTecnica deve publicar GarantiaConflitoEvent quando equipamento tem outra cobertura ativa")
+    void salvarAvaliacaoTecnica_devePublicarConflitoQuandoHaOutraCobertura() {
+        UUID itemEstoqueId = UUID.randomUUID();
+        ReflectionTestUtils.setField(item, "itemEstoqueId", itemEstoqueId);
+        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.ORCAMENTO, null, "Tela quebrada", null, null, null, false);
+        SalvarAvaliacaoTecnicaDTO dto = SalvarAvaliacaoTecnicaDTO.builder()
+                .resultado(ResultadoAvaliacao.ORCAMENTO).defeitoEncontrado("Tela quebrada").build();
+        when(itemDomainService.salvarAvaliacaoTecnica(itemId, ResultadoAvaliacao.ORCAMENTO, null,
+                "Tela quebrada", null, null, null, null)).thenReturn(item);
+        when(garantiaPecaDomainService.listarCoberturaAtiva(itemEstoqueId))
+                .thenReturn(List.of(com.radiocom.ordemservico.garantia.domain.model.GarantiaPeca.builder().build()));
+
+        service.salvarAvaliacaoTecnica(itemId, dto);
+
+        verify(eventPublisher).publishEvent(any(ItemAvaliadoEvent.class));
+        verify(eventPublisher).publishEvent(any(com.radiocom.ordemservico.domain.event.GarantiaConflitoEvent.class));
     }
 }

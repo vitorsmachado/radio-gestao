@@ -9,6 +9,7 @@ import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
 import com.radiocom.ordemservico.domain.repository.ItemEntradaRepository;
 import com.radiocom.ordemservico.domain.repository.ItemEntradaStatusHistoricoRepository;
 import com.radiocom.ordemservico.domain.service.ItemEntradaDomainService;
+import com.radiocom.ordemservico.garantia.domain.service.GarantiaPecaDomainService;
 import com.radiocom.shared.exception.DomainException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,6 +38,7 @@ class ItemEntradaDomainServiceTest {
     @Mock private ItemEntradaRepository itemEntradaRepository;
     @Mock private ItemEntradaStatusHistoricoRepository statusHistoricoRepository;
     @Mock private EstoqueDomainService estoqueDomainService;
+    @Mock private GarantiaPecaDomainService garantiaPecaDomainService;
 
     @InjectMocks
     private ItemEntradaDomainService service;
@@ -161,6 +163,7 @@ class ItemEntradaDomainServiceTest {
 
         ItemEntrada resultado = service.concluirManutencao(itemId);
         assertThat(resultado.getStatus()).isEqualTo(StatusItemEntrada.MANUTENCAO_CONCLUIDA);
+        org.mockito.Mockito.verify(garantiaPecaDomainService).registrarCobertura(resultado);
     }
 
     @Test
@@ -256,5 +259,36 @@ class ItemEntradaDomainServiceTest {
 
         service.removerItemConserto(itemId, conserto.getId());
         assertThat(item.getItensConserto()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("salvarAvaliacaoTecnica com garantiaPecaId válido deve marcar o item como garantia")
+    void salvarAvaliacaoTecnica_comGarantiaPecaIdValido_deveMarcarGarantia() {
+        UUID itemEstoqueId = UUID.randomUUID();
+        UUID garantiaPecaId = UUID.randomUUID();
+        ReflectionTestUtils.setField(item, "itemEstoqueId", itemEstoqueId);
+        item.iniciarAvaliacao();
+        when(itemEntradaRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(garantiaPecaDomainService.validarCoberturaAtiva(itemEstoqueId, garantiaPecaId))
+                .thenReturn(com.radiocom.ordemservico.garantia.domain.model.GarantiaPeca.builder().build());
+
+        ItemEntrada resultado = service.salvarAvaliacaoTecnica(itemId,
+                com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao.AJUSTE,
+                "Ajuste simples", "Bateria fraca", null, null, null, garantiaPecaId);
+
+        assertThat(resultado.isGarantia()).isTrue();
+    }
+
+    @Test
+    @DisplayName("salvarAvaliacaoTecnica com garantiaPecaId deve lançar exceção quando item não tem equipamento vinculado")
+    void salvarAvaliacaoTecnica_comGarantiaPecaIdSemItemEstoque_deveLancarExcecao() {
+        UUID garantiaPecaId = UUID.randomUUID();
+        item.iniciarAvaliacao();
+        when(itemEntradaRepository.findById(itemId)).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> service.salvarAvaliacaoTecnica(itemId,
+                com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao.AJUSTE,
+                null, null, null, null, null, garantiaPecaId))
+                .isInstanceOf(DomainException.class);
     }
 }

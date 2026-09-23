@@ -3,6 +3,7 @@ package com.radiocom.ordemservico.interfaces.rest;
 import com.radiocom.ordemservico.application.dto.*;
 import com.radiocom.ordemservico.application.service.ItemEntradaApplicationService;
 import com.radiocom.ordemservico.application.service.OrdemServicoApplicationService;
+import com.radiocom.ordemservico.garantia.application.dto.GarantiaPecaDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -62,6 +63,14 @@ public class ItemEntradaController {
             description = "Marca o item como 'em avaliação' — fica visível que já tem alguém mexendo nele.")
     public ResponseEntity<ItemEntradaDTO> iniciarAvaliacao(@PathVariable UUID id) {
         return ResponseEntity.ok(itemService.iniciarAvaliacao(id));
+    }
+
+    @GetMapping("/{id}/garantia-disponivel")
+    @Operation(summary = "Listar cobertura de garantia ativa do equipamento/acessório desse item",
+            description = "Vazio se o item não estiver vinculado a um equipamento/acessório rastreado do "
+                    + "cliente, ou se não houver nenhuma peça em garantia no momento.")
+    public ResponseEntity<List<GarantiaPecaDTO>> listarGarantiaDisponivel(@PathVariable UUID id) {
+        return ResponseEntity.ok(itemService.listarGarantiaDisponivel(id));
     }
 
     @PatchMapping("/{id}/avaliacao-tecnica")

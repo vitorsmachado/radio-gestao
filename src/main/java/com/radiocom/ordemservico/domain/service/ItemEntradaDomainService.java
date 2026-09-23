@@ -10,6 +10,8 @@ import com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
 import com.radiocom.ordemservico.domain.repository.ItemEntradaRepository;
 import com.radiocom.ordemservico.domain.repository.ItemEntradaStatusHistoricoRepository;
+import com.radiocom.ordemservico.garantia.domain.model.GarantiaPeca;
+import com.radiocom.ordemservico.garantia.domain.service.GarantiaPecaDomainService;
 import com.radiocom.shared.exception.DomainException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ public class ItemEntradaDomainService {
     private final ItemEntradaRepository itemEntradaRepository;
     private final ItemEntradaStatusHistoricoRepository statusHistoricoRepository;
     private final EstoqueDomainService estoqueDomainService;
+    private final GarantiaPecaDomainService garantiaPecaDomainService;
 
     @Transactional(readOnly = true)
     public ItemEntrada buscarPorId(UUID id) {
@@ -74,14 +77,31 @@ public class ItemEntradaDomainService {
     public ItemEntrada salvarAvaliacaoTecnica(UUID id, ResultadoAvaliacao resultado, String detalheAjuste,
                                                String defeitoEncontrado, String causaDefeito,
                                                String solucaoRecomendada, String observacoesTecnicas,
-                                               boolean garantia) {
+                                               UUID garantiaPecaId) {
         ItemEntrada item = buscarPorId(id);
+        boolean garantia = false;
+        if (garantiaPecaId != null) {
+            if (item.getItemEstoqueId() == null) {
+                throw new DomainException(
+                        "Item não está vinculado a um equipamento/acessório do cliente — não é possível aplicar garantia.");
+            }
+            garantiaPecaDomainService.validarCoberturaAtiva(item.getItemEstoqueId(), garantiaPecaId);
+            garantia = true;
+        }
         StatusItemEntrada statusAnterior = item.getStatus();
         item.salvarAvaliacaoTecnica(resultado, detalheAjuste, defeitoEncontrado, causaDefeito,
                 solucaoRecomendada, observacoesTecnicas, garantia);
         ItemEntrada salvo = itemEntradaRepository.save(item);
         registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), null);
         return salvo;
+    }
+
+    /** Peças/equipamentos com cobertura de garantia ativa desse item — vazio se não rastreado ou sem cobertura. */
+    @Transactional(readOnly = true)
+    public List<GarantiaPeca> listarGarantiaDisponivel(UUID id) {
+        ItemEntrada item = buscarPorId(id);
+        if (item.getItemEstoqueId() == null) return List.of();
+        return garantiaPecaDomainService.listarCoberturaAtiva(item.getItemEstoqueId());
     }
 
     /** Não muda status — só marca o timestamp que a fila de manutenção usa pra ordenar. */
@@ -169,6 +189,7 @@ public class ItemEntradaDomainService {
         item.concluirManutencao();
         ItemEntrada salvo = itemEntradaRepository.save(item);
         registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), null);
+        garantiaPecaDomainService.registrarCobertura(salvo);
         return salvo;
     }
 

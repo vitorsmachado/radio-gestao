@@ -3,10 +3,14 @@ package com.radiocom.ordemservico.application.service;
 import com.radiocom.estoque.application.service.CatalogoModeloService;
 import com.radiocom.ordemservico.application.dto.*;
 import com.radiocom.ordemservico.application.mapper.OrdemServicoMapper;
+import com.radiocom.ordemservico.domain.event.GarantiaConflitoEvent;
 import com.radiocom.ordemservico.domain.event.ItemAvaliadoEvent;
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao;
 import com.radiocom.ordemservico.domain.service.ItemEntradaDomainService;
+import com.radiocom.ordemservico.garantia.application.dto.GarantiaPecaDTO;
+import com.radiocom.ordemservico.garantia.domain.model.GarantiaPeca;
+import com.radiocom.ordemservico.garantia.domain.service.GarantiaPecaDomainService;
 import com.radiocom.ordemservico.sugestao.application.service.SugestaoTextoService;
 import com.radiocom.ordemservico.sugestao.domain.model.enums.CampoSugestao;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +35,7 @@ public class ItemEntradaApplicationService {
     private final OrdemServicoMapper mapper;
     private final CatalogoModeloService catalogoModeloService;
     private final SugestaoTextoService sugestaoTextoService;
+    private final GarantiaPecaDomainService garantiaPecaDomainService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -73,15 +79,40 @@ public class ItemEntradaApplicationService {
     public ItemEntradaDTO salvarAvaliacaoTecnica(UUID id, SalvarAvaliacaoTecnicaDTO dto) {
         ItemEntrada item = itemDomainService.salvarAvaliacaoTecnica(id, dto.getResultado(), dto.getDetalheAjuste(),
                 dto.getDefeitoEncontrado(), dto.getCausaDefeito(), dto.getSolucaoRecomendada(), dto.getObservacoesTecnicas(),
-                dto.isGarantia());
+                dto.getGarantiaPecaId());
         sugestaoTextoService.registrarUso(CampoSugestao.DEFEITO_ENCONTRADO, dto.getDefeitoEncontrado());
         sugestaoTextoService.registrarUso(CampoSugestao.CAUSA_DEFEITO, dto.getCausaDefeito());
         sugestaoTextoService.registrarUso(CampoSugestao.SOLUCAO_RECOMENDADA, dto.getSolucaoRecomendada());
         sugestaoTextoService.registrarUso(CampoSugestao.OBSERVACOES_TECNICAS, dto.getObservacoesTecnicas());
-        if (dto.getResultado() != ResultadoAvaliacao.SEM_DEFEITO) {
+        if (item.isGarantia()) {
+            // Coberto por garantia — sem custo, sem orçamento; segue pelos botões normais de autorização/manutenção.
+            log.info("Item {} coberto por garantia — orçamento não gerado", item.getId());
+        } else if (dto.getResultado() != ResultadoAvaliacao.SEM_DEFEITO) {
             eventPublisher.publishEvent(new ItemAvaliadoEvent(this, item.getId(), item.getOsId(), dto.getResultado()));
+            if (item.getItemEstoqueId() != null
+                    && !garantiaPecaDomainService.listarCoberturaAtiva(item.getItemEstoqueId()).isEmpty()) {
+                eventPublisher.publishEvent(
+                        new GarantiaConflitoEvent(this, item.getId(), item.getOsId(), item.getItemEstoqueId()));
+            }
         }
         return comCatalogo(mapper.toDTO(item));
+    }
+
+    /** Peças/equipamentos com cobertura de garantia ativa desse item — pro seletor da tela de avaliação. */
+    @Transactional(readOnly = true)
+    public List<GarantiaPecaDTO> listarGarantiaDisponivel(UUID id) {
+        return itemDomainService.listarGarantiaDisponivel(id).stream()
+                .map(this::toGarantiaPecaDTO)
+                .collect(Collectors.toList());
+    }
+
+    private GarantiaPecaDTO toGarantiaPecaDTO(GarantiaPeca g) {
+        return GarantiaPecaDTO.builder()
+                .id(g.getId())
+                .descricaoPeca(g.getDescricaoPeca())
+                .dataInicio(g.getDataInicio())
+                .dataFim(g.getDataFim())
+                .build();
     }
 
     @Transactional

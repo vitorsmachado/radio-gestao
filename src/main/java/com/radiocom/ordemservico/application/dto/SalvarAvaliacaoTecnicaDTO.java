@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -32,5 +34,6 @@ public class SalvarAvaliacaoTecnicaDTO {
     @Size(max = 1000)
     private String observacoesTecnicas;
 
-    private boolean garantia;
+    /** Cobertura de garantia (de {@code GET /itens-entrada/{id}/garantia-disponivel}) que o técnico está reivindicando, se houver. */
+    private UUID garantiaPecaId;
 }
