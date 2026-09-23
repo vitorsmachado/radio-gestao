@@ -1,14 +1,19 @@
 package com.radiocom.orcamento.unit.application.service;
 
+import com.radiocom.cliente.application.service.ClienteApplicationService;
+import com.radiocom.estoque.application.service.CatalogoModeloService;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import com.radiocom.ordemservico.application.dto.MotivoDTO;
 import com.radiocom.ordemservico.application.mapper.OrdemServicoMapper;
 import com.radiocom.ordemservico.domain.model.ItemConserto;
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
+import com.radiocom.ordemservico.domain.service.OrdemServicoDomainService;
 import com.radiocom.orcamento.application.dto.AdicionarItemOrcamentoDTO;
+import com.radiocom.orcamento.application.dto.AtualizarOrcamentoDTO;
 import com.radiocom.orcamento.application.dto.OrcamentoCreateDTO;
 import com.radiocom.orcamento.application.dto.OrcamentoDTO;
+import com.radiocom.orcamento.application.dto.OrcamentoResumoDTO;
 import com.radiocom.orcamento.application.mapper.OrcamentoMapper;
 import com.radiocom.orcamento.application.service.OrcamentoApplicationService;
 import com.radiocom.orcamento.domain.model.Orcamento;
@@ -20,6 +25,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
@@ -36,6 +45,9 @@ import static org.mockito.Mockito.when;
 class OrcamentoApplicationServiceTest {
 
     @Mock private OrcamentoDomainService orcamentoDomainService;
+    @Mock private OrdemServicoDomainService osDomainService;
+    @Mock private ClienteApplicationService clienteApplicationService;
+    @Mock private CatalogoModeloService catalogoModeloService;
 
     private OrcamentoApplicationService service;
 
@@ -46,7 +58,8 @@ class OrcamentoApplicationServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new OrcamentoApplicationService(orcamentoDomainService, new OrcamentoMapper(), new OrdemServicoMapper());
+        service = new OrcamentoApplicationService(orcamentoDomainService, osDomainService, clienteApplicationService,
+                catalogoModeloService, new OrcamentoMapper(), new OrdemServicoMapper());
         osId = UUID.randomUUID();
         clienteId = UUID.randomUUID();
         orcamentoId = UUID.randomUUID();
@@ -126,5 +139,30 @@ class OrcamentoApplicationServiceTest {
         OrcamentoDTO resultado = service.cancelar(orcamentoId, MotivoDTO.builder().motivo("Cliente desistiu").build());
 
         assertThat(resultado.getStatus()).isEqualTo(StatusOrcamento.CANCELADO);
+    }
+
+    @Test
+    @DisplayName("atualizar deve delegar para o domain service")
+    void atualizar_deveDelegar() {
+        when(orcamentoDomainService.atualizar(orcamentoId, null, "À vista", null)).thenReturn(orcamento);
+
+        OrcamentoDTO resultado = service.atualizar(orcamentoId, AtualizarOrcamentoDTO.builder().condicoesPagamento("À vista").build());
+
+        assertThat(resultado.getNumero()).isEqualTo("ORC-2026-0001");
+    }
+
+    @Test
+    @DisplayName("listar sem busca deve montar o resumo de cada orçamento da página")
+    void listar_semBusca_deveMontarResumo() {
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Orcamento> pagina = new PageImpl<>(List.of(orcamento), pageable, 1);
+        when(orcamentoDomainService.buscar(any(), any(), any(), any(), any())).thenReturn(pagina);
+        when(osDomainService.listarPorIds(any())).thenReturn(List.of());
+        when(clienteApplicationService.buscarPorIds(any())).thenReturn(List.of());
+
+        Page<OrcamentoResumoDTO> resultado = service.listar(null, null, pageable);
+
+        assertThat(resultado.getContent()).hasSize(1);
+        assertThat(resultado.getContent().get(0).getNumero()).isEqualTo("ORC-2026-0001");
     }
 }

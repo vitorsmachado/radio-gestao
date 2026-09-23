@@ -5,7 +5,9 @@ import com.radiocom.estoque.domain.model.enums.TipoItem;
 import com.radiocom.ordemservico.application.dto.*;
 import com.radiocom.ordemservico.application.mapper.OrdemServicoMapper;
 import com.radiocom.ordemservico.application.service.ItemEntradaApplicationService;
+import com.radiocom.ordemservico.domain.event.ItemAvaliadoEvent;
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
+import com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao;
 import com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
 import com.radiocom.ordemservico.domain.service.ItemEntradaDomainService;
@@ -16,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
@@ -23,6 +26,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,6 +37,7 @@ class ItemEntradaApplicationServiceTest {
     @Mock private ItemEntradaDomainService itemDomainService;
     @Mock private CatalogoModeloService catalogoModeloService;
     @Mock private SugestaoTextoService sugestaoTextoService;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
     private ItemEntradaApplicationService service;
 
@@ -40,7 +46,7 @@ class ItemEntradaApplicationServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ItemEntradaApplicationService(itemDomainService, new OrdemServicoMapper(), catalogoModeloService, sugestaoTextoService);
+        service = new ItemEntradaApplicationService(itemDomainService, new OrdemServicoMapper(), catalogoModeloService, sugestaoTextoService, eventPublisher);
         itemId = UUID.randomUUID();
         item = ItemEntrada.builder()
                 .osId(UUID.randomUUID())
@@ -162,5 +168,35 @@ class ItemEntradaApplicationServiceTest {
 
         assertThat(resultado.getItensConserto()).hasSize(1);
         assertThat(resultado.getValorTotalConserto()).isEqualByComparingTo("80.00");
+    }
+
+    @Test
+    @DisplayName("salvarAvaliacaoTecnica deve publicar ItemAvaliadoEvent quando resultado não é SEM_DEFEITO")
+    void salvarAvaliacaoTecnica_devePublicarEventoQuandoNaoSemDefeito() {
+        item.iniciarAvaliacao();
+        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.ORCAMENTO, null, "Capacitor queimado", null, null, null, false);
+        SalvarAvaliacaoTecnicaDTO dto = SalvarAvaliacaoTecnicaDTO.builder()
+                .resultado(ResultadoAvaliacao.ORCAMENTO).defeitoEncontrado("Capacitor queimado").build();
+        when(itemDomainService.salvarAvaliacaoTecnica(itemId, ResultadoAvaliacao.ORCAMENTO, null,
+                "Capacitor queimado", null, null, null, false)).thenReturn(item);
+
+        service.salvarAvaliacaoTecnica(itemId, dto);
+
+        verify(eventPublisher).publishEvent(any(ItemAvaliadoEvent.class));
+    }
+
+    @Test
+    @DisplayName("salvarAvaliacaoTecnica não deve publicar evento quando resultado é SEM_DEFEITO")
+    void salvarAvaliacaoTecnica_naoDevePublicarEventoQuandoSemDefeito() {
+        item.iniciarAvaliacao();
+        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.SEM_DEFEITO, null, null, null, null, null, false);
+        SalvarAvaliacaoTecnicaDTO dto = SalvarAvaliacaoTecnicaDTO.builder()
+                .resultado(ResultadoAvaliacao.SEM_DEFEITO).build();
+        when(itemDomainService.salvarAvaliacaoTecnica(itemId, ResultadoAvaliacao.SEM_DEFEITO, null,
+                null, null, null, null, false)).thenReturn(item);
+
+        service.salvarAvaliacaoTecnica(itemId, dto);
+
+        verify(eventPublisher, never()).publishEvent(any());
     }
 }

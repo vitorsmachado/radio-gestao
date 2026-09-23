@@ -70,6 +70,12 @@ public class OrdemServicoDomainService {
         return osRepository.buscar(busca, clienteIdsMatched, dataInicial, dataFinal, pageable);
     }
 
+    /** Usado por outros módulos (Orçamento) pra resolver OS cujo número casa com uma busca textual. */
+    @Transactional(readOnly = true)
+    public List<UUID> buscarIdsPorNumero(String busca) {
+        return osRepository.buscarIdsPorNumero(busca);
+    }
+
     @Transactional
     public OrdemServico criar(UUID clienteId, UUID postoId, UUID tecnicoId, String solicitante) {
         return criar(clienteId, postoId, tecnicoId, solicitante, null, null);

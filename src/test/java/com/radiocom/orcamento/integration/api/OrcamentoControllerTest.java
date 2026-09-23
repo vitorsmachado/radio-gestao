@@ -5,8 +5,10 @@ import com.radiocom.auth.application.service.JwtService;
 import com.radiocom.config.SecurityConfig;
 import com.radiocom.ordemservico.application.dto.MotivoDTO;
 import com.radiocom.orcamento.application.dto.AdicionarItemOrcamentoDTO;
+import com.radiocom.orcamento.application.dto.AtualizarOrcamentoDTO;
 import com.radiocom.orcamento.application.dto.OrcamentoCreateDTO;
 import com.radiocom.orcamento.application.dto.OrcamentoDTO;
+import com.radiocom.orcamento.application.dto.OrcamentoResumoDTO;
 import com.radiocom.orcamento.application.service.OrcamentoApplicationService;
 import com.radiocom.orcamento.application.service.OrcamentoPdfService;
 import com.radiocom.orcamento.domain.model.enums.StatusOrcamento;
@@ -18,6 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -198,11 +203,39 @@ class OrcamentoControllerTest {
     @DisplayName("GET /{id}/pdf deve retornar 200 com application/pdf")
     void gerarPdf_deveRetornar200ComApplicationPdf() throws Exception {
         byte[] pdfFalso = "%PDF-1.4 fake".getBytes();
-        when(pdfService.gerarPdf(orcamentoId)).thenReturn(pdfFalso);
+        when(pdfService.gerarPdf(eq(orcamentoId), any(OrcamentoPdfService.Agrupamento.class))).thenReturn(pdfFalso);
 
         mockMvc.perform(get("/v1/orcamentos/{id}/pdf", orcamentoId))
                 .andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
                         .contentType(MediaType.APPLICATION_PDF));
+    }
+
+    @Test
+    @DisplayName("GET /busca deve retornar 200 com a página de resumos")
+    void listar_deveRetornar200() throws Exception {
+        OrcamentoResumoDTO resumo = OrcamentoResumoDTO.builder()
+                .id(orcamentoId).numero("ORC-2026-0001").osId(osId).status(StatusOrcamento.RASCUNHO).build();
+        Page<OrcamentoResumoDTO> pagina = new PageImpl<>(List.of(resumo), PageRequest.of(0, 20), 1);
+        when(service.listar(any(), any(), any())).thenReturn(pagina);
+
+        mockMvc.perform(get("/v1/orcamentos/busca").param("busca", "ORC"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].numero").value("ORC-2026-0001"));
+    }
+
+    @Test
+    @DisplayName("PATCH /{id} deve retornar 200 com o orçamento atualizado")
+    void atualizar_deveRetornar200() throws Exception {
+        orcamentoDTO.setCondicoesPagamento("À vista");
+        when(service.atualizar(eq(orcamentoId), any(AtualizarOrcamentoDTO.class))).thenReturn(orcamentoDTO);
+
+        mockMvc.perform(patch("/v1/orcamentos/{id}", orcamentoId)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                AtualizarOrcamentoDTO.builder().condicoesPagamento("À vista").build())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.condicoesPagamento").value("À vista"));
     }
 }

@@ -3,6 +3,7 @@ package com.radiocom.orcamento.unit.application.service;
 import com.radiocom.cliente.domain.model.Cliente;
 import com.radiocom.cliente.domain.model.enums.TipoPessoa;
 import com.radiocom.cliente.domain.service.ClienteDomainService;
+import com.radiocom.estoque.application.service.CatalogoModeloService;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import com.radiocom.ordemservico.domain.model.ItemConserto;
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
@@ -42,6 +43,7 @@ class OrcamentoPdfServiceTest {
 
     @Mock private OrcamentoDomainService orcamentoDomainService;
     @Mock private ClienteDomainService clienteDomainService;
+    @Mock private CatalogoModeloService catalogoModeloService;
 
     private OrcamentoPdfService service;
 
@@ -53,7 +55,7 @@ class OrcamentoPdfServiceTest {
     void setUp() {
         SpringTemplateEngine templateEngine = criarTemplateEngineReal();
         service = new OrcamentoPdfService(
-                orcamentoDomainService, clienteDomainService, new PdfRenderer(), templateEngine);
+                orcamentoDomainService, clienteDomainService, catalogoModeloService, new PdfRenderer(), templateEngine);
 
         orcamentoId = UUID.randomUUID();
         clienteId = UUID.randomUUID();
@@ -114,7 +116,7 @@ class OrcamentoPdfServiceTest {
         when(orcamentoDomainService.calcularStatusAprovacao(orcamentoId)).thenReturn(StatusAprovacaoOrcamento.PENDENTE);
         when(clienteDomainService.buscarPorId(clienteId)).thenReturn(cliente);
 
-        byte[] pdf = service.gerarPdf(orcamentoId);
+        byte[] pdf = service.gerarPdf(orcamentoId, OrcamentoPdfService.Agrupamento.EQUIPAMENTO);
 
         assertThat(pdf).isNotEmpty();
         assertThat(new String(pdf, 0, 5, java.nio.charset.StandardCharsets.US_ASCII)).isEqualTo("%PDF-");
@@ -146,7 +148,48 @@ class OrcamentoPdfServiceTest {
         when(orcamentoDomainService.calcularStatusAprovacao(orcamentoId)).thenReturn(StatusAprovacaoOrcamento.PENDENTE);
         when(clienteDomainService.buscarPorId(clienteId)).thenReturn(cliente);
 
-        byte[] pdf = service.gerarPdf(orcamentoId);
+        byte[] pdf = service.gerarPdf(orcamentoId, OrcamentoPdfService.Agrupamento.EQUIPAMENTO);
+
+        assertThat(pdf).isNotEmpty();
+        assertThat(new String(pdf, 0, 5, java.nio.charset.StandardCharsets.US_ASCII)).isEqualTo("%PDF-");
+    }
+
+    @Test
+    @DisplayName("gerarPdf com agrupamento ITENS deve consolidar itens de conserto por descrição")
+    void gerarPdf_comAgrupamentoItens_deveConsolidar() {
+        Orcamento orcamento = Orcamento.builder()
+                .numero("ORC-2026-0003")
+                .osId(osId)
+                .clienteId(clienteId)
+                .build();
+        ReflectionTestUtils.setField(orcamento, "id", orcamentoId);
+
+        Cliente cliente = Cliente.builder()
+                .tipo(TipoPessoa.PESSOA_FISICA)
+                .documento("11144477735")
+                .nomeRazaoSocial("Cliente Pessoa Física")
+                .build();
+        ReflectionTestUtils.setField(cliente, "id", clienteId);
+
+        ItemEntrada item1 = ItemEntrada.builder().osId(osId).tipoItem(TipoItem.EQUIPAMENTO).descricao("Rádio 1").build();
+        item1.avaliar("Bateria fraca", false);
+        item1.adicionarItemConserto(ItemConserto.builder()
+                .tipo(TipoItemConserto.PECA).descricao("Bateria BP-227").quantidade(1)
+                .valorUnitario(new BigDecimal("80.00")).build());
+
+        ItemEntrada item2 = ItemEntrada.builder().osId(osId).tipoItem(TipoItem.EQUIPAMENTO).descricao("Rádio 2").build();
+        item2.avaliar("Bateria fraca", false);
+        item2.adicionarItemConserto(ItemConserto.builder()
+                .tipo(TipoItemConserto.PECA).descricao("Bateria BP-227").quantidade(1)
+                .valorUnitario(new BigDecimal("80.00")).build());
+
+        when(orcamentoDomainService.buscarPorId(orcamentoId)).thenReturn(orcamento);
+        when(orcamentoDomainService.listarItens(orcamentoId)).thenReturn(List.of(item1, item2));
+        when(orcamentoDomainService.calcularTotal(orcamentoId)).thenReturn(new BigDecimal("160.00"));
+        when(orcamentoDomainService.calcularStatusAprovacao(orcamentoId)).thenReturn(StatusAprovacaoOrcamento.PENDENTE);
+        when(clienteDomainService.buscarPorId(clienteId)).thenReturn(cliente);
+
+        byte[] pdf = service.gerarPdf(orcamentoId, OrcamentoPdfService.Agrupamento.ITENS);
 
         assertThat(pdf).isNotEmpty();
         assertThat(new String(pdf, 0, 5, java.nio.charset.StandardCharsets.US_ASCII)).isEqualTo("%PDF-");

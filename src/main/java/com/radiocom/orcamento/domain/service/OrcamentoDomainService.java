@@ -6,15 +6,19 @@ import com.radiocom.ordemservico.domain.repository.ItemEntradaRepository;
 import com.radiocom.ordemservico.domain.service.ItemEntradaDomainService;
 import com.radiocom.orcamento.domain.model.Orcamento;
 import com.radiocom.orcamento.domain.model.enums.StatusAprovacaoOrcamento;
+import com.radiocom.orcamento.domain.model.enums.StatusOrcamento;
 import com.radiocom.orcamento.domain.repository.OrcamentoRepository;
 import com.radiocom.shared.exception.DomainException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -56,6 +60,32 @@ public class OrcamentoDomainService {
     @Transactional(readOnly = true)
     public List<Orcamento> listarPorOS(UUID osId) {
         return orcamentoRepository.findByOsId(osId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Orcamento> buscar(String busca, List<UUID> osIdsMatched, List<UUID> clienteIdsMatched,
+                                   StatusOrcamento status, Pageable pageable) {
+        return orcamentoRepository.buscar(busca, osIdsMatched, clienteIdsMatched, status, pageable);
+    }
+
+    @Transactional
+    public Orcamento atualizar(UUID id, LocalDate validade, String condicoesPagamento, BigDecimal desconto) {
+        Orcamento orcamento = buscarPorId(id);
+        orcamento.atualizarCondicoes(validade, condicoesPagamento, desconto);
+        return orcamentoRepository.save(orcamento);
+    }
+
+    /**
+     * Encontra o orçamento RASCUNHO já aberto pra essa OS, ou cria um novo
+     * (sem validade/condições — o admin ajusta depois). Usado pela geração
+     * automática ao final de cada avaliação técnica.
+     */
+    @Transactional
+    public Orcamento buscarOuCriarRascunho(UUID osId, UUID clienteId) {
+        Optional<Orcamento> existente = orcamentoRepository.findByOsId(osId).stream()
+                .filter(o -> o.getStatus() == StatusOrcamento.RASCUNHO)
+                .findFirst();
+        return existente.orElseGet(() -> criar(osId, clienteId, null, null, null));
     }
 
     // ===== ITENS DO ORÇAMENTO =====

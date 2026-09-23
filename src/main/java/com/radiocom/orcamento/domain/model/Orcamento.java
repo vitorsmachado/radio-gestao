@@ -66,6 +66,13 @@ public class Orcamento extends BaseEntity {
     @Column(name = "observacoes", length = 2000)
     private String observacoes;
 
+    public void atualizarCondicoes(LocalDate validade, String condicoesPagamento, BigDecimal desconto) {
+        validarStatus("Atualizar condições", StatusOrcamento.RASCUNHO);
+        if (validade != null) this.validade = validade;
+        if (condicoesPagamento != null) this.condicoesPagamento = condicoesPagamento;
+        if (desconto != null) this.desconto = desconto;
+    }
+
     public void enviar() {
         validarStatus("Enviar orçamento", StatusOrcamento.RASCUNHO);
         this.status = StatusOrcamento.ENVIADO;

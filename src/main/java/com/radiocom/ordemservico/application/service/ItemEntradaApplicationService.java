@@ -3,12 +3,15 @@ package com.radiocom.ordemservico.application.service;
 import com.radiocom.estoque.application.service.CatalogoModeloService;
 import com.radiocom.ordemservico.application.dto.*;
 import com.radiocom.ordemservico.application.mapper.OrdemServicoMapper;
+import com.radiocom.ordemservico.domain.event.ItemAvaliadoEvent;
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
+import com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao;
 import com.radiocom.ordemservico.domain.service.ItemEntradaDomainService;
 import com.radiocom.ordemservico.sugestao.application.service.SugestaoTextoService;
 import com.radiocom.ordemservico.sugestao.domain.model.enums.CampoSugestao;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +30,7 @@ public class ItemEntradaApplicationService {
     private final OrdemServicoMapper mapper;
     private final CatalogoModeloService catalogoModeloService;
     private final SugestaoTextoService sugestaoTextoService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public ItemEntradaDTO criar(ItemEntradaCreateDTO dto) {
@@ -74,6 +78,9 @@ public class ItemEntradaApplicationService {
         sugestaoTextoService.registrarUso(CampoSugestao.CAUSA_DEFEITO, dto.getCausaDefeito());
         sugestaoTextoService.registrarUso(CampoSugestao.SOLUCAO_RECOMENDADA, dto.getSolucaoRecomendada());
         sugestaoTextoService.registrarUso(CampoSugestao.OBSERVACOES_TECNICAS, dto.getObservacoesTecnicas());
+        if (dto.getResultado() != ResultadoAvaliacao.SEM_DEFEITO) {
+            eventPublisher.publishEvent(new ItemAvaliadoEvent(this, item.getId(), item.getOsId(), dto.getResultado()));
+        }
         return comCatalogo(mapper.toDTO(item));
     }
 

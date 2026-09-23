@@ -311,4 +311,41 @@ class OrcamentoDomainServiceTest {
 
         assertThat(resultado.getStatus()).isEqualTo(com.radiocom.orcamento.domain.model.enums.StatusOrcamento.CANCELADO);
     }
+
+    @Test
+    @DisplayName("atualizar deve aplicar as condições e salvar")
+    void atualizar_deveAplicarCondicoesESalvar() {
+        when(orcamentoRepository.findById(orcamentoId)).thenReturn(Optional.of(orcamento));
+        when(orcamentoRepository.save(any(Orcamento.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Orcamento resultado = service.atualizar(orcamentoId, null, "50% na aprovação", new BigDecimal("15.00"));
+
+        assertThat(resultado.getCondicoesPagamento()).isEqualTo("50% na aprovação");
+        assertThat(resultado.getDesconto()).isEqualByComparingTo("15.00");
+    }
+
+    @Test
+    @DisplayName("buscarOuCriarRascunho deve reaproveitar o orçamento RASCUNHO existente da OS")
+    void buscarOuCriarRascunho_deveReaproveitarRascunhoExistente() {
+        when(orcamentoRepository.findByOsId(osId)).thenReturn(List.of(orcamento));
+
+        Orcamento resultado = service.buscarOuCriarRascunho(osId, clienteId);
+
+        assertThat(resultado.getId()).isEqualTo(orcamentoId);
+        verify(numeroGenerator, never()).gerarNumero();
+    }
+
+    @Test
+    @DisplayName("buscarOuCriarRascunho deve criar um novo orçamento quando não há RASCUNHO pra essa OS")
+    void buscarOuCriarRascunho_deveCriarQuandoNaoHaRascunho() {
+        orcamento.enviar();
+        when(orcamentoRepository.findByOsId(osId)).thenReturn(List.of(orcamento));
+        when(numeroGenerator.gerarNumero()).thenReturn("ORC-2026-0099");
+        when(orcamentoRepository.save(any(Orcamento.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Orcamento resultado = service.buscarOuCriarRascunho(osId, clienteId);
+
+        assertThat(resultado.getNumero()).isEqualTo("ORC-2026-0099");
+        assertThat(resultado.getStatus()).isEqualTo(com.radiocom.orcamento.domain.model.enums.StatusOrcamento.RASCUNHO);
+    }
 }

@@ -43,4 +43,8 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, UUID
             @Param("dataInicial") LocalDateTime dataInicial,
             @Param("dataFinal") LocalDateTime dataFinal,
             Pageable pageable);
+
+    /** Usado por outros módulos (Orçamento) pra resolver OS cujo número casa com uma busca textual. */
+    @Query("SELECT os.id FROM OrdemServico os WHERE LOWER(os.numero) LIKE LOWER(CONCAT('%', :busca, '%'))")
+    List<UUID> buscarIdsPorNumero(@Param("busca") String busca);
 }

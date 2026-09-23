@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -109,5 +110,26 @@ class OrcamentoTest {
         orcamento.enviar();
 
         assertThat(orcamento.isExpirado()).isFalse();
+    }
+
+    @Test
+    @DisplayName("atualizarCondicoes deve aplicar só os campos informados")
+    void atualizarCondicoes_deveAplicarSoOsCamposInformados() {
+        orcamento.setCondicoesPagamento("À vista");
+
+        orcamento.atualizarCondicoes(LocalDate.now().plusDays(30), null, new BigDecimal("10.00"));
+
+        assertThat(orcamento.getValidade()).isEqualTo(LocalDate.now().plusDays(30));
+        assertThat(orcamento.getCondicoesPagamento()).isEqualTo("À vista");
+        assertThat(orcamento.getDesconto()).isEqualByComparingTo("10.00");
+    }
+
+    @Test
+    @DisplayName("atualizarCondicoes deve lançar exceção quando não está RASCUNHO")
+    void atualizarCondicoes_deveLancarExcecaoQuandoNaoRascunho() {
+        orcamento.enviar();
+
+        assertThatThrownBy(() -> orcamento.atualizarCondicoes(LocalDate.now(), "outra", BigDecimal.ONE))
+                .isInstanceOf(IllegalStateException.class);
     }
 }
