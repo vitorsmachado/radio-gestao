@@ -43,7 +43,7 @@ public class OrdemServicoApplicationService {
         log.info("Criando OS para cliente: {}", dto.getClienteId());
         OrdemServico os = osDomainService.criar(
                 dto.getClienteId(), dto.getPostoId(), dto.getTecnicoId(), dto.getSolicitante(),
-                dto.getDataAbertura(), dto.getObservacoes());
+                dto.getDataAbertura(), dto.getObservacoes(), dto.getNumeroRelatorio());
         log.info("OS criada: {} ({})", os.getId(), os.getNumero());
         return mapper.toDTO(os);
     }

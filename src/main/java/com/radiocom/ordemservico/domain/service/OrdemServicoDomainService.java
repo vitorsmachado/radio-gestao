@@ -86,19 +86,20 @@ public class OrdemServicoDomainService {
 
     @Transactional
     public OrdemServico criar(UUID clienteId, UUID postoId, UUID tecnicoId, String solicitante) {
-        return criar(clienteId, postoId, tecnicoId, solicitante, null, null);
+        return criar(clienteId, postoId, tecnicoId, solicitante, null, null, null);
     }
 
     @Transactional
     public OrdemServico criar(UUID clienteId, UUID postoId, UUID tecnicoId, String solicitante,
-                               LocalDateTime dataAbertura, String observacoes) {
+                               LocalDateTime dataAbertura, String observacoes, String numeroRelatorio) {
         OrdemServico.OrdemServicoBuilder builder = OrdemServico.builder()
                 .numero(numeroGenerator.gerarNumero())
                 .clienteId(clienteId)
                 .postoId(postoId)
                 .tecnicoId(tecnicoId)
                 .solicitante(solicitante)
-                .observacoes(observacoes);
+                .observacoes(observacoes)
+                .numeroRelatorio(numeroRelatorio);
         if (dataAbertura != null) {
             builder.dataAbertura(dataAbertura);
         }

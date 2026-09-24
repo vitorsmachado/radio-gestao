@@ -53,7 +53,7 @@ class OrdemServicoApplicationServiceTest {
     void criar_deveDelegar() {
         OrdemServicoCreateDTO dto = OrdemServicoCreateDTO.builder()
                 .clienteId(clienteId).solicitante("João da Silva").build();
-        when(osDomainService.criar(clienteId, null, null, "João da Silva", null, null)).thenReturn(os);
+        when(osDomainService.criar(clienteId, null, null, "João da Silva", null, null, null)).thenReturn(os);
 
         OrdemServicoDTO resultado = service.criar(dto);
 

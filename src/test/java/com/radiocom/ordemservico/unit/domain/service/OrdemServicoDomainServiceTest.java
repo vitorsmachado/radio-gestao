@@ -77,6 +77,17 @@ class OrdemServicoDomainServiceTest {
     }
 
     @Test
+    @DisplayName("criar com numeroRelatorio deve persistir o valor")
+    void criar_comNumeroRelatorio_devePersistir() {
+        when(numeroGenerator.gerarNumero()).thenReturn("OS-2026-0042");
+        when(osRepository.save(any(OrdemServico.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        OrdemServico resultado = service.criar(clienteId, null, null, "João da Silva", null, null, "REL-001");
+
+        assertThat(resultado.getNumeroRelatorio()).isEqualTo("REL-001");
+    }
+
+    @Test
     @DisplayName("atualizar deve buscar, aplicar e salvar")
     void atualizar_deveBuscarAplicarESalvar() {
         UUID novoCliente = UUID.randomUUID();

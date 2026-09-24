@@ -31,4 +31,8 @@ public class OrdemServicoCreateDTO {
 
     @Size(max = 2000)
     private String observacoes;
+
+    /** Número do relatório manual preenchido na retirada física dos itens (fora do sistema). */
+    @Size(max = 100)
+    private String numeroRelatorio;
 }
