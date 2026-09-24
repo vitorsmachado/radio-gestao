@@ -115,9 +115,23 @@ public class OrdemServicoDomainService {
         return salva;
     }
 
+    /**
+     * Só permite concluir a entrega quando todo item já estiver pronto
+     * (aguardando entrega ou entregue) — um item ainda em avaliação,
+     * autorização, manutenção ou aguardando peça bloqueia a OS inteira.
+     * Nesse caso, "dividir" (ver {@link #dividir}) tira esse item da OS e
+     * deixa o restante seguir pra entrega.
+     */
     @Transactional
     public OrdemServico confirmarEntrega(UUID id, String nomeRecebedor) {
         OrdemServico os = buscarPorId(id);
+        List<ItemEntrada> itens = itemEntradaRepository.findByOsId(id);
+        boolean algumNaoPronto = itens.stream().anyMatch(i ->
+                i.getStatus() != StatusItemEntrada.AGUARDANDO_ENTREGA && i.getStatus() != StatusItemEntrada.ENTREGUE);
+        if (algumNaoPronto) {
+            throw new DomainException(
+                    "Não é possível confirmar entrega: há item(ns) que ainda não estão prontos (aguardando entrega).");
+        }
         StatusOS statusAnterior = os.getStatus();
         os.confirmarEntrega(nomeRecebedor);
         OrdemServico salva = osRepository.save(os);

@@ -141,6 +141,21 @@ class OrdemServicoDomainServiceTest {
     }
 
     @Test
+    @DisplayName("confirmarEntrega deve lançar exceção quando algum item ainda não está pronto")
+    void confirmarEntrega_deveLancarExcecaoQuandoItemNaoPronto() {
+        os.iniciarAndamento();
+        ItemEntrada item = ItemEntrada.builder()
+                .osId(osId).tipoItem(com.radiocom.estoque.domain.model.enums.TipoItem.EQUIPAMENTO)
+                .descricao("Rádio").build();
+        item.avaliar("Capacitor queimado", false);
+        when(osRepository.findById(osId)).thenReturn(Optional.of(os));
+        when(itemEntradaRepository.findByOsId(osId)).thenReturn(List.of(item));
+
+        assertThatThrownBy(() -> service.confirmarEntrega(osId, "Maria Souza"))
+                .isInstanceOf(DomainException.class);
+    }
+
+    @Test
     @DisplayName("cancelar deve delegar para o domínio e salvar")
     void cancelar_deveDelegarESalvar() {
         when(osRepository.findById(osId)).thenReturn(Optional.of(os));
