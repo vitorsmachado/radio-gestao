@@ -361,6 +361,17 @@ public class ItemEntrada extends BaseEntity {
         item.setValorUnitario(valorUnitario);
     }
 
+    // ===== REMOÇÃO =====
+
+    /**
+     * Só permitido enquanto o item ainda nem começou a ser avaliado — depois
+     * disso pode já ter cobertura de garantia, orçamento ou histórico
+     * associado que não faz sentido descartar silenciosamente.
+     */
+    public void validarRemocao() {
+        validarStatus("Remover item", StatusItemEntrada.PENDENTE_AVALIACAO);
+    }
+
     public BigDecimal calcularTotalConserto() {
         return itensConserto.stream()
                 .peek(ItemConserto::calcularTotal)

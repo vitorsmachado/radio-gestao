@@ -192,6 +192,14 @@ class ItemEntradaApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("remover deve delegar para o domain service")
+    void remover_deveDelegar() {
+        service.remover(itemId);
+
+        verify(itemDomainService).remover(itemId);
+    }
+
+    @Test
     @DisplayName("salvarAvaliacaoTecnica deve publicar ItemAvaliadoEvent quando resultado não é SEM_DEFEITO")
     void salvarAvaliacaoTecnica_devePublicarEventoQuandoNaoSemDefeito() {
         item.iniciarAvaliacao();

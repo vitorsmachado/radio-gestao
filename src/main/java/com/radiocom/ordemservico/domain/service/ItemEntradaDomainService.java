@@ -279,6 +279,13 @@ public class ItemEntradaDomainService {
         return itemEntradaRepository.save(item);
     }
 
+    @Transactional
+    public void remover(UUID id) {
+        ItemEntrada item = buscarPorId(id);
+        item.validarRemocao();
+        itemEntradaRepository.delete(item);
+    }
+
     private boolean pecasDisponiveis(ItemEntrada item) {
         return item.getItensConserto().stream()
                 .filter(ic -> ic.getTipo() == TipoItemConserto.PECA && ic.getItemEstoqueId() != null)

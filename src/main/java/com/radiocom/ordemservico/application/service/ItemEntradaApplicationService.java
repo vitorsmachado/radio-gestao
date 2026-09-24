@@ -180,6 +180,12 @@ public class ItemEntradaApplicationService {
                 itemDomainService.atualizarValorItemConserto(id, itemConsertoId, dto.getValorUnitario())));
     }
 
+    @Transactional
+    public void remover(UUID id) {
+        itemDomainService.remover(id);
+        log.info("Item de entrada removido: {}", id);
+    }
+
     /** Resolve o valor de referência do catálogo (não vem do mapper puro, que não acessa outros módulos). */
     private ItemEntradaDTO comCatalogo(ItemEntradaDTO dto) {
         if (dto.getCatalogoModeloId() == null) return dto;

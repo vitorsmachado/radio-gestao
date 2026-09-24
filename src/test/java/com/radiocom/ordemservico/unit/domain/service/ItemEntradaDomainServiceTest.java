@@ -304,6 +304,26 @@ class ItemEntradaDomainServiceTest {
     }
 
     @Test
+    @DisplayName("remover deve excluir o item quando está pendente de avaliação")
+    void remover_devePermitirQuandoPendenteAvaliacao() {
+        when(itemEntradaRepository.findById(itemId)).thenReturn(Optional.of(item));
+
+        service.remover(itemId);
+
+        org.mockito.Mockito.verify(itemEntradaRepository).delete(item);
+    }
+
+    @Test
+    @DisplayName("remover deve lançar exceção quando o item já começou a ser avaliado")
+    void remover_deveLancarExcecaoQuandoJaEmAvaliacao() {
+        item.iniciarAvaliacao();
+        when(itemEntradaRepository.findById(itemId)).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> service.remover(itemId))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
     @DisplayName("salvarAvaliacaoTecnica com garantiaPecaId deve lançar exceção quando item não tem equipamento vinculado")
     void salvarAvaliacaoTecnica_comGarantiaPecaIdSemItemEstoque_deveLancarExcecao() {
         UUID garantiaPecaId = UUID.randomUUID();

@@ -36,6 +36,15 @@ public class ItemEntradaController {
         return ResponseEntity.ok(itemService.buscarPorId(id));
     }
 
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Remover um item de entrada inteiro da OS",
+            description = "Só permitido enquanto o item está pendente de avaliação — o cliente decidiu não "
+                    + "deixar o equipamento/acessório, por exemplo.")
+    public ResponseEntity<Void> remover(@PathVariable UUID id) {
+        itemService.remover(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping
     @Operation(summary = "Listar itens de entrada de uma OS")
     public ResponseEntity<List<ItemEntradaDTO>> listarPorOS(@RequestParam UUID osId) {
