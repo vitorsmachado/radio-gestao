@@ -115,6 +115,59 @@ class EstoqueApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("resolverEquipamentoPorNS deve reaproveitar quando ja existe pro mesmo cliente")
+    void resolverEquipamentoPorNS_deveReaproveitarQuandoMesmoCliente() {
+        UUID clienteId = UUID.randomUUID();
+        Equipamento existente = Equipamento.builder()
+                .codigo("EQ-1").descricao("Rádio").tipo(TipoItem.EQUIPAMENTO)
+                .proprietario(ProprietarioEquipamento.CLIENTE).clienteId(clienteId)
+                .faixa(FaixaEquipamento.VHF).numeroSerie("NS-001").build();
+        when(equipamentoRepository.findByNumeroSerie("NS-001")).thenReturn(Optional.of(existente));
+
+        ResolverEquipamentoPorNSDTO dto = ResolverEquipamentoPorNSDTO.builder()
+                .numeroSerie("NS-001").clienteId(clienteId).faixa(FaixaEquipamento.VHF).build();
+
+        EquipamentoDTO resultado = service.resolverEquipamentoPorNS(dto);
+
+        assertThat(resultado.getNumeroSerie()).isEqualTo("NS-001");
+        org.mockito.Mockito.verify(equipamentoRepository, org.mockito.Mockito.never()).save(any());
+    }
+
+    @Test
+    @DisplayName("resolverEquipamentoPorNS deve lançar exceção quando NS pertence a outro cliente")
+    void resolverEquipamentoPorNS_deveLancarExcecaoQuandoOutroCliente() {
+        Equipamento existente = Equipamento.builder()
+                .codigo("EQ-1").descricao("Rádio").tipo(TipoItem.EQUIPAMENTO)
+                .proprietario(ProprietarioEquipamento.CLIENTE).clienteId(UUID.randomUUID())
+                .faixa(FaixaEquipamento.VHF).numeroSerie("NS-001").build();
+        when(equipamentoRepository.findByNumeroSerie("NS-001")).thenReturn(Optional.of(existente));
+
+        ResolverEquipamentoPorNSDTO dto = ResolverEquipamentoPorNSDTO.builder()
+                .numeroSerie("NS-001").clienteId(UUID.randomUUID()).faixa(FaixaEquipamento.VHF).build();
+
+        assertThatThrownBy(() -> service.resolverEquipamentoPorNS(dto))
+                .isInstanceOf(DomainException.class)
+                .hasMessageContaining("outro cliente");
+    }
+
+    @Test
+    @DisplayName("resolverEquipamentoPorNS deve cadastrar um novo quando o NS ainda não existe")
+    void resolverEquipamentoPorNS_deveCriarQuandoNaoExiste() {
+        UUID clienteId = UUID.randomUUID();
+        when(equipamentoRepository.findByNumeroSerie("NS-002")).thenReturn(Optional.empty());
+        when(equipamentoRepository.save(any(Equipamento.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ResolverEquipamentoPorNSDTO dto = ResolverEquipamentoPorNSDTO.builder()
+                .numeroSerie("NS-002").clienteId(clienteId).faixa(FaixaEquipamento.VHF)
+                .descricao("Rádio Motorola").marca("Motorola").modelo("EP450").build();
+
+        EquipamentoDTO resultado = service.resolverEquipamentoPorNS(dto);
+
+        assertThat(resultado.getNumeroSerie()).isEqualTo("NS-002");
+        assertThat(resultado.getCodigo()).isNotBlank();
+    }
+
+    @Test
     @DisplayName("buscarEquipamentoPorId deve delegar para o domain service")
     void buscarEquipamentoPorId_deveDelegar() {
         UUID id = UUID.randomUUID();

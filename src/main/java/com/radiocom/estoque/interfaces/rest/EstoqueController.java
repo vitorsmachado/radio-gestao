@@ -49,6 +49,14 @@ public class EstoqueController {
         return ResponseEntity.ok(estoqueService.buscarEquipamentoPorNS(numeroSerie));
     }
 
+    @PostMapping("/equipamentos/resolver-ns")
+    @Operation(summary = "Buscar equipamento existente por N/S ou cadastrar um novo vinculado ao cliente",
+            description = "Usado ao registrar um item de entrada na OS pra reconhecer o mesmo equipamento em "
+                    + "visitas futuras (garantia). Se o N/S já pertencer a outro cliente, lança erro.")
+    public ResponseEntity<EquipamentoDTO> resolverEquipamentoPorNS(@Valid @RequestBody ResolverEquipamentoPorNSDTO dto) {
+        return ResponseEntity.ok(estoqueService.resolverEquipamentoPorNS(dto));
+    }
+
     @GetMapping("/equipamentos/patrimonio/{patrimonio}")
     @Operation(summary = "Buscar equipamento por patrimônio")
     public ResponseEntity<EquipamentoDTO> buscarEquipamentoPorPatrimonio(@PathVariable String patrimonio) {

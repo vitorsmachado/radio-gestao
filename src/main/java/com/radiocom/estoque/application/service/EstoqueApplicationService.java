@@ -75,6 +75,34 @@ public class EstoqueApplicationService {
         return mapper.toDTO(equipamentoService.buscarPorNumeroSerie(ns));
     }
 
+    /**
+     * Chamado ao registrar um item de entrada na OS: reaproveita o
+     * equipamento já cadastrado com esse N/S (é o que liga um reparo novo ao
+     * histórico/garantia de um reparo anterior do mesmo equipamento), ou
+     * cadastra um novo vinculado a esse cliente se ainda não existir.
+     */
+    @Transactional
+    public EquipamentoDTO resolverEquipamentoPorNS(ResolverEquipamentoPorNSDTO dto) {
+        return equipamentoRepository.findByNumeroSerie(dto.getNumeroSerie())
+                .map(existente -> {
+                    if (!java.util.Objects.equals(existente.getClienteId(), dto.getClienteId())) {
+                        throw new DomainException(
+                                "Número de série já cadastrado para outro cliente — confira o número de série.");
+                    }
+                    return mapper.toDTO(existente);
+                })
+                .orElseGet(() -> criarEquipamento(EquipamentoCreateDTO.builder()
+                        .proprietario(ProprietarioEquipamento.CLIENTE)
+                        .numeroSerie(dto.getNumeroSerie())
+                        .clienteId(dto.getClienteId())
+                        .faixa(dto.getFaixa())
+                        .descricao(dto.getDescricao())
+                        .catalogoModeloId(dto.getCatalogoModeloId())
+                        .marca(dto.getMarca())
+                        .modelo(dto.getModelo())
+                        .build()));
+    }
+
     @Transactional(readOnly = true)
     public EquipamentoDTO buscarEquipamentoPorPatrimonio(String patrimonio) {
         return mapper.toDTO(equipamentoService.buscarPorPatrimonio(patrimonio));
