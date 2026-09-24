@@ -77,6 +77,22 @@ class OrdemServicoDomainServiceTest {
     }
 
     @Test
+    @DisplayName("atualizar deve buscar, aplicar e salvar")
+    void atualizar_deveBuscarAplicarESalvar() {
+        UUID novoCliente = UUID.randomUUID();
+        when(osRepository.findById(osId)).thenReturn(Optional.of(os));
+        when(osRepository.save(any(OrdemServico.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        OrdemServico resultado = service.atualizar(osId, novoCliente, null, null, "Maria",
+                java.time.LocalDateTime.now(), "obs", "REL-001");
+
+        assertThat(resultado.getClienteId()).isEqualTo(novoCliente);
+        assertThat(resultado.getSolicitante()).isEqualTo("Maria");
+        assertThat(resultado.getNumeroRelatorio()).isEqualTo("REL-001");
+        verify(osRepository).save(os);
+    }
+
+    @Test
     @DisplayName("listarPorCliente deve retornar as OS do cliente")
     void listarPorCliente_deveRetornarOSDoCliente() {
         when(osRepository.findByClienteIdOrderByDataAberturaDesc(clienteId)).thenReturn(List.of(os));

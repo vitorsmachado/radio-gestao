@@ -1,6 +1,7 @@
 package com.radiocom.ordemservico.application.dto;
 
-import com.radiocom.ordemservico.domain.model.enums.StatusOS;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,19 +14,24 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrdemServicoDTO {
+public class AtualizarOrdemServicoDTO {
 
-    private UUID id;
-    private String numero;
+    @NotNull
     private UUID clienteId;
+
     private UUID postoId;
+
     private UUID tecnicoId;
+
+    @Size(max = 100)
     private String solicitante;
-    private String recebedorNome;
-    private StatusOS status;
+
+    @NotNull
     private LocalDateTime dataAbertura;
-    private LocalDateTime dataConclusao;
-    private LocalDateTime dataAtualizacao;
+
+    @Size(max = 2000)
     private String observacoes;
+
+    @Size(max = 100)
     private String numeroRelatorio;
 }

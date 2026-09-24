@@ -97,6 +97,37 @@ class OrdemServicoControllerTest {
     }
 
     @Test
+    @DisplayName("PUT /{id} deve retornar 200 com a OS atualizada")
+    void atualizar_deveRetornar200() throws Exception {
+        AtualizarOrdemServicoDTO dto = AtualizarOrdemServicoDTO.builder()
+                .clienteId(clienteId).solicitante("Maria").dataAbertura(java.time.LocalDateTime.now()).build();
+        osDTO.setSolicitante("Maria");
+        when(service.atualizar(eq(osId), any(AtualizarOrdemServicoDTO.class))).thenReturn(osDTO);
+
+        mockMvc.perform(put("/v1/ordens-servico/{id}", osId)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.solicitante").value("Maria"));
+    }
+
+    @Test
+    @DisplayName("PUT /{id} deve retornar 409 quando a OS já está concluída")
+    void atualizar_deveRetornar409QuandoConcluida() throws Exception {
+        AtualizarOrdemServicoDTO dto = AtualizarOrdemServicoDTO.builder()
+                .clienteId(clienteId).dataAbertura(java.time.LocalDateTime.now()).build();
+        when(service.atualizar(eq(osId), any(AtualizarOrdemServicoDTO.class)))
+                .thenThrow(new IllegalStateException("Não é possível editar uma OS já concluída"));
+
+        mockMvc.perform(put("/v1/ordens-servico/{id}", osId)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
     @DisplayName("GET /{id} deve retornar 400 quando não existe")
     void buscarPorId_deveRetornar400QuandoNaoExiste() throws Exception {
         when(service.buscarPorId(osId)).thenThrow(new DomainException("Ordem de Serviço não encontrada: " + osId));

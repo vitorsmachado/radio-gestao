@@ -30,6 +30,7 @@ public class OrdemServicoMapper {
                 .dataConclusao(os.getDataConclusao())
                 .dataAtualizacao(os.getDataAtualizacao())
                 .observacoes(os.getObservacoes())
+                .numeroRelatorio(os.getNumeroRelatorio())
                 .build();
     }
 

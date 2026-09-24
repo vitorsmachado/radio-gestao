@@ -64,6 +64,10 @@ public class OrdemServico extends BaseEntity {
     @Column(name = "observacoes", length = 2000)
     private String observacoes;
 
+    /** Número do relatório manual preenchido na retirada física dos itens (fora do sistema). */
+    @Column(name = "numero_relatorio", length = 100)
+    private String numeroRelatorio;
+
     /**
      * Posição manual dentro do seu bloco na fila de manutenção — só o admin
      * altera (setas subir/descer ou arrastar). Só serve como critério de
@@ -84,6 +88,26 @@ public class OrdemServico extends BaseEntity {
 
     public void definirPosicaoFila(long novaPosicao) {
         this.posicaoFila = novaPosicao;
+    }
+
+    /**
+     * Edição livre dos dados da OS — permitida em qualquer status, menos
+     * CONCLUÍDA (encerramento definitivo). CANCELADA continua editável de
+     * propósito, pra permitir corrigir dados de uma OS cancelada por engano
+     * ou só documentar melhor o que aconteceu.
+     */
+    public void atualizar(UUID clienteId, UUID postoId, UUID tecnicoId, String solicitante,
+                           LocalDateTime dataAbertura, String observacoes, String numeroRelatorio) {
+        if (this.status == StatusOS.CONCLUIDA) {
+            throw new IllegalStateException("Não é possível editar uma OS já concluída");
+        }
+        if (clienteId != null) this.clienteId = clienteId;
+        this.postoId = postoId;
+        this.tecnicoId = tecnicoId;
+        this.solicitante = solicitante;
+        if (dataAbertura != null) this.dataAbertura = dataAbertura;
+        this.observacoes = observacoes;
+        this.numeroRelatorio = numeroRelatorio;
     }
 
     /**

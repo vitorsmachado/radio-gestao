@@ -40,6 +40,14 @@ public class OrdemServicoDomainService {
                 .orElseThrow(() -> new DomainException("OS não encontrada: " + numero));
     }
 
+    @Transactional
+    public OrdemServico atualizar(UUID id, UUID clienteId, UUID postoId, UUID tecnicoId, String solicitante,
+                                   LocalDateTime dataAbertura, String observacoes, String numeroRelatorio) {
+        OrdemServico os = buscarPorId(id);
+        os.atualizar(clienteId, postoId, tecnicoId, solicitante, dataAbertura, observacoes, numeroRelatorio);
+        return osRepository.save(os);
+    }
+
     @Transactional(readOnly = true)
     public List<OrdemServico> listarPorCliente(UUID clienteId) {
         return osRepository.findByClienteIdOrderByDataAberturaDesc(clienteId);

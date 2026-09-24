@@ -69,6 +69,26 @@ class OrdemServicoApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("atualizar deve delegar para o domain service")
+    void atualizar_deveDelegar() {
+        UUID novoCliente = UUID.randomUUID();
+        AtualizarOrdemServicoDTO dto = AtualizarOrdemServicoDTO.builder()
+                .clienteId(novoCliente).solicitante("Maria").dataAbertura(java.time.LocalDateTime.now())
+                .numeroRelatorio("REL-001").build();
+        os.setClienteId(novoCliente);
+        os.setSolicitante("Maria");
+        os.setNumeroRelatorio("REL-001");
+        when(osDomainService.atualizar(osId, novoCliente, null, null, "Maria", dto.getDataAbertura(), null, "REL-001"))
+                .thenReturn(os);
+
+        OrdemServicoDTO resultado = service.atualizar(osId, dto);
+
+        assertThat(resultado.getClienteId()).isEqualTo(novoCliente);
+        assertThat(resultado.getSolicitante()).isEqualTo("Maria");
+        assertThat(resultado.getNumeroRelatorio()).isEqualTo("REL-001");
+    }
+
+    @Test
     @DisplayName("listarPorCliente deve delegar para o domain service")
     void listarPorCliente_deveDelegar() {
         when(osDomainService.listarPorCliente(clienteId)).thenReturn(List.of(os));

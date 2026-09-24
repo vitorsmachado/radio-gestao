@@ -44,6 +44,14 @@ public class OrdemServicoController {
         return ResponseEntity.ok(service.buscarPorId(id));
     }
 
+    @PutMapping("/{id}")
+    @Operation(summary = "Editar dados da OS",
+            description = "Permitido em qualquer status, menos CONCLUÍDA. Inclui trocar o cliente vinculado.")
+    public ResponseEntity<OrdemServicoDTO> atualizar(
+            @PathVariable UUID id, @Valid @RequestBody AtualizarOrdemServicoDTO dto) {
+        return ResponseEntity.ok(service.atualizar(id, dto));
+    }
+
     @GetMapping("/numero/{numero}")
     @Operation(summary = "Buscar OS por número")
     public ResponseEntity<OrdemServicoDTO> buscarPorNumero(@PathVariable String numero) {

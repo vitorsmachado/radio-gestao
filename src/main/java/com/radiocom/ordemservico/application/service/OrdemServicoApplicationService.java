@@ -48,6 +48,14 @@ public class OrdemServicoApplicationService {
         return mapper.toDTO(os);
     }
 
+    @Transactional
+    public OrdemServicoDTO atualizar(UUID id, AtualizarOrdemServicoDTO dto) {
+        OrdemServico os = osDomainService.atualizar(id, dto.getClienteId(), dto.getPostoId(), dto.getTecnicoId(),
+                dto.getSolicitante(), dto.getDataAbertura(), dto.getObservacoes(), dto.getNumeroRelatorio());
+        log.info("OS {} atualizada", os.getNumero());
+        return mapper.toDTO(os);
+    }
+
     @Transactional(readOnly = true)
     public OrdemServicoDTO buscarPorId(UUID id) {
         return mapper.toDTO(osDomainService.buscarPorId(id));

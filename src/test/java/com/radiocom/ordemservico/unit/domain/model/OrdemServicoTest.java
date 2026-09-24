@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -81,6 +82,44 @@ class OrdemServicoTest {
         os.cancelar("motivo");
 
         assertThatThrownBy(() -> os.confirmarEntrega("Maria Souza"))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    @DisplayName("atualizar deve aplicar todos os campos, inclusive trocar o cliente")
+    void atualizar_deveAplicarTodosOsCampos() {
+        UUID novoCliente = UUID.randomUUID();
+        UUID posto = UUID.randomUUID();
+        UUID tecnico = UUID.randomUUID();
+        LocalDateTime novaData = LocalDateTime.now().minusDays(1);
+
+        os.atualizar(novoCliente, posto, tecnico, "João", novaData, "obs", "REL-001");
+
+        assertThat(os.getClienteId()).isEqualTo(novoCliente);
+        assertThat(os.getPostoId()).isEqualTo(posto);
+        assertThat(os.getTecnicoId()).isEqualTo(tecnico);
+        assertThat(os.getSolicitante()).isEqualTo("João");
+        assertThat(os.getDataAbertura()).isEqualTo(novaData);
+        assertThat(os.getObservacoes()).isEqualTo("obs");
+        assertThat(os.getNumeroRelatorio()).isEqualTo("REL-001");
+    }
+
+    @Test
+    @DisplayName("atualizar deve permitir edição mesmo com a OS cancelada")
+    void atualizar_devePermitirQuandoCancelada() {
+        os.cancelar("motivo");
+
+        os.atualizar(UUID.randomUUID(), null, null, "João", LocalDateTime.now(), null, null);
+
+        assertThat(os.getSolicitante()).isEqualTo("João");
+    }
+
+    @Test
+    @DisplayName("atualizar deve lançar exceção quando a OS já está concluída")
+    void atualizar_deveLancarExcecaoQuandoConcluida() {
+        os.confirmarEntrega("Maria Souza");
+
+        assertThatThrownBy(() -> os.atualizar(UUID.randomUUID(), null, null, "João", LocalDateTime.now(), null, null))
                 .isInstanceOf(IllegalStateException.class);
     }
 }
