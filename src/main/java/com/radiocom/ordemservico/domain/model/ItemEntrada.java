@@ -364,12 +364,14 @@ public class ItemEntrada extends BaseEntity {
     // ===== REMOÇÃO =====
 
     /**
-     * Só permitido enquanto o item ainda nem começou a ser avaliado — depois
-     * disso pode já ter cobertura de garantia, orçamento ou histórico
-     * associado que não faz sentido descartar silenciosamente.
+     * Permitido enquanto o laudo ainda não foi salvo — EM_AVALIACAO só marca
+     * que alguém abriu o item pra olhar (ver {@link #iniciarAvaliacao}), não é
+     * um compromisso. Depois de AVALIADO já pode ter cobertura de garantia,
+     * orçamento ou histórico associado que não faz sentido descartar
+     * silenciosamente.
      */
     public void validarRemocao() {
-        validarStatus("Remover item", StatusItemEntrada.PENDENTE_AVALIACAO);
+        validarStatus("Remover item", StatusItemEntrada.PENDENTE_AVALIACAO, StatusItemEntrada.EM_AVALIACAO);
     }
 
     public BigDecimal calcularTotalConserto() {

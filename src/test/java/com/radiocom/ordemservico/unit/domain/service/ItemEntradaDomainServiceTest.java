@@ -314,9 +314,20 @@ class ItemEntradaDomainServiceTest {
     }
 
     @Test
-    @DisplayName("remover deve lançar exceção quando o item já começou a ser avaliado")
-    void remover_deveLancarExcecaoQuandoJaEmAvaliacao() {
+    @DisplayName("remover deve permitir quando o item está em avaliação (só marca que alguém abriu)")
+    void remover_devePermitirQuandoEmAvaliacao() {
         item.iniciarAvaliacao();
+        when(itemEntradaRepository.findById(itemId)).thenReturn(Optional.of(item));
+
+        service.remover(itemId);
+
+        org.mockito.Mockito.verify(itemEntradaRepository).delete(item);
+    }
+
+    @Test
+    @DisplayName("remover deve lançar exceção quando o item já foi avaliado")
+    void remover_deveLancarExcecaoQuandoJaAvaliado() {
+        item.avaliar("Capacitor queimado", false);
         when(itemEntradaRepository.findById(itemId)).thenReturn(Optional.of(item));
 
         assertThatThrownBy(() -> service.remover(itemId))
