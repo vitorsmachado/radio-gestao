@@ -1,5 +1,6 @@
 package com.radiocom.ordemservico.application.dto;
 
+import com.radiocom.estoque.domain.model.enums.FaixaEquipamento;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -49,6 +50,9 @@ public class ItemEntradaCreateDTO {
 
     @Size(max = 100)
     private String modelo;
+
+    /** Só relevante para equipamento (rádio) — faixa de frequência. */
+    private FaixaEquipamento faixa;
 
     @Size(max = 1000)
     private String defeitoRelatado;

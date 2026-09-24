@@ -69,6 +69,7 @@ public class OrdemServicoMapper {
                 .quantidade(dto.getQuantidade() != null ? dto.getQuantidade() : 1)
                 .marca(dto.getMarca())
                 .modelo(dto.getModelo())
+                .faixa(dto.getFaixa())
                 .defeitoRelatado(dto.getDefeitoRelatado())
                 .garantia(dto.isGarantia())
                 .build();
@@ -90,6 +91,7 @@ public class OrdemServicoMapper {
                 .quantidade(item.getQuantidade())
                 .marca(item.getMarca())
                 .modelo(item.getModelo())
+                .faixa(item.getFaixa())
                 .defeitoRelatado(item.getDefeitoRelatado())
                 .avaliacaoTecnica(item.getAvaliacaoTecnica())
                 .semDefeito(item.isSemDefeito())

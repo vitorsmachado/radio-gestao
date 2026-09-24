@@ -1,5 +1,6 @@
 package com.radiocom.ordemservico.application.dto;
 
+import com.radiocom.estoque.domain.model.enums.FaixaEquipamento;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao;
 import com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada;
@@ -34,6 +35,7 @@ public class ItemEntradaDTO {
     private Integer quantidade;
     private String marca;
     private String modelo;
+    private FaixaEquipamento faixa;
     private String defeitoRelatado;
     private String avaliacaoTecnica;
     private boolean semDefeito;

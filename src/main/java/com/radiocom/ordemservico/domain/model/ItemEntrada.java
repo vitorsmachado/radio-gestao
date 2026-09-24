@@ -1,5 +1,6 @@
 package com.radiocom.ordemservico.domain.model;
 
+import com.radiocom.estoque.domain.model.enums.FaixaEquipamento;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao;
 import com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada;
@@ -81,6 +82,11 @@ public class ItemEntrada extends BaseEntity {
 
     @Column(name = "modelo", length = 100)
     private String modelo;
+
+    /** Só relevante para equipamento (rádio) — faixa de frequência. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "faixa", length = 20)
+    private FaixaEquipamento faixa;
 
     @Column(name = "defeito_relatado", length = 1000)
     private String defeitoRelatado; // O que o cliente relatou
