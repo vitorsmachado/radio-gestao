@@ -166,7 +166,9 @@ public class ItemEntrada extends BaseEntity {
      * Salva o laudo técnico estruturado da tela do técnico (resultado,
      * detalhe do ajuste, defeito/causa/solução/observações). Deriva
      * {@code semDefeito} do resultado pra manter toda a lógica existente
-     * (aguardarEntrega, temConserto) funcionando sem mudança.
+     * (aguardarEntrega, temConserto) funcionando sem mudança. Sem defeito
+     * não tem mais nada a decidir — pula direto pra aguardando entrega, sem
+     * precisar do clique manual em "marcar aguardando entrega".
      */
     public void salvarAvaliacaoTecnica(ResultadoAvaliacao resultado, String detalheAjuste,
                                         String defeitoEncontrado, String causaDefeito,
@@ -182,7 +184,7 @@ public class ItemEntrada extends BaseEntity {
         this.observacoesTecnicas = observacoesTecnicas;
         this.semDefeito = resultado == ResultadoAvaliacao.SEM_DEFEITO;
         this.garantia = garantia;
-        this.status = StatusItemEntrada.AVALIADO;
+        this.status = this.semDefeito ? StatusItemEntrada.AGUARDANDO_ENTREGA : StatusItemEntrada.AVALIADO;
     }
 
     /**
@@ -280,9 +282,10 @@ public class ItemEntrada extends BaseEntity {
         this.status = StatusItemEntrada.EM_MANUTENCAO;
     }
 
+    /** Reparo físico terminado — pula direto pra aguardando entrega, sem clique manual extra. */
     public void concluirManutencao() {
         validarStatus("Concluir manutenção", StatusItemEntrada.EM_MANUTENCAO);
-        this.status = StatusItemEntrada.MANUTENCAO_CONCLUIDA;
+        this.status = StatusItemEntrada.AGUARDANDO_ENTREGA;
     }
 
     // ===== ENTREGA =====

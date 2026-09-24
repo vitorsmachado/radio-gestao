@@ -162,7 +162,7 @@ class ItemEntradaDomainServiceTest {
         assertThat(item.getStatus()).isEqualTo(StatusItemEntrada.EM_MANUTENCAO);
 
         ItemEntrada resultado = service.concluirManutencao(itemId);
-        assertThat(resultado.getStatus()).isEqualTo(StatusItemEntrada.MANUTENCAO_CONCLUIDA);
+        assertThat(resultado.getStatus()).isEqualTo(StatusItemEntrada.AGUARDANDO_ENTREGA);
         org.mockito.Mockito.verify(garantiaPecaDomainService).registrarCobertura(resultado);
     }
 

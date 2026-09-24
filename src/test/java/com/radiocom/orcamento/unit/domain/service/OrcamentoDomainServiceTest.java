@@ -242,7 +242,6 @@ class OrcamentoDomainServiceTest {
         item2.iniciarFilaManutencao();
         item2.iniciarManutencao();
         item2.concluirManutencao();
-        item2.aguardarEntrega();
 
         when(itemEntradaRepository.findByOrcamentoId(orcamentoId)).thenReturn(List.of(item1, item2));
 

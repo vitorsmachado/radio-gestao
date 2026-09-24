@@ -77,6 +77,26 @@ class ItemEntradaTest {
     }
 
     @Test
+    @DisplayName("salvarAvaliacaoTecnica com SEM_DEFEITO deve ir direto para AGUARDANDO_ENTREGA")
+    void salvarAvaliacaoTecnica_semDefeito_devePularParaAguardandoEntrega() {
+        item.salvarAvaliacaoTecnica(com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao.SEM_DEFEITO,
+                null, null, null, null, null, false);
+
+        assertThat(item.getStatus()).isEqualTo(StatusItemEntrada.AGUARDANDO_ENTREGA);
+        assertThat(item.isSemDefeito()).isTrue();
+    }
+
+    @Test
+    @DisplayName("salvarAvaliacaoTecnica com defeito deve parar em AVALIADO")
+    void salvarAvaliacaoTecnica_comDefeito_deveParaEmAvaliado() {
+        item.salvarAvaliacaoTecnica(com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao.ORCAMENTO,
+                null, "Capacitor queimado", null, null, null, false);
+
+        assertThat(item.getStatus()).isEqualTo(StatusItemEntrada.AVALIADO);
+        assertThat(item.isSemDefeito()).isFalse();
+    }
+
+    @Test
     @DisplayName("atualizarAvaliacao deve permitir editar o laudo mesmo depois de autorizado")
     void atualizarAvaliacao_devePermitirEditarAposAutorizado() {
         avaliarEAutorizar();
@@ -239,24 +259,24 @@ class ItemEntradaTest {
     // ===== conclusão do reparo e entrega =====
 
     @Test
-    @DisplayName("concluirManutencao deve mudar status quando em manutenção")
-    void concluirManutencao_deveMudarStatus() {
+    @DisplayName("concluirManutencao deve ir direto para AGUARDANDO_ENTREGA")
+    void concluirManutencao_deveIrDiretoParaAguardandoEntrega() {
         avaliarEAutorizar();
         item.iniciarFilaManutencao();
         item.iniciarManutencao();
 
         item.concluirManutencao();
 
-        assertThat(item.getStatus()).isEqualTo(StatusItemEntrada.MANUTENCAO_CONCLUIDA);
+        assertThat(item.getStatus()).isEqualTo(StatusItemEntrada.AGUARDANDO_ENTREGA);
     }
 
     @Test
-    @DisplayName("aguardarEntrega deve mudar status após manutenção concluída")
-    void aguardarEntrega_deveMudarStatusAposManutencaoConcluida() {
+    @DisplayName("aguardarEntrega ainda deve funcionar num item legado parado em MANUTENCAO_CONCLUIDA")
+    void aguardarEntrega_deveFuncionarParaLegadoManutencaoConcluida() {
         avaliarEAutorizar();
         item.iniciarFilaManutencao();
         item.iniciarManutencao();
-        item.concluirManutencao();
+        ReflectionTestUtils.setField(item, "status", StatusItemEntrada.MANUTENCAO_CONCLUIDA);
 
         item.aguardarEntrega();
 
@@ -307,12 +327,11 @@ class ItemEntradaTest {
     }
 
     @Test
-    @DisplayName("entregar deve lançar exceção quando manutenção só está concluída, mas não aguardando entrega")
-    void entregar_deveLancarExcecaoQuandoAindaNaoAguardandoEntrega() {
+    @DisplayName("entregar deve lançar exceção quando ainda em manutenção")
+    void entregar_deveLancarExcecaoQuandoEmManutencao() {
         avaliarEAutorizar();
         item.iniciarFilaManutencao();
         item.iniciarManutencao();
-        item.concluirManutencao();
 
         assertThatThrownBy(item::entregar)
                 .isInstanceOf(IllegalStateException.class);
