@@ -133,7 +133,7 @@ class OrdemServicoApplicationServiceTest {
 
         service.listar(null, null, null, pageable);
 
-        org.mockito.ArgumentCaptor<List<UUID>> captor = org.mockito.ArgumentCaptor.forClass(List.class);
+        org.mockito.ArgumentCaptor<List<UUID>> captor = org.mockito.ArgumentCaptor.captor();
         verify(osDomainService).buscar(eq(null), captor.capture(), eq(null), eq(null), eq(pageable));
         assertThat(captor.getValue()).hasSize(1);
     }
@@ -148,7 +148,7 @@ class OrdemServicoApplicationServiceTest {
 
         service.listar("OS-2026", null, null, pageable);
 
-        org.mockito.ArgumentCaptor<List<UUID>> captor = org.mockito.ArgumentCaptor.forClass(List.class);
+        org.mockito.ArgumentCaptor<List<UUID>> captor = org.mockito.ArgumentCaptor.captor();
         verify(osDomainService).buscar(eq("OS-2026"), captor.capture(), any(), any(), eq(pageable));
         assertThat(captor.getValue()).hasSize(1);
     }
@@ -164,7 +164,7 @@ class OrdemServicoApplicationServiceTest {
 
         service.listar("Radio", null, null, pageable);
 
-        org.mockito.ArgumentCaptor<List<UUID>> captor = org.mockito.ArgumentCaptor.forClass(List.class);
+        org.mockito.ArgumentCaptor<List<UUID>> captor = org.mockito.ArgumentCaptor.captor();
         verify(osDomainService).buscar(eq("Radio"), captor.capture(), any(), any(), eq(pageable));
         assertThat(captor.getValue()).containsExactly(clienteId);
     }

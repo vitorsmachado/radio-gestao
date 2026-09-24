@@ -334,7 +334,7 @@ class ClienteApplicationServiceTest {
 
         service.listar("NS-000", null, pageable);
 
-        org.mockito.ArgumentCaptor<java.util.List<UUID>> captor = org.mockito.ArgumentCaptor.forClass(java.util.List.class);
+        org.mockito.ArgumentCaptor<java.util.List<UUID>> captor = org.mockito.ArgumentCaptor.captor();
         verify(clienteRepository).buscar(eq("NS-000"), captor.capture(), eq(null), eq(pageable));
         assertThat(captor.getValue()).hasSize(1);
     }
@@ -351,7 +351,7 @@ class ClienteApplicationServiceTest {
 
         service.listar("NS-123", null, pageable);
 
-        org.mockito.ArgumentCaptor<java.util.List<UUID>> captor = org.mockito.ArgumentCaptor.forClass(java.util.List.class);
+        org.mockito.ArgumentCaptor<java.util.List<UUID>> captor = org.mockito.ArgumentCaptor.captor();
         verify(clienteRepository).buscar(eq("NS-123"), captor.capture(), eq(null), eq(pageable));
         assertThat(captor.getValue()).containsExactly(clienteIdDoEquipamento);
     }
