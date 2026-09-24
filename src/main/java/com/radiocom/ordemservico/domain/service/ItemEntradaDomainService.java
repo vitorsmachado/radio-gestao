@@ -80,21 +80,40 @@ public class ItemEntradaDomainService {
                                                String solucaoRecomendada, String observacoesTecnicas,
                                                UUID garantiaPecaId) {
         ItemEntrada item = buscarPorId(id);
-        boolean garantia = false;
-        if (garantiaPecaId != null) {
-            if (item.getItemEstoqueId() == null) {
-                throw new DomainException(
-                        "Item não está vinculado a um equipamento/acessório do cliente — não é possível aplicar garantia.");
-            }
-            garantiaPecaDomainService.validarCoberturaAtiva(item.getItemEstoqueId(), garantiaPecaId);
-            garantia = true;
-        }
+        boolean garantia = validarGarantia(item, garantiaPecaId);
         StatusItemEntrada statusAnterior = item.getStatus();
         item.salvarAvaliacaoTecnica(resultado, detalheAjuste, defeitoEncontrado, causaDefeito,
                 solucaoRecomendada, observacoesTecnicas, garantia);
         ItemEntrada salvo = itemEntradaRepository.save(item);
         registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), null);
         return salvo;
+    }
+
+    /**
+     * Edita o laudo já salvo sem mexer no status atual do item — usado pelo
+     * botão "atualizar avaliação" depois que o laudo inicial já progrediu
+     * pra outro status (autorizado, em manutenção etc.).
+     */
+    @Transactional
+    public ItemEntrada atualizarAvaliacaoCompleta(UUID id, ResultadoAvaliacao resultado, String detalheAjuste,
+                                                   String defeitoEncontrado, String causaDefeito,
+                                                   String solucaoRecomendada, String observacoesTecnicas,
+                                                   UUID garantiaPecaId) {
+        ItemEntrada item = buscarPorId(id);
+        boolean garantia = validarGarantia(item, garantiaPecaId);
+        item.atualizarAvaliacaoCompleta(resultado, detalheAjuste, defeitoEncontrado, causaDefeito,
+                solucaoRecomendada, observacoesTecnicas, garantia);
+        return itemEntradaRepository.save(item);
+    }
+
+    private boolean validarGarantia(ItemEntrada item, UUID garantiaPecaId) {
+        if (garantiaPecaId == null) return false;
+        if (item.getItemEstoqueId() == null) {
+            throw new DomainException(
+                    "Item não está vinculado a um equipamento/acessório do cliente — não é possível aplicar garantia.");
+        }
+        garantiaPecaDomainService.validarCoberturaAtiva(item.getItemEstoqueId(), garantiaPecaId);
+        return true;
     }
 
     /** Peças/equipamentos com cobertura de garantia ativa desse item — vazio se não rastreado ou sem cobertura. */

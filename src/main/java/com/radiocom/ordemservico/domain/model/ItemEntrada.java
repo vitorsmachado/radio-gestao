@@ -188,6 +188,28 @@ public class ItemEntrada extends BaseEntity {
     }
 
     /**
+     * Edita o laudo estruturado já salvo (resultado, defeito, causa, solução,
+     * observações, garantia) sem mexer no status — o item pode já estar
+     * autorizado, em manutenção etc., e reabrir o fluxo de avaliação do zero
+     * bagunçaria o andamento. Permitido em qualquer momento antes da entrega.
+     */
+    public void atualizarAvaliacaoCompleta(ResultadoAvaliacao resultado, String detalheAjuste,
+                                            String defeitoEncontrado, String causaDefeito,
+                                            String solucaoRecomendada, String observacoesTecnicas,
+                                            boolean garantia) {
+        validarNaoEntregue("Atualizar avaliação completa");
+        this.resultadoAvaliacao = resultado;
+        this.detalheAjuste = detalheAjuste;
+        this.defeitoEncontrado = defeitoEncontrado;
+        this.avaliacaoTecnica = defeitoEncontrado;
+        this.causaDefeito = causaDefeito;
+        this.solucaoRecomendada = solucaoRecomendada;
+        this.observacoesTecnicas = observacoesTecnicas;
+        this.semDefeito = resultado == ResultadoAvaliacao.SEM_DEFEITO;
+        this.garantia = garantia;
+    }
+
+    /**
      * Atualiza o laudo/defeito sem mudar o status — permitido em qualquer
      * momento antes da entrega, incluindo depois de autorizado ou até na
      * hora da entrega (problema novo encontrado tarde).

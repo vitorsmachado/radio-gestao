@@ -212,6 +212,21 @@ class ItemEntradaApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("atualizarAvaliacaoCompleta não deve publicar nenhum evento")
+    void atualizarAvaliacaoCompleta_naoDevePublicarEvento() {
+        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.AJUSTE, "Trocar fusível", "Fusível queimado", null, null, null, false);
+        SalvarAvaliacaoTecnicaDTO dto = SalvarAvaliacaoTecnicaDTO.builder()
+                .resultado(ResultadoAvaliacao.AJUSTE).detalheAjuste("Trocar fusível").defeitoEncontrado("Fusível queimado").build();
+        when(itemDomainService.atualizarAvaliacaoCompleta(itemId, ResultadoAvaliacao.AJUSTE, "Trocar fusível",
+                "Fusível queimado", null, null, null, null)).thenReturn(item);
+
+        ItemEntradaDTO resultado = service.atualizarAvaliacaoCompleta(itemId, dto);
+
+        assertThat(resultado.getDetalheAjuste()).isEqualTo("Trocar fusível");
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
     @DisplayName("salvarAvaliacaoTecnica deve publicar ItemAvaliadoEvent quando resultado não é SEM_DEFEITO")
     void salvarAvaliacaoTecnica_devePublicarEventoQuandoNaoSemDefeito() {
         item.iniciarAvaliacao();

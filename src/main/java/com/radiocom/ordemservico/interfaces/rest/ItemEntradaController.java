@@ -92,6 +92,15 @@ public class ItemEntradaController {
         return ResponseEntity.ok(itemService.salvarAvaliacaoTecnica(id, dto));
     }
 
+    @PutMapping("/{id}/avaliacao-tecnica")
+    @Operation(summary = "Editar o laudo técnico estruturado já salvo",
+            description = "Igual ao laudo inicial, mas não muda o status do item nem repete a geração de "
+                    + "orçamento/notificação de garantia — só corrige o que já foi registrado.")
+    public ResponseEntity<ItemEntradaDTO> atualizarAvaliacaoCompleta(
+            @PathVariable UUID id, @Valid @RequestBody SalvarAvaliacaoTecnicaDTO dto) {
+        return ResponseEntity.ok(itemService.atualizarAvaliacaoCompleta(id, dto));
+    }
+
     @PatchMapping("/{id}/confirmar-aguardando-peca")
     @Operation(summary = "Confirmar que o item está mesmo preso esperando peça",
             description = "Não muda o status — só manda o item pro final da fila de manutenção. Volta "

@@ -102,6 +102,23 @@ public class ItemEntradaApplicationService {
         return comCatalogo(mapper.toDTO(item));
     }
 
+    /**
+     * Edita o laudo já salvo (todos os campos) sem repetir os efeitos
+     * colaterais da primeira vez — não muda o status nem publica os eventos
+     * de orçamento/garantia de novo, só corrige o texto/decisão registrada.
+     */
+    @Transactional
+    public ItemEntradaDTO atualizarAvaliacaoCompleta(UUID id, SalvarAvaliacaoTecnicaDTO dto) {
+        ItemEntrada item = itemDomainService.atualizarAvaliacaoCompleta(id, dto.getResultado(), dto.getDetalheAjuste(),
+                dto.getDefeitoEncontrado(), dto.getCausaDefeito(), dto.getSolucaoRecomendada(), dto.getObservacoesTecnicas(),
+                dto.getGarantiaPecaId());
+        sugestaoTextoService.registrarUso(CampoSugestao.DEFEITO_ENCONTRADO, dto.getDefeitoEncontrado());
+        sugestaoTextoService.registrarUso(CampoSugestao.CAUSA_DEFEITO, dto.getCausaDefeito());
+        sugestaoTextoService.registrarUso(CampoSugestao.SOLUCAO_RECOMENDADA, dto.getSolucaoRecomendada());
+        sugestaoTextoService.registrarUso(CampoSugestao.OBSERVACOES_TECNICAS, dto.getObservacoesTecnicas());
+        return comCatalogo(mapper.toDTO(item));
+    }
+
     /** Peças/equipamentos com cobertura de garantia ativa desse item — pro seletor da tela de avaliação. */
     @Transactional(readOnly = true)
     public List<GarantiaPecaDTO> listarGarantiaDisponivel(UUID id) {

@@ -97,6 +97,36 @@ class ItemEntradaTest {
     }
 
     @Test
+    @DisplayName("atualizarAvaliacaoCompleta deve editar os campos sem mudar o status")
+    void atualizarAvaliacaoCompleta_deveEditarSemMudarStatus() {
+        avaliarEAutorizar();
+
+        item.atualizarAvaliacaoCompleta(com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao.AJUSTE,
+                "Trocar fusível", "Fusível queimado", "Sobrecarga", "Substituir fusível", "Cliente avisado", false);
+
+        assertThat(item.getStatus()).isEqualTo(StatusItemEntrada.AUTORIZADO);
+        assertThat(item.getResultadoAvaliacao()).isEqualTo(com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao.AJUSTE);
+        assertThat(item.getDetalheAjuste()).isEqualTo("Trocar fusível");
+        assertThat(item.getDefeitoEncontrado()).isEqualTo("Fusível queimado");
+        assertThat(item.getCausaDefeito()).isEqualTo("Sobrecarga");
+        assertThat(item.getSolucaoRecomendada()).isEqualTo("Substituir fusível");
+        assertThat(item.getObservacoesTecnicas()).isEqualTo("Cliente avisado");
+    }
+
+    @Test
+    @DisplayName("atualizarAvaliacaoCompleta deve lançar exceção quando o item já foi entregue")
+    void atualizarAvaliacaoCompleta_deveLancarExcecaoQuandoEntregue() {
+        item.avaliar("Sem defeito encontrado", true);
+        item.aguardarEntrega();
+        item.entregar();
+
+        assertThatThrownBy(() -> item.atualizarAvaliacaoCompleta(
+                com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao.SEM_DEFEITO,
+                null, null, null, null, null, false))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
     @DisplayName("atualizarAvaliacao deve permitir editar o laudo mesmo depois de autorizado")
     void atualizarAvaliacao_devePermitirEditarAposAutorizado() {
         avaliarEAutorizar();

@@ -304,6 +304,35 @@ class ItemEntradaDomainServiceTest {
     }
 
     @Test
+    @DisplayName("atualizarAvaliacaoCompleta deve editar os campos sem mudar o status atual")
+    void atualizarAvaliacaoCompleta_deveEditarSemMudarStatus() {
+        item.avaliar("Capacitor queimado", false);
+        item.enviarParaAutorizacao();
+        item.autorizar();
+        when(itemEntradaRepository.findById(itemId)).thenReturn(Optional.of(item));
+
+        ItemEntrada resultado = service.atualizarAvaliacaoCompleta(itemId,
+                com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao.AJUSTE,
+                "Trocar fusível", "Fusível queimado", null, null, null, null);
+
+        assertThat(resultado.getStatus()).isEqualTo(StatusItemEntrada.AUTORIZADO);
+        assertThat(resultado.getDetalheAjuste()).isEqualTo("Trocar fusível");
+    }
+
+    @Test
+    @DisplayName("atualizarAvaliacaoCompleta com garantiaPecaId deve lançar exceção quando item não tem equipamento vinculado")
+    void atualizarAvaliacaoCompleta_comGarantiaPecaIdSemItemEstoque_deveLancarExcecao() {
+        UUID garantiaPecaId = UUID.randomUUID();
+        item.avaliar("Capacitor queimado", false);
+        when(itemEntradaRepository.findById(itemId)).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> service.atualizarAvaliacaoCompleta(itemId,
+                com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao.AJUSTE,
+                null, null, null, null, null, garantiaPecaId))
+                .isInstanceOf(DomainException.class);
+    }
+
+    @Test
     @DisplayName("remover deve excluir o item quando está pendente de avaliação")
     void remover_devePermitirQuandoPendenteAvaliacao() {
         when(itemEntradaRepository.findById(itemId)).thenReturn(Optional.of(item));
