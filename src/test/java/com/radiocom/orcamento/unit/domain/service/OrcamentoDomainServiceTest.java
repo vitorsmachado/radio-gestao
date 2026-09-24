@@ -3,7 +3,6 @@ package com.radiocom.orcamento.unit.domain.service;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import com.radiocom.ordemservico.domain.model.ItemConserto;
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
-import com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
 import com.radiocom.ordemservico.domain.repository.ItemEntradaRepository;
 import com.radiocom.ordemservico.domain.service.ItemEntradaDomainService;
