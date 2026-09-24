@@ -20,11 +20,6 @@
         .itens-table th { background-color: #eeeeee; border: 1px solid #cccccc; padding: 3pt 4pt; text-align: left; font-size: 8.5pt; }
         .itens-table td { border: 1px solid #cccccc; padding: 3pt 4pt; font-size: 8.5pt; }
         .item-header { background-color: #f7f7f7; font-weight: bold; }
-        .conserto-table { width: 100%; border-collapse: collapse; margin: 3pt 0 6pt 0; }
-        .conserto-table th { background-color: #f2f2f2; border: 1px solid #dddddd; padding: 2pt 4pt; font-size: 8pt; text-align: left; }
-        .conserto-table td { border: 1px solid #dddddd; padding: 2pt 4pt; font-size: 8pt; }
-        .valor { text-align: right; }
-        .total-linha td { font-weight: bold; text-align: right; border-top: 1px solid #999999; }
         .observacoes { margin-top: 10pt; font-size: 8.5pt; }
         .rodape { margin-top: 16pt; font-size: 7.5pt; color: #999999; text-align: center; border-top: 1px solid #dddddd; padding-top: 4pt; }
     </style>
@@ -81,14 +76,14 @@
         <tr>
             <th>Descrição</th>
             <th>Marca/Modelo</th>
-            <th>Série/Patrimônio</th>
+            <th>Série</th>
             <th>Status</th>
         </tr>
         <th:block th:each="item : ${itens}">
             <tr class="item-header">
                 <td th:text="${item.descricao}">Rádio Motorola EP450</td>
                 <td th:text="${(item.marca ?: '—') + ' / ' + (item.modelo ?: '—')}">— / —</td>
-                <td th:text="${(item.numeroSerie ?: '—') + ' / ' + (item.patrimonio ?: '—')}">— / —</td>
+                <td th:text="${item.numeroSerie ?: '—'}">—</td>
                 <td th:text="${item.status.label}">Avaliado</td>
             </tr>
             <tr>
@@ -100,27 +95,6 @@
                     <div th:if="${item.motivoNaoAutorizado != null}">
                         <span class="lbl">Motivo não autorizado:</span> <span th:text="${item.motivoNaoAutorizado}">—</span>
                     </div>
-
-                    <table class="conserto-table" th:if="${not #lists.isEmpty(item.itensConserto)}">
-                        <tr>
-                            <th>Tipo</th>
-                            <th>Descrição</th>
-                            <th>Qtd.</th>
-                            <th>Valor unit.</th>
-                            <th>Valor total</th>
-                        </tr>
-                        <tr th:each="conserto : ${item.itensConserto}">
-                            <td th:text="${conserto.tipo.label}">Peça</td>
-                            <td th:text="${conserto.descricao ?: '—'}">—</td>
-                            <td th:text="${conserto.quantidade}">1</td>
-                            <td class="valor" th:text="${'R$ ' + #numbers.formatDecimal(conserto.valorUnitario, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
-                            <td class="valor" th:text="${'R$ ' + #numbers.formatDecimal(conserto.valorTotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
-                        </tr>
-                        <tr class="total-linha">
-                            <td colspan="4">Total do item</td>
-                            <td class="valor" th:text="${'R$ ' + #numbers.formatDecimal(item.calcularTotalConserto(), 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
-                        </tr>
-                    </table>
                 </td>
             </tr>
         </th:block>

@@ -22,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
@@ -164,5 +165,72 @@ class OrdemServicoPdfServiceTest {
 
         assertThat(pdf).isNotEmpty();
         assertThat(new String(pdf, 0, 5, java.nio.charset.StandardCharsets.US_ASCII)).isEqualTo("%PDF-");
+    }
+
+    @Test
+    @DisplayName("template não deve exibir peças/valores de conserto de nenhum item, autorizado ou não")
+    void template_naoDeveExibirItensDeConsertoDeNenhumItem() {
+        SpringTemplateEngine templateEngine = criarTemplateEngineReal();
+
+        OrdemServico os = OrdemServico.builder()
+                .numero("OS-2026-0003")
+                .clienteId(clienteId)
+                .build();
+        ReflectionTestUtils.setField(os, "id", osId);
+
+        Cliente cliente = Cliente.builder()
+                .tipo(TipoPessoa.PESSOA_FISICA)
+                .documento("11144477735")
+                .nomeRazaoSocial("Cliente Pessoa Física")
+                .build();
+        ReflectionTestUtils.setField(cliente, "id", clienteId);
+
+        ItemEntrada itemAutorizado = ItemEntrada.builder()
+                .osId(osId)
+                .tipoItem(TipoItem.EQUIPAMENTO)
+                .descricao("Rádio Motorola EP450")
+                .defeitoRelatado("Não liga")
+                .build();
+        itemAutorizado.avaliar("Capacitor queimado", false);
+        itemAutorizado.adicionarItemConserto(ItemConserto.builder()
+                .tipo(TipoItemConserto.PECA)
+                .descricao("Capacitor Trocado")
+                .quantidade(1)
+                .valorUnitario(new BigDecimal("35.00"))
+                .build());
+
+        ItemEntrada itemNaoAutorizado = ItemEntrada.builder()
+                .osId(osId)
+                .tipoItem(TipoItem.EQUIPAMENTO)
+                .descricao("Rádio Motorola EP350")
+                .defeitoRelatado("Tela quebrada")
+                .build();
+        itemNaoAutorizado.avaliar("Placa danificada", false);
+        itemNaoAutorizado.enviarParaAutorizacao();
+        itemNaoAutorizado.adicionarItemConserto(ItemConserto.builder()
+                .tipo(TipoItemConserto.PECA)
+                .descricao("Capacitor Recusado Pelo Cliente")
+                .quantidade(1)
+                .valorUnitario(new BigDecimal("35.00"))
+                .build());
+        itemNaoAutorizado.naoAutorizar("Cliente não quis pagar");
+        itemAutorizado.calcularTotalConserto();
+        itemNaoAutorizado.calcularTotalConserto();
+
+        Context ctx = new Context();
+        ctx.setVariable("os", os);
+        ctx.setVariable("itens", List.of(itemAutorizado, itemNaoAutorizado));
+        ctx.setVariable("cliente", cliente);
+        ctx.setVariable("posto", null);
+        ctx.setVariable("tecnicoNome", null);
+        ctx.setVariable("dataGeracao", java.time.LocalDateTime.now());
+
+        String html = templateEngine.process("documentos/ordem-servico", ctx);
+
+        assertThat(html).doesNotContain("Capacitor Trocado");
+        assertThat(html).doesNotContain("Capacitor Recusado Pelo Cliente");
+        assertThat(html).doesNotContain("R$ 35,00");
+        assertThat(html).contains("Cliente não quis pagar");
+        assertThat(html).contains("Capacitor queimado");
     }
 }
