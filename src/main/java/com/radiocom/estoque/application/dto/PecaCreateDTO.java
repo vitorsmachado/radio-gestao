@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,6 +27,9 @@ public class PecaCreateDTO {
 
     @PositiveOrZero
     private Integer quantidadeMinima;
+
+    @PositiveOrZero
+    private BigDecimal valorUnitario;
 
     private UUID catalogoModeloId; // Se ausente, resolve/cria pelo par marca+modelo
 

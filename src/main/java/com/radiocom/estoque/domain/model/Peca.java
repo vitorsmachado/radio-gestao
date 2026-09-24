@@ -1,15 +1,19 @@
 package com.radiocom.estoque.domain.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.math.BigDecimal;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -21,6 +25,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "pecas")
 @Getter
+@Setter
 @SuperBuilder
 @NoArgsConstructor
 public class Peca extends ItemEstoque {
@@ -33,6 +38,11 @@ public class Peca extends ItemEstoque {
             inverseJoinColumns = @JoinColumn(name = "catalogo_modelo_id"))
     @Builder.Default
     private Set<CatalogoModelo> modelosCompativeis = new LinkedHashSet<>();
+
+    /** Preço de referência da peça — usado só pra pré-preencher o valor ao escolhê-la num conserto; sempre editável depois. */
+    @PositiveOrZero
+    @Column(name = "valor_unitario", precision = 15, scale = 2)
+    private BigDecimal valorUnitario;
 
     @Override
     public boolean possuiNumeroSerie() {

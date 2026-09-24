@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -21,6 +23,9 @@ public class PecaUpdateDTO {
 
     @PositiveOrZero
     private Integer quantidadeMinima;
+
+    @PositiveOrZero
+    private BigDecimal valorUnitario;
 
     @Size(max = 1000)
     private String observacoes;

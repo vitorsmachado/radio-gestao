@@ -254,6 +254,37 @@ class EstoqueApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("criarPeca deve salvar o valor unitário informado")
+    void criarPeca_deveSalvarValorUnitario() {
+        PecaCreateDTO dto = PecaCreateDTO.builder()
+                .descricao("Bateria BP-227")
+                .valorUnitario(new java.math.BigDecimal("45.00"))
+                .build();
+
+        when(pecaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        PecaDTO resultado = service.criarPeca(dto);
+
+        assertThat(resultado.getValorUnitario()).isEqualByComparingTo("45.00");
+    }
+
+    @Test
+    @DisplayName("atualizarPeca deve atualizar o valor unitário")
+    void atualizarPeca_deveAtualizarValorUnitario() {
+        Peca peca = Peca.builder().descricao("Antena UHF").codigo("PC-001").build();
+        UUID pecaId = UUID.randomUUID();
+        org.springframework.test.util.ReflectionTestUtils.setField(peca, "id", pecaId);
+
+        when(estoqueService.buscarPecaPorId(pecaId)).thenReturn(peca);
+        when(pecaRepository.save(any(Peca.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        PecaDTO resultado = service.atualizarPeca(pecaId, PecaUpdateDTO.builder()
+                .valorUnitario(new java.math.BigDecimal("52.90")).build());
+
+        assertThat(resultado.getValorUnitario()).isEqualByComparingTo("52.90");
+    }
+
+    @Test
     @DisplayName("vincularModeloCompativel deve vincular quando o modelo é EQUIPAMENTO")
     void vincularModeloCompativel_deveVincularQuandoEquipamento() {
         Peca peca = Peca.builder().descricao("Bateria BP-227").build();

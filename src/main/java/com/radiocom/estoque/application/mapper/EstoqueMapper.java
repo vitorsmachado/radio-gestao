@@ -125,6 +125,7 @@ public class EstoqueMapper {
                 .descricao(dto.getDescricao())
                 .quantidadeDisponivel(dto.getQuantidadeDisponivel() != null ? dto.getQuantidadeDisponivel() : 0)
                 .quantidadeMinima(dto.getQuantidadeMinima())
+                .valorUnitario(dto.getValorUnitario())
                 .build();
     }
 
@@ -140,6 +141,7 @@ public class EstoqueMapper {
                 .descricao(p.getDescricao())
                 .quantidadeDisponivel(p.getQuantidadeDisponivel())
                 .quantidadeMinima(p.getQuantidadeMinima())
+                .valorUnitario(p.getValorUnitario())
                 .status(p.getStatus())
                 .catalogoModeloId(p.getCatalogoModelo() != null ? p.getCatalogoModelo().getId() : null)
                 .observacoes(p.getObservacoes())
@@ -159,6 +161,7 @@ public class EstoqueMapper {
         if (dto.getCodigo() != null && !dto.getCodigo().isBlank()) p.setCodigo(dto.getCodigo().trim());
         if (dto.getDescricao() != null) p.setDescricao(dto.getDescricao());
         if (dto.getQuantidadeMinima() != null) p.setQuantidadeMinima(dto.getQuantidadeMinima());
+        if (dto.getValorUnitario() != null) p.setValorUnitario(dto.getValorUnitario());
         if (dto.getObservacoes() != null) p.setObservacoes(dto.getObservacoes());
         if (dto.getLocalizacaoFisica() != null) p.setLocalizacaoFisica(dto.getLocalizacaoFisica());
     }
