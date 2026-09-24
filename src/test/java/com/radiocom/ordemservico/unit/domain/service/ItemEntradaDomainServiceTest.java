@@ -167,6 +167,30 @@ class ItemEntradaDomainServiceTest {
     }
 
     @Test
+    @DisplayName("concluirManutencao deve baixar do estoque as peças usadas no conserto")
+    void concluirManutencao_deveBaixarEstoqueDasPecas() {
+        item.avaliar("Capacitor queimado", false);
+        item.enviarParaAutorizacao();
+        item.adicionarItemConserto(ItemConserto.builder()
+                .tipo(TipoItemConserto.PECA).itemEstoqueId(pecaId).descricao("Bateria BP-227")
+                .quantidade(2).valorUnitario(new BigDecimal("80.00")).build());
+        item.adicionarItemConserto(ItemConserto.builder()
+                .tipo(TipoItemConserto.MAO_DE_OBRA).descricao("Mão de obra")
+                .quantidade(1).valorUnitario(new BigDecimal("50.00")).build());
+        item.autorizar();
+        item.iniciarFilaManutencao();
+        item.iniciarManutencao();
+        when(itemEntradaRepository.findById(itemId)).thenReturn(Optional.of(item));
+
+        service.concluirManutencao(itemId);
+
+        org.mockito.Mockito.verify(estoqueDomainService)
+                .darSaida(org.mockito.ArgumentMatchers.eq(pecaId), org.mockito.ArgumentMatchers.eq(TipoItem.PECA),
+                        org.mockito.ArgumentMatchers.eq(2), org.mockito.ArgumentMatchers.anyString());
+        org.mockito.Mockito.verifyNoMoreInteractions(estoqueDomainService);
+    }
+
+    @Test
     @DisplayName("marcarAguardandoPeca deve delegar para o domínio quando falta peça no meio do reparo")
     void marcarAguardandoPeca_deveDelegarDuranteOReparo() {
         item.avaliar("Capacitor queimado", false);

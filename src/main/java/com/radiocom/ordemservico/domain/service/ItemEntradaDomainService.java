@@ -210,7 +210,17 @@ public class ItemEntradaDomainService {
         ItemEntrada salvo = itemEntradaRepository.save(item);
         registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), null);
         garantiaPecaDomainService.registrarCobertura(salvo);
+        baixarEstoquePecasUsadas(salvo);
         return salvo;
+    }
+
+    /** Desconta do estoque cada peça efetivamente usada no reparo — só acontece aqui, ao concluir de verdade. */
+    private void baixarEstoquePecasUsadas(ItemEntrada item) {
+        for (ItemConserto conserto : item.getItensConserto()) {
+            if (conserto.getTipo() != TipoItemConserto.PECA || conserto.getItemEstoqueId() == null) continue;
+            estoqueDomainService.darSaida(conserto.getItemEstoqueId(), TipoItem.PECA, conserto.getQuantidade(),
+                    "Consumido no conserto: " + item.getDescricao());
+        }
     }
 
     @Transactional
