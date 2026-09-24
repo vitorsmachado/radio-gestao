@@ -86,13 +86,7 @@ public class OrdemServicoController {
         return ResponseEntity.ok(service.listar(busca, dataInicial, dataFinal, pageable));
     }
 
-    @PatchMapping("/{id}/iniciar-andamento")
-    @Operation(summary = "Iniciar andamento da OS")
-    public ResponseEntity<OrdemServicoDTO> iniciarAndamento(@PathVariable UUID id) {
-        return ResponseEntity.ok(service.iniciarAndamento(id));
-    }
-
-    @PatchMapping("/{id}/confirmar-entrega")
+@PatchMapping("/{id}/confirmar-entrega")
     @Operation(summary = "Confirmar entrega ao cliente e concluir a OS")
     public ResponseEntity<OrdemServicoDTO> confirmarEntrega(
             @PathVariable UUID id, @Valid @RequestBody ConfirmarEntregaDTO dto) {

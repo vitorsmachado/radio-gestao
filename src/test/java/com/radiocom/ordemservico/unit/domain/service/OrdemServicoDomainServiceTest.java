@@ -2,6 +2,7 @@ package com.radiocom.ordemservico.unit.domain.service;
 
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
 import com.radiocom.ordemservico.domain.model.OrdemServico;
+import com.radiocom.ordemservico.domain.model.enums.StatusOS;
 import com.radiocom.ordemservico.domain.repository.ItemEntradaRepository;
 import com.radiocom.ordemservico.domain.repository.OrdemServicoRepository;
 import com.radiocom.ordemservico.domain.repository.OrdemServicoStatusHistoricoRepository;
@@ -129,14 +130,26 @@ class OrdemServicoDomainServiceTest {
     }
 
     @Test
-    @DisplayName("iniciarAndamento deve mudar status e salvar")
-    void iniciarAndamento_deveMudarStatusESalvar() {
+    @DisplayName("garantirAndamento deve mudar status e salvar quando ainda ABERTA")
+    void garantirAndamento_deveMudarStatusESalvarQuandoAberta() {
         when(osRepository.findById(osId)).thenReturn(Optional.of(os));
         when(osRepository.save(any(OrdemServico.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        service.iniciarAndamento(osId);
+        service.garantirAndamento(osId);
 
+        assertThat(os.getStatus()).isEqualTo(StatusOS.EM_ANDAMENTO);
         verify(osRepository).save(os);
+    }
+
+    @Test
+    @DisplayName("garantirAndamento não deve fazer nada quando a OS já não está mais ABERTA")
+    void garantirAndamento_naoDeveFazerNadaQuandoJaNaoAberta() {
+        os.iniciarAndamento();
+        when(osRepository.findById(osId)).thenReturn(Optional.of(os));
+
+        service.garantirAndamento(osId);
+
+        verify(osRepository, never()).save(any(OrdemServico.class));
     }
 
     @Test

@@ -11,6 +11,7 @@ import com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao;
 import com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
 import com.radiocom.ordemservico.domain.service.ItemEntradaDomainService;
+import com.radiocom.ordemservico.domain.service.OrdemServicoDomainService;
 import com.radiocom.ordemservico.garantia.domain.service.GarantiaPecaDomainService;
 import com.radiocom.ordemservico.sugestao.application.service.SugestaoTextoService;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,7 @@ import static org.mockito.Mockito.when;
 class ItemEntradaApplicationServiceTest {
 
     @Mock private ItemEntradaDomainService itemDomainService;
+    @Mock private OrdemServicoDomainService ordemServicoDomainService;
     @Mock private CatalogoModeloService catalogoModeloService;
     @Mock private SugestaoTextoService sugestaoTextoService;
     @Mock private GarantiaPecaDomainService garantiaPecaDomainService;
@@ -49,7 +51,7 @@ class ItemEntradaApplicationServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ItemEntradaApplicationService(itemDomainService, new OrdemServicoMapper(), catalogoModeloService, sugestaoTextoService, garantiaPecaDomainService, eventPublisher);
+        service = new ItemEntradaApplicationService(itemDomainService, ordemServicoDomainService, new OrdemServicoMapper(), catalogoModeloService, sugestaoTextoService, garantiaPecaDomainService, eventPublisher);
         itemId = UUID.randomUUID();
         item = ItemEntrada.builder()
                 .osId(UUID.randomUUID())
@@ -189,6 +191,16 @@ class ItemEntradaApplicationServiceTest {
         ItemEntradaDTO resultado = service.atualizarValorItemConserto(itemId, itemConsertoId, dto);
 
         assertThat(resultado.getItensConserto()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("iniciarAvaliacao deve garantir que a OS entre em andamento")
+    void iniciarAvaliacao_deveGarantirAndamentoDaOS() {
+        when(itemDomainService.iniciarAvaliacao(itemId)).thenReturn(item);
+
+        service.iniciarAvaliacao(itemId);
+
+        verify(ordemServicoDomainService).garantirAndamento(item.getOsId());
     }
 
     @Test

@@ -106,14 +106,19 @@ public class OrdemServicoDomainService {
         return osRepository.save(builder.build());
     }
 
+    /**
+     * Marca a OS como "em andamento" automaticamente na primeira vez que um
+     * item começa a ser avaliado — não há mais controle manual disso. No-op
+     * se a OS já não estiver mais ABERTA.
+     */
     @Transactional
-    public OrdemServico iniciarAndamento(UUID id) {
+    public void garantirAndamento(UUID id) {
         OrdemServico os = buscarPorId(id);
+        if (os.getStatus() != StatusOS.ABERTA) return;
         StatusOS statusAnterior = os.getStatus();
         os.iniciarAndamento();
-        OrdemServico salva = osRepository.save(os);
-        registrarTransicaoStatus(id, statusAnterior, salva.getStatus(), null);
-        return salva;
+        osRepository.save(os);
+        registrarTransicaoStatus(id, statusAnterior, os.getStatus(), null);
     }
 
     /**

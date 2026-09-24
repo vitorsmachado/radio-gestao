@@ -129,11 +129,6 @@ public class OrdemServicoApplicationService {
     }
 
     @Transactional
-    public OrdemServicoDTO iniciarAndamento(UUID id) {
-        return mapper.toDTO(osDomainService.iniciarAndamento(id));
-    }
-
-    @Transactional
     public OrdemServicoDTO confirmarEntrega(UUID id, ConfirmarEntregaDTO dto) {
         OrdemServico os = osDomainService.confirmarEntrega(id, dto.getNomeRecebedor());
         log.info("OS {} entregue para: {}", os.getNumero(), os.getRecebedorNome());

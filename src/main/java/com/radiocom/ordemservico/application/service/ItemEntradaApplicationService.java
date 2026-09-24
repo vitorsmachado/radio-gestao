@@ -8,6 +8,7 @@ import com.radiocom.ordemservico.domain.event.ItemAvaliadoEvent;
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao;
 import com.radiocom.ordemservico.domain.service.ItemEntradaDomainService;
+import com.radiocom.ordemservico.domain.service.OrdemServicoDomainService;
 import com.radiocom.ordemservico.garantia.application.dto.GarantiaPecaDTO;
 import com.radiocom.ordemservico.garantia.domain.model.GarantiaPeca;
 import com.radiocom.ordemservico.garantia.domain.service.GarantiaPecaDomainService;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 public class ItemEntradaApplicationService {
 
     private final ItemEntradaDomainService itemDomainService;
+    private final OrdemServicoDomainService ordemServicoDomainService;
     private final OrdemServicoMapper mapper;
     private final CatalogoModeloService catalogoModeloService;
     private final SugestaoTextoService sugestaoTextoService;
@@ -67,7 +69,9 @@ public class ItemEntradaApplicationService {
 
     @Transactional
     public ItemEntradaDTO iniciarAvaliacao(UUID id) {
-        return comCatalogo(mapper.toDTO(itemDomainService.iniciarAvaliacao(id)));
+        ItemEntrada item = itemDomainService.iniciarAvaliacao(id);
+        ordemServicoDomainService.garantirAndamento(item.getOsId());
+        return comCatalogo(mapper.toDTO(item));
     }
 
     /**
