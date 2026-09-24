@@ -267,6 +267,61 @@ class EstoqueApplicationServiceTest {
                 .hasMessageContaining("Número de série já cadastrado");
     }
 
+    @Test
+    @DisplayName("resolverAcessorioPorNS deve reaproveitar quando ja existe pro mesmo cliente")
+    void resolverAcessorioPorNS_deveReaproveitarQuandoMesmoCliente() {
+        UUID clienteId = UUID.randomUUID();
+        com.radiocom.estoque.domain.model.Acessorio existente = com.radiocom.estoque.domain.model.Acessorio.builder()
+                .codigo("AC-1").descricao("Bateria BP-227").tipo(TipoItem.ACESSORIO)
+                .tipoAcessorio(TipoAcessorio.BATERIA)
+                .proprietario(ProprietarioEquipamento.CLIENTE).clienteId(clienteId)
+                .numeroSerie("NS-001").build();
+        when(acessorioRepository.findByNumeroSerie("NS-001")).thenReturn(Optional.of(existente));
+
+        ResolverAcessorioPorNSDTO dto = ResolverAcessorioPorNSDTO.builder()
+                .numeroSerie("NS-001").clienteId(clienteId).tipoAcessorio(TipoAcessorio.BATERIA).build();
+
+        AcessorioDTO resultado = service.resolverAcessorioPorNS(dto);
+
+        assertThat(resultado.getNumeroSerie()).isEqualTo("NS-001");
+        org.mockito.Mockito.verify(acessorioRepository, org.mockito.Mockito.never()).save(any());
+    }
+
+    @Test
+    @DisplayName("resolverAcessorioPorNS deve lançar exceção quando NS pertence a outro cliente")
+    void resolverAcessorioPorNS_deveLancarExcecaoQuandoOutroCliente() {
+        com.radiocom.estoque.domain.model.Acessorio existente = com.radiocom.estoque.domain.model.Acessorio.builder()
+                .codigo("AC-1").descricao("Bateria BP-227").tipo(TipoItem.ACESSORIO)
+                .tipoAcessorio(TipoAcessorio.BATERIA)
+                .proprietario(ProprietarioEquipamento.CLIENTE).clienteId(UUID.randomUUID())
+                .numeroSerie("NS-001").build();
+        when(acessorioRepository.findByNumeroSerie("NS-001")).thenReturn(Optional.of(existente));
+
+        ResolverAcessorioPorNSDTO dto = ResolverAcessorioPorNSDTO.builder()
+                .numeroSerie("NS-001").clienteId(UUID.randomUUID()).tipoAcessorio(TipoAcessorio.BATERIA).build();
+
+        assertThatThrownBy(() -> service.resolverAcessorioPorNS(dto))
+                .isInstanceOf(DomainException.class)
+                .hasMessageContaining("outro cliente");
+    }
+
+    @Test
+    @DisplayName("resolverAcessorioPorNS deve cadastrar um novo quando o NS ainda não existe")
+    void resolverAcessorioPorNS_deveCriarQuandoNaoExiste() {
+        UUID clienteId = UUID.randomUUID();
+        when(acessorioRepository.findByNumeroSerie("NS-002")).thenReturn(Optional.empty());
+        when(acessorioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        ResolverAcessorioPorNSDTO dto = ResolverAcessorioPorNSDTO.builder()
+                .numeroSerie("NS-002").clienteId(clienteId).tipoAcessorio(TipoAcessorio.BATERIA)
+                .descricao("Bateria BP-227").marca("Motorola").modelo("BP-227").build();
+
+        AcessorioDTO resultado = service.resolverAcessorioPorNS(dto);
+
+        assertThat(resultado.getNumeroSerie()).isEqualTo("NS-002");
+        assertThat(resultado.getCodigo()).isNotBlank();
+    }
+
     // ===== Peca =====
 
     @Test

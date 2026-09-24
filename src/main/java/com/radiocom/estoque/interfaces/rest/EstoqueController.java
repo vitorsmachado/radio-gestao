@@ -116,6 +116,14 @@ public class EstoqueController {
         return ResponseEntity.ok(estoqueService.buscarAcessorioPorId(id));
     }
 
+    @PostMapping("/acessorios/resolver-ns")
+    @Operation(summary = "Buscar acessório existente por N/S ou cadastrar um novo vinculado ao cliente",
+            description = "Usado ao registrar um item de entrada na OS pra reconhecer o mesmo acessório em "
+                    + "visitas futuras (garantia). Se o N/S já pertencer a outro cliente, lança erro.")
+    public ResponseEntity<AcessorioDTO> resolverAcessorioPorNS(@Valid @RequestBody ResolverAcessorioPorNSDTO dto) {
+        return ResponseEntity.ok(estoqueService.resolverAcessorioPorNS(dto));
+    }
+
     @PutMapping("/acessorios/{id}")
     @Operation(summary = "Atualizar acessório",
             description = "Atualização parcial: apenas campos enviados (não-nulos) são aplicados.")

@@ -189,6 +189,33 @@ public class EstoqueApplicationService {
         return mapper.toDTO(salvo);
     }
 
+    /**
+     * Chamado ao registrar um item de entrada na OS: reaproveita o acessório
+     * já cadastrado com esse N/S, ou cadastra um novo vinculado a esse
+     * cliente se ainda não existir.
+     */
+    @Transactional
+    public AcessorioDTO resolverAcessorioPorNS(ResolverAcessorioPorNSDTO dto) {
+        return acessorioRepository.findByNumeroSerie(dto.getNumeroSerie())
+                .map(existente -> {
+                    if (!java.util.Objects.equals(existente.getClienteId(), dto.getClienteId())) {
+                        throw new DomainException(
+                                "Número de série já cadastrado para outro cliente — confira o número de série.");
+                    }
+                    return mapper.toDTO(existente);
+                })
+                .orElseGet(() -> criarAcessorio(AcessorioCreateDTO.builder()
+                        .descricao(dto.getDescricao())
+                        .tipoAcessorio(dto.getTipoAcessorio())
+                        .proprietario(ProprietarioEquipamento.CLIENTE)
+                        .clienteId(dto.getClienteId())
+                        .numeroSerie(dto.getNumeroSerie())
+                        .catalogoModeloId(dto.getCatalogoModeloId())
+                        .marca(dto.getMarca())
+                        .modelo(dto.getModelo())
+                        .build()));
+    }
+
     @Transactional(readOnly = true)
     public AcessorioDTO buscarAcessorioPorId(UUID id) {
         return mapper.toDTO(estoqueService.buscarAcessorioPorId(id));
