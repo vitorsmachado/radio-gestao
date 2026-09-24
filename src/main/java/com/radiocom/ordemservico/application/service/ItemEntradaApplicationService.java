@@ -173,6 +173,13 @@ public class ItemEntradaApplicationService {
         return comCatalogo(mapper.toDTO(itemDomainService.removerItemConserto(id, itemConsertoId)));
     }
 
+    /** Define o valor de uma peça escolhida pelo técnico na avaliação (sem preço) — usado no orçamento. */
+    @Transactional
+    public ItemEntradaDTO atualizarValorItemConserto(UUID id, UUID itemConsertoId, AtualizarValorItemConsertoDTO dto) {
+        return comCatalogo(mapper.toDTO(
+                itemDomainService.atualizarValorItemConserto(id, itemConsertoId, dto.getValorUnitario())));
+    }
+
     /** Resolve o valor de referência do catálogo (não vem do mapper puro, que não acessa outros módulos). */
     private ItemEntradaDTO comCatalogo(ItemEntradaDTO dto) {
         if (dto.getCatalogoModeloId() == null) return dto;

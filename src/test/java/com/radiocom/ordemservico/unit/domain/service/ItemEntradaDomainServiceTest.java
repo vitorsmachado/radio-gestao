@@ -262,6 +262,30 @@ class ItemEntradaDomainServiceTest {
     }
 
     @Test
+    @DisplayName("atualizarValorItemConserto deve definir o valor de um item existente")
+    void atualizarValorItemConserto_deveDefinirValor() {
+        when(itemEntradaRepository.findById(itemId)).thenReturn(Optional.of(item));
+        ItemConserto conserto = ItemConserto.builder()
+                .tipo(TipoItemConserto.PECA).descricao("Bateria")
+                .quantidade(1).valorUnitario(BigDecimal.ZERO).build();
+        ReflectionTestUtils.setField(conserto, "id", UUID.randomUUID());
+        item.adicionarItemConserto(conserto);
+
+        ItemEntrada resultado = service.atualizarValorItemConserto(itemId, conserto.getId(), new BigDecimal("45.00"));
+
+        assertThat(resultado.getItensConserto().get(0).getValorUnitario()).isEqualByComparingTo("45.00");
+    }
+
+    @Test
+    @DisplayName("atualizarValorItemConserto deve lançar exceção quando o item de conserto não existe")
+    void atualizarValorItemConserto_deveLancarExcecaoQuandoNaoExiste() {
+        when(itemEntradaRepository.findById(itemId)).thenReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> service.atualizarValorItemConserto(itemId, UUID.randomUUID(), BigDecimal.TEN))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     @DisplayName("salvarAvaliacaoTecnica com garantiaPecaId válido deve marcar o item como garantia")
     void salvarAvaliacaoTecnica_comGarantiaPecaIdValido_deveMarcarGarantia() {
         UUID itemEstoqueId = UUID.randomUUID();

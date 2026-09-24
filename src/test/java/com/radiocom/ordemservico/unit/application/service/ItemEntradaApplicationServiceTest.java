@@ -174,6 +174,24 @@ class ItemEntradaApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("atualizarValorItemConserto deve delegar para o domain service")
+    void atualizarValorItemConserto_deveDelegar() {
+        UUID itemConsertoId = UUID.randomUUID();
+        com.radiocom.ordemservico.domain.model.ItemConserto conserto = com.radiocom.ordemservico.domain.model.ItemConserto.builder()
+                .tipo(TipoItemConserto.PECA).descricao("Bateria BP-227")
+                .quantidade(1).valorUnitario(new BigDecimal("45.00")).build();
+        item.adicionarItemConserto(conserto);
+        AtualizarValorItemConsertoDTO dto = AtualizarValorItemConsertoDTO.builder()
+                .valorUnitario(new BigDecimal("45.00")).build();
+        when(itemDomainService.atualizarValorItemConserto(itemId, itemConsertoId, new BigDecimal("45.00")))
+                .thenReturn(item);
+
+        ItemEntradaDTO resultado = service.atualizarValorItemConserto(itemId, itemConsertoId, dto);
+
+        assertThat(resultado.getItensConserto()).hasSize(1);
+    }
+
+    @Test
     @DisplayName("salvarAvaliacaoTecnica deve publicar ItemAvaliadoEvent quando resultado não é SEM_DEFEITO")
     void salvarAvaliacaoTecnica_devePublicarEventoQuandoNaoSemDefeito() {
         item.iniciarAvaliacao();

@@ -164,4 +164,14 @@ public class ItemEntradaController {
             @PathVariable UUID id, @PathVariable UUID itemConsertoId) {
         return ResponseEntity.ok(itemService.removerItemConserto(id, itemConsertoId));
     }
+
+    @PatchMapping("/{id}/itens-conserto/{itemConsertoId}")
+    @Operation(summary = "Definir o valor de um item de conserto",
+            description = "Usado quando a peça foi escolhida pelo técnico na avaliação sem preço — "
+                    + "o admin decide o valor depois, no orçamento.")
+    public ResponseEntity<ItemEntradaDTO> atualizarValorItemConserto(
+            @PathVariable UUID id, @PathVariable UUID itemConsertoId,
+            @Valid @RequestBody AtualizarValorItemConsertoDTO dto) {
+        return ResponseEntity.ok(itemService.atualizarValorItemConserto(id, itemConsertoId, dto));
+    }
 }

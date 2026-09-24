@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -268,6 +269,13 @@ public class ItemEntradaDomainService {
     public ItemEntrada removerItemConserto(UUID id, UUID itemConsertoId) {
         ItemEntrada item = buscarPorId(id);
         item.removerItemConserto(itemConsertoId);
+        return itemEntradaRepository.save(item);
+    }
+
+    @Transactional
+    public ItemEntrada atualizarValorItemConserto(UUID id, UUID itemConsertoId, BigDecimal valorUnitario) {
+        ItemEntrada item = buscarPorId(id);
+        item.atualizarValorItemConserto(itemConsertoId, valorUnitario);
         return itemEntradaRepository.save(item);
     }
 

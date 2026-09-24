@@ -347,6 +347,20 @@ public class ItemEntrada extends BaseEntity {
         this.itensConserto.removeIf(i -> i.getId().equals(itemConsertoId));
     }
 
+    /**
+     * Define o valor de um item de conserto já existente — usado quando a
+     * peça foi escolhida pelo técnico na avaliação (sem preço) e o admin
+     * decide o valor depois, no orçamento.
+     */
+    public void atualizarValorItemConserto(UUID itemConsertoId, BigDecimal valorUnitario) {
+        validarNaoEntregue("Atualizar valor do item de conserto");
+        ItemConserto item = itensConserto.stream()
+                .filter(i -> i.getId().equals(itemConsertoId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Item de conserto não encontrado: " + itemConsertoId));
+        item.setValorUnitario(valorUnitario);
+    }
+
     public BigDecimal calcularTotalConserto() {
         return itensConserto.stream()
                 .peek(ItemConserto::calcularTotal)
