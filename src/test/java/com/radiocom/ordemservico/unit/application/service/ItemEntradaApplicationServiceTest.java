@@ -257,8 +257,8 @@ class ItemEntradaApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("salvarAvaliacaoTecnica não deve publicar orçamento quando item foi coberto por garantia")
-    void salvarAvaliacaoTecnica_naoDevePublicarOrcamentoQuandoGarantia() {
+    @DisplayName("salvarAvaliacaoTecnica deve publicar orçamento mesmo quando item foi coberto por garantia")
+    void salvarAvaliacaoTecnica_devePublicarOrcamentoMesmoComGarantia() {
         UUID garantiaPecaId = UUID.randomUUID();
         item.iniciarAvaliacao();
         item.salvarAvaliacaoTecnica(ResultadoAvaliacao.AJUSTE, null, "Bateria fraca", null, null, null, true);
@@ -269,7 +269,25 @@ class ItemEntradaApplicationServiceTest {
 
         service.salvarAvaliacaoTecnica(itemId, dto);
 
-        verify(eventPublisher, never()).publishEvent(any());
+        verify(eventPublisher).publishEvent(any(ItemAvaliadoEvent.class));
+    }
+
+    @Test
+    @DisplayName("salvarAvaliacaoTecnica não deve publicar GarantiaConflitoEvent quando o item já foi confirmado como garantia")
+    void salvarAvaliacaoTecnica_naoDevePublicarConflitoQuandoConfirmadoComoGarantia() {
+        UUID itemEstoqueId = UUID.randomUUID();
+        UUID garantiaPecaId = UUID.randomUUID();
+        ReflectionTestUtils.setField(item, "itemEstoqueId", itemEstoqueId);
+        item.iniciarAvaliacao();
+        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.AJUSTE, null, "Bateria fraca", null, null, null, true);
+        SalvarAvaliacaoTecnicaDTO dto = SalvarAvaliacaoTecnicaDTO.builder()
+                .resultado(ResultadoAvaliacao.AJUSTE).defeitoEncontrado("Bateria fraca").garantiaPecaId(garantiaPecaId).build();
+        when(itemDomainService.salvarAvaliacaoTecnica(itemId, ResultadoAvaliacao.AJUSTE, null,
+                "Bateria fraca", null, null, null, garantiaPecaId)).thenReturn(item);
+
+        service.salvarAvaliacaoTecnica(itemId, dto);
+
+        verify(eventPublisher, never()).publishEvent(any(com.radiocom.ordemservico.domain.event.GarantiaConflitoEvent.class));
     }
 
     @Test

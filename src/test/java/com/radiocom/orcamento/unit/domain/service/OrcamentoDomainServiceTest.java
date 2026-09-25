@@ -334,9 +334,23 @@ class OrcamentoDomainServiceTest {
     }
 
     @Test
-    @DisplayName("buscarOuCriarRascunho deve criar um novo orçamento quando não há RASCUNHO pra essa OS")
-    void buscarOuCriarRascunho_deveCriarQuandoNaoHaRascunho() {
+    @DisplayName("buscarOuCriarRascunho deve reabrir o orçamento já enviado em vez de criar um segundo")
+    void buscarOuCriarRascunho_deveReabrirQuandoJaEnviado() {
         orcamento.enviar();
+        when(orcamentoRepository.findByOsId(osId)).thenReturn(List.of(orcamento));
+        when(orcamentoRepository.save(any(Orcamento.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Orcamento resultado = service.buscarOuCriarRascunho(osId, clienteId);
+
+        assertThat(resultado.getId()).isEqualTo(orcamentoId);
+        assertThat(resultado.getStatus()).isEqualTo(com.radiocom.orcamento.domain.model.enums.StatusOrcamento.RASCUNHO);
+        verify(numeroGenerator, never()).gerarNumero();
+    }
+
+    @Test
+    @DisplayName("buscarOuCriarRascunho deve criar um novo orçamento quando o único existente foi cancelado")
+    void buscarOuCriarRascunho_deveCriarQuandoUnicoFoiCancelado() {
+        orcamento.cancelar("Cliente desistiu");
         when(orcamentoRepository.findByOsId(osId)).thenReturn(List.of(orcamento));
         when(numeroGenerator.gerarNumero()).thenReturn("ORC-2026-0099");
         when(orcamentoRepository.save(any(Orcamento.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -345,5 +359,17 @@ class OrcamentoDomainServiceTest {
 
         assertThat(resultado.getNumero()).isEqualTo("ORC-2026-0099");
         assertThat(resultado.getStatus()).isEqualTo(com.radiocom.orcamento.domain.model.enums.StatusOrcamento.RASCUNHO);
+    }
+
+    @Test
+    @DisplayName("buscarOuCriarRascunho deve criar um novo orçamento quando a OS não tem nenhum")
+    void buscarOuCriarRascunho_deveCriarQuandoNaoHaNenhum() {
+        when(orcamentoRepository.findByOsId(osId)).thenReturn(List.of());
+        when(numeroGenerator.gerarNumero()).thenReturn("ORC-2026-0099");
+        when(orcamentoRepository.save(any(Orcamento.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Orcamento resultado = service.buscarOuCriarRascunho(osId, clienteId);
+
+        assertThat(resultado.getNumero()).isEqualTo("ORC-2026-0099");
     }
 }

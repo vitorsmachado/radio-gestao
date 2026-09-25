@@ -9,6 +9,7 @@ import com.radiocom.ordemservico.domain.model.ItemConserto;
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
 import com.radiocom.ordemservico.domain.service.OrdemServicoDomainService;
+import com.radiocom.ordemservico.garantia.domain.service.GarantiaPecaDomainService;
 import com.radiocom.orcamento.application.dto.AdicionarItemOrcamentoDTO;
 import com.radiocom.orcamento.application.dto.AtualizarOrcamentoDTO;
 import com.radiocom.orcamento.application.dto.OrcamentoCreateDTO;
@@ -48,6 +49,7 @@ class OrcamentoApplicationServiceTest {
     @Mock private OrdemServicoDomainService osDomainService;
     @Mock private ClienteApplicationService clienteApplicationService;
     @Mock private CatalogoModeloService catalogoModeloService;
+    @Mock private GarantiaPecaDomainService garantiaPecaDomainService;
 
     private OrcamentoApplicationService service;
 
@@ -59,7 +61,7 @@ class OrcamentoApplicationServiceTest {
     @BeforeEach
     void setUp() {
         service = new OrcamentoApplicationService(orcamentoDomainService, osDomainService, clienteApplicationService,
-                catalogoModeloService, new OrcamentoMapper(), new OrdemServicoMapper());
+                catalogoModeloService, garantiaPecaDomainService, new OrcamentoMapper(), new OrdemServicoMapper());
         osId = UUID.randomUUID();
         clienteId = UUID.randomUUID();
         orcamentoId = UUID.randomUUID();

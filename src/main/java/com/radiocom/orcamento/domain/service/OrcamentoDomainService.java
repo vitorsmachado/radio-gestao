@@ -76,16 +76,27 @@ public class OrcamentoDomainService {
     }
 
     /**
-     * Encontra o orçamento RASCUNHO já aberto pra essa OS, ou cria um novo
-     * (sem validade/condições — o admin ajusta depois). Usado pela geração
-     * automática ao final de cada avaliação técnica.
+     * Encontra o orçamento ainda ativo (não cancelado) dessa OS, reabrindo-o
+     * se já tinha sido enviado — a OS nunca deve acumular mais de um
+     * orçamento, então todo item novo entra sempre no mesmo — ou cria um
+     * novo se não houver nenhum (sem validade/condições — o admin ajusta
+     * depois). Usado pela geração automática ao final de cada avaliação
+     * técnica.
      */
     @Transactional
     public Orcamento buscarOuCriarRascunho(UUID osId, UUID clienteId) {
         Optional<Orcamento> existente = orcamentoRepository.findByOsId(osId).stream()
-                .filter(o -> o.getStatus() == StatusOrcamento.RASCUNHO)
+                .filter(o -> o.getStatus() != StatusOrcamento.CANCELADO)
                 .findFirst();
-        return existente.orElseGet(() -> criar(osId, clienteId, null, null, null));
+        if (existente.isPresent()) {
+            Orcamento orcamento = existente.get();
+            if (orcamento.getStatus() == StatusOrcamento.ENVIADO) {
+                orcamento.reabrir();
+                return orcamentoRepository.save(orcamento);
+            }
+            return orcamento;
+        }
+        return criar(osId, clienteId, null, null, null);
     }
 
     // ===== ITENS DO ORÇAMENTO =====

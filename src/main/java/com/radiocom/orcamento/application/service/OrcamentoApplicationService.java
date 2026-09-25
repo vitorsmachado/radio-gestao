@@ -3,11 +3,14 @@ package com.radiocom.orcamento.application.service;
 import com.radiocom.cliente.application.dto.ClienteDTO;
 import com.radiocom.cliente.application.service.ClienteApplicationService;
 import com.radiocom.estoque.application.service.CatalogoModeloService;
+import com.radiocom.ordemservico.application.dto.ItemConsertoDTO;
 import com.radiocom.ordemservico.application.dto.ItemEntradaDTO;
 import com.radiocom.ordemservico.application.dto.MotivoDTO;
 import com.radiocom.ordemservico.application.mapper.OrdemServicoMapper;
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
+import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
 import com.radiocom.ordemservico.domain.service.OrdemServicoDomainService;
+import com.radiocom.ordemservico.garantia.domain.service.GarantiaPecaDomainService;
 import com.radiocom.orcamento.application.dto.AdicionarItemOrcamentoDTO;
 import com.radiocom.orcamento.application.dto.AtualizarOrcamentoDTO;
 import com.radiocom.orcamento.application.dto.OrcamentoCreateDTO;
@@ -45,6 +48,7 @@ public class OrcamentoApplicationService {
     private final OrdemServicoDomainService osDomainService;
     private final ClienteApplicationService clienteApplicationService;
     private final CatalogoModeloService catalogoModeloService;
+    private final GarantiaPecaDomainService garantiaPecaDomainService;
     private final OrcamentoMapper mapper;
     private final OrdemServicoMapper itemMapper;
 
@@ -166,7 +170,7 @@ public class OrcamentoApplicationService {
     private OrcamentoDTO toDTOComItens(Orcamento orcamento) {
         OrcamentoDTO dto = mapper.toDTO(orcamento);
         List<ItemEntradaDTO> itens = itemMapper.toItemDTOList(orcamentoDomainService.listarItens(orcamento.getId()));
-        dto.setItens(comCatalogo(itens));
+        dto.setItens(comGarantia(comCatalogo(itens)));
         dto.setValorTotal(orcamentoDomainService.calcularTotal(orcamento.getId()));
         dto.setStatusAprovacao(orcamentoDomainService.calcularStatusAprovacao(orcamento.getId()));
         return dto;
@@ -182,6 +186,23 @@ public class OrcamentoApplicationService {
         if (ids.isEmpty()) return dtos;
         Map<UUID, BigDecimal> valores = catalogoModeloService.buscarValoresReferenciaPorIds(ids);
         dtos.forEach(dto -> dto.setCatalogoValorReferencia(valores.get(dto.getCatalogoModeloId())));
+        return dtos;
+    }
+
+    /** Marca, em cada peça do conserto, se ela tem cobertura de garantia ativa agora — só informativo pro admin decidir se cobra. */
+    private List<ItemEntradaDTO> comGarantia(List<ItemEntradaDTO> dtos) {
+        for (ItemEntradaDTO dto : dtos) {
+            if (dto.getItemEstoqueId() == null || dto.getItensConserto() == null) continue;
+            var pecasCobertas = garantiaPecaDomainService.listarCoberturaAtiva(dto.getItemEstoqueId()).stream()
+                    .map(g -> g.getPecaEstoqueId())
+                    .collect(Collectors.toSet());
+            if (pecasCobertas.isEmpty()) continue;
+            for (ItemConsertoDTO conserto : dto.getItensConserto()) {
+                if (conserto.getTipo() == TipoItemConserto.PECA && pecasCobertas.contains(conserto.getItemEstoqueId())) {
+                    conserto.setCoberto(true);
+                }
+            }
+        }
         return dtos;
     }
 }

@@ -88,12 +88,11 @@ public class ItemEntradaApplicationService {
         sugestaoTextoService.registrarUso(CampoSugestao.CAUSA_DEFEITO, dto.getCausaDefeito());
         sugestaoTextoService.registrarUso(CampoSugestao.SOLUCAO_RECOMENDADA, dto.getSolucaoRecomendada());
         sugestaoTextoService.registrarUso(CampoSugestao.OBSERVACOES_TECNICAS, dto.getObservacoesTecnicas());
-        if (item.isGarantia()) {
-            // Coberto por garantia — sem custo, sem orçamento; segue pelos botões normais de autorização/manutenção.
-            log.info("Item {} coberto por garantia — orçamento não gerado", item.getId());
-        } else if (dto.getResultado() != ResultadoAvaliacao.SEM_DEFEITO) {
+        if (dto.getResultado() != ResultadoAvaliacao.SEM_DEFEITO) {
             eventPublisher.publishEvent(new ItemAvaliadoEvent(this, item.getId(), item.getOsId(), dto.getResultado()));
-            if (item.getItemEstoqueId() != null
+            // Conflito só faz sentido quando NÃO foi confirmado como a própria peça coberta —
+            // aí é um defeito diferente num equipamento que ainda tem outra garantia ativa.
+            if (!item.isGarantia() && item.getItemEstoqueId() != null
                     && !garantiaPecaDomainService.listarCoberturaAtiva(item.getItemEstoqueId()).isEmpty()) {
                 eventPublisher.publishEvent(
                         new GarantiaConflitoEvent(this, item.getId(), item.getOsId(), item.getItemEstoqueId()));

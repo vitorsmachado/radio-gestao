@@ -78,6 +78,12 @@ public class Orcamento extends BaseEntity {
         this.status = StatusOrcamento.ENVIADO;
     }
 
+    /** Volta pra rascunho — usado quando um item novo entra depois que o orçamento já tinha sido enviado, pra forçar reenvio. */
+    public void reabrir() {
+        validarStatus("Reabrir orçamento", StatusOrcamento.ENVIADO);
+        this.status = StatusOrcamento.RASCUNHO;
+    }
+
     public void cancelar(String motivo) {
         validarStatus("Cancelar", StatusOrcamento.RASCUNHO, StatusOrcamento.ENVIADO);
         this.status = StatusOrcamento.CANCELADO;

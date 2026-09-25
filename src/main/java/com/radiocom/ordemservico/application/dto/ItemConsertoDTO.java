@@ -22,4 +22,6 @@ public class ItemConsertoDTO {
     private Integer quantidade;
     private BigDecimal valorUnitario;
     private BigDecimal valorTotal;
+    /** Se essa peça tem cobertura de garantia ativa agora — só informativo, não muda o preço nem o fluxo. */
+    private boolean coberto;
 }
