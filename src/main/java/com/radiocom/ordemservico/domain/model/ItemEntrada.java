@@ -4,6 +4,7 @@ import com.radiocom.estoque.domain.model.enums.FaixaEquipamento;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao;
 import com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada;
+import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
 import com.radiocom.shared.model.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -168,12 +170,15 @@ public class ItemEntrada extends BaseEntity {
      * {@code semDefeito} do resultado pra manter toda a lógica existente
      * (aguardarEntrega, temConserto) funcionando sem mudança. Sem defeito
      * não tem mais nada a decidir — pula direto pra aguardando entrega, sem
-     * precisar do clique manual em "marcar aguardando entrega".
+     * precisar do clique manual em "marcar aguardando entrega". Mesma coisa
+     * quando toda peça do conserto já é coberta por garantia (nada a cobrar,
+     * nada a autorizar) — {@code pecasCobertasPorGarantia} é o conjunto de
+     * itemEstoqueId de peça já validados pelo domain service.
      */
     public void salvarAvaliacaoTecnica(ResultadoAvaliacao resultado, String detalheAjuste,
                                         String defeitoEncontrado, String causaDefeito,
                                         String solucaoRecomendada, String observacoesTecnicas,
-                                        boolean garantia) {
+                                        boolean garantia, Set<UUID> pecasCobertasPorGarantia) {
         validarStatus("Salvar avaliação técnica", StatusItemEntrada.PENDENTE_AVALIACAO, StatusItemEntrada.EM_AVALIACAO);
         this.resultadoAvaliacao = resultado;
         this.detalheAjuste = detalheAjuste;
@@ -184,7 +189,18 @@ public class ItemEntrada extends BaseEntity {
         this.observacoesTecnicas = observacoesTecnicas;
         this.semDefeito = resultado == ResultadoAvaliacao.SEM_DEFEITO;
         this.garantia = garantia;
-        this.status = this.semDefeito ? StatusItemEntrada.AGUARDANDO_ENTREGA : StatusItemEntrada.AVALIADO;
+        boolean soGarantia = garantia && todasPecasCobertas(pecasCobertasPorGarantia);
+        this.status = (this.semDefeito || soGarantia) ? StatusItemEntrada.AGUARDANDO_ENTREGA : StatusItemEntrada.AVALIADO;
+    }
+
+    /** Verdadeiro só quando existe ao menos uma peça no conserto e todas elas estão no conjunto coberto. */
+    private boolean todasPecasCobertas(Set<UUID> pecasCobertasPorGarantia) {
+        List<ItemConserto> pecas = itensConserto.stream()
+                .filter(ic -> ic.getTipo() == TipoItemConserto.PECA)
+                .toList();
+        if (pecas.isEmpty()) return false;
+        return pecas.stream().allMatch(ic -> ic.getItemEstoqueId() != null
+                && pecasCobertasPorGarantia.contains(ic.getItemEstoqueId()));
     }
 
     /**

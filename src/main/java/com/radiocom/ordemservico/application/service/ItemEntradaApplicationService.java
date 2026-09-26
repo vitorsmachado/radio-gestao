@@ -83,7 +83,7 @@ public class ItemEntradaApplicationService {
     public ItemEntradaDTO salvarAvaliacaoTecnica(UUID id, SalvarAvaliacaoTecnicaDTO dto) {
         ItemEntrada item = itemDomainService.salvarAvaliacaoTecnica(id, dto.getResultado(), dto.getDetalheAjuste(),
                 dto.getDefeitoEncontrado(), dto.getCausaDefeito(), dto.getSolucaoRecomendada(), dto.getObservacoesTecnicas(),
-                dto.getGarantiaPecaId());
+                dto.getGarantiaPecaIds());
         sugestaoTextoService.registrarUso(CampoSugestao.DEFEITO_ENCONTRADO, dto.getDefeitoEncontrado());
         sugestaoTextoService.registrarUso(CampoSugestao.CAUSA_DEFEITO, dto.getCausaDefeito());
         sugestaoTextoService.registrarUso(CampoSugestao.SOLUCAO_RECOMENDADA, dto.getSolucaoRecomendada());
@@ -110,7 +110,7 @@ public class ItemEntradaApplicationService {
     public ItemEntradaDTO atualizarAvaliacaoCompleta(UUID id, SalvarAvaliacaoTecnicaDTO dto) {
         ItemEntrada item = itemDomainService.atualizarAvaliacaoCompleta(id, dto.getResultado(), dto.getDetalheAjuste(),
                 dto.getDefeitoEncontrado(), dto.getCausaDefeito(), dto.getSolucaoRecomendada(), dto.getObservacoesTecnicas(),
-                dto.getGarantiaPecaId());
+                dto.getGarantiaPecaIds());
         sugestaoTextoService.registrarUso(CampoSugestao.DEFEITO_ENCONTRADO, dto.getDefeitoEncontrado());
         sugestaoTextoService.registrarUso(CampoSugestao.CAUSA_DEFEITO, dto.getCausaDefeito());
         sugestaoTextoService.registrarUso(CampoSugestao.SOLUCAO_RECOMENDADA, dto.getSolucaoRecomendada());
@@ -129,6 +129,7 @@ public class ItemEntradaApplicationService {
     private GarantiaPecaDTO toGarantiaPecaDTO(GarantiaPeca g) {
         return GarantiaPecaDTO.builder()
                 .id(g.getId())
+                .pecaEstoqueId(g.getPecaEstoqueId())
                 .descricaoPeca(g.getDescricaoPeca())
                 .dataInicio(g.getDataInicio())
                 .dataFim(g.getDataFim())

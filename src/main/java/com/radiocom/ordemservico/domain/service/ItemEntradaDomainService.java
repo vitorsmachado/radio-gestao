@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -78,14 +79,19 @@ public class ItemEntradaDomainService {
     public ItemEntrada salvarAvaliacaoTecnica(UUID id, ResultadoAvaliacao resultado, String detalheAjuste,
                                                String defeitoEncontrado, String causaDefeito,
                                                String solucaoRecomendada, String observacoesTecnicas,
-                                               UUID garantiaPecaId) {
+                                               List<UUID> garantiaPecaIds) {
         ItemEntrada item = buscarPorId(id);
-        boolean garantia = validarGarantia(item, garantiaPecaId);
+        Set<UUID> pecasCobertas = validarGarantiaMultipla(item, garantiaPecaIds);
         StatusItemEntrada statusAnterior = item.getStatus();
         item.salvarAvaliacaoTecnica(resultado, detalheAjuste, defeitoEncontrado, causaDefeito,
-                solucaoRecomendada, observacoesTecnicas, garantia);
+                solucaoRecomendada, observacoesTecnicas, !pecasCobertas.isEmpty(), pecasCobertas);
         ItemEntrada salvo = itemEntradaRepository.save(item);
         registrarTransicaoStatus(id, statusAnterior, salvo.getStatus(), null);
+        // Foi direto pra aguardando entrega porque toda peça já era garantia — baixa do estoque agora,
+        // já que esse item nunca vai passar por EM_MANUTENCAO/concluirManutencao pra baixar lá.
+        if (salvo.getStatus() == StatusItemEntrada.AGUARDANDO_ENTREGA && salvo.isGarantia()) {
+            baixarEstoquePecasUsadas(salvo);
+        }
         return salvo;
     }
 
@@ -98,22 +104,27 @@ public class ItemEntradaDomainService {
     public ItemEntrada atualizarAvaliacaoCompleta(UUID id, ResultadoAvaliacao resultado, String detalheAjuste,
                                                    String defeitoEncontrado, String causaDefeito,
                                                    String solucaoRecomendada, String observacoesTecnicas,
-                                                   UUID garantiaPecaId) {
+                                                   List<UUID> garantiaPecaIds) {
         ItemEntrada item = buscarPorId(id);
-        boolean garantia = validarGarantia(item, garantiaPecaId);
+        Set<UUID> pecasCobertas = validarGarantiaMultipla(item, garantiaPecaIds);
         item.atualizarAvaliacaoCompleta(resultado, detalheAjuste, defeitoEncontrado, causaDefeito,
-                solucaoRecomendada, observacoesTecnicas, garantia);
+                solucaoRecomendada, observacoesTecnicas, !pecasCobertas.isEmpty());
         return itemEntradaRepository.save(item);
     }
 
-    private boolean validarGarantia(ItemEntrada item, UUID garantiaPecaId) {
-        if (garantiaPecaId == null) return false;
+    /** Valida cada cobertura reivindicada e devolve o conjunto de itemEstoqueId de peça que ela cobre. */
+    private Set<UUID> validarGarantiaMultipla(ItemEntrada item, List<UUID> garantiaPecaIds) {
+        if (garantiaPecaIds == null || garantiaPecaIds.isEmpty()) return Set.of();
         if (item.getItemEstoqueId() == null) {
             throw new DomainException(
                     "Item não está vinculado a um equipamento/acessório do cliente — não é possível aplicar garantia.");
         }
-        garantiaPecaDomainService.validarCoberturaAtiva(item.getItemEstoqueId(), garantiaPecaId);
-        return true;
+        Set<UUID> pecasCobertas = new java.util.HashSet<>();
+        for (UUID garantiaPecaId : garantiaPecaIds) {
+            var cobertura = garantiaPecaDomainService.validarCoberturaAtiva(item.getItemEstoqueId(), garantiaPecaId);
+            pecasCobertas.add(cobertura.getPecaEstoqueId());
+        }
+        return pecasCobertas;
     }
 
     /** Peças/equipamentos com cobertura de garantia ativa desse item — vazio se não rastreado ou sem cobertura. */

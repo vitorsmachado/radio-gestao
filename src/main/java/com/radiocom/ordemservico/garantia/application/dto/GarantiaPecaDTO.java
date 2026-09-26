@@ -15,6 +15,7 @@ import java.util.UUID;
 public class GarantiaPecaDTO {
 
     private UUID id;
+    private UUID pecaEstoqueId;
     private String descricaoPeca;
     private LocalDate dataInicio;
     private LocalDate dataFim;

@@ -322,9 +322,33 @@ class ItemEntradaDomainServiceTest {
 
         ItemEntrada resultado = service.salvarAvaliacaoTecnica(itemId,
                 com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao.AJUSTE,
-                "Ajuste simples", "Bateria fraca", null, null, null, garantiaPecaId);
+                "Ajuste simples", "Bateria fraca", null, null, null, List.of(garantiaPecaId));
 
         assertThat(resultado.isGarantia()).isTrue();
+    }
+
+    @Test
+    @DisplayName("salvarAvaliacaoTecnica deve ir direto pra AGUARDANDO_ENTREGA e baixar estoque quando toda peça é garantia")
+    void salvarAvaliacaoTecnica_todaPecaGarantia_devePularEBaixarEstoque() {
+        UUID itemEstoqueId = UUID.randomUUID();
+        UUID garantiaPecaId = UUID.randomUUID();
+        ReflectionTestUtils.setField(item, "itemEstoqueId", itemEstoqueId);
+        item.adicionarItemConserto(ItemConserto.builder()
+                .tipo(TipoItemConserto.PECA).itemEstoqueId(pecaId).descricao("Bateria BP-227")
+                .quantidade(1).valorUnitario(BigDecimal.ZERO).build());
+        when(itemEntradaRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(garantiaPecaDomainService.validarCoberturaAtiva(itemEstoqueId, garantiaPecaId))
+                .thenReturn(com.radiocom.ordemservico.garantia.domain.model.GarantiaPeca.builder()
+                        .pecaEstoqueId(pecaId).build());
+
+        ItemEntrada resultado = service.salvarAvaliacaoTecnica(itemId,
+                com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao.AJUSTE,
+                "Trocar bateria", "Bateria fraca", null, null, null, List.of(garantiaPecaId));
+
+        assertThat(resultado.getStatus()).isEqualTo(StatusItemEntrada.AGUARDANDO_ENTREGA);
+        org.mockito.Mockito.verify(estoqueDomainService)
+                .darSaida(org.mockito.ArgumentMatchers.eq(pecaId), org.mockito.ArgumentMatchers.eq(TipoItem.PECA),
+                        org.mockito.ArgumentMatchers.eq(1), org.mockito.ArgumentMatchers.anyString());
     }
 
     @Test
@@ -352,7 +376,7 @@ class ItemEntradaDomainServiceTest {
 
         assertThatThrownBy(() -> service.atualizarAvaliacaoCompleta(itemId,
                 com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao.AJUSTE,
-                null, null, null, null, null, garantiaPecaId))
+                null, null, null, null, null, List.of(garantiaPecaId)))
                 .isInstanceOf(DomainException.class);
     }
 
@@ -396,7 +420,7 @@ class ItemEntradaDomainServiceTest {
 
         assertThatThrownBy(() -> service.salvarAvaliacaoTecnica(itemId,
                 com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao.AJUSTE,
-                null, null, null, null, null, garantiaPecaId))
+                null, null, null, null, null, List.of(garantiaPecaId)))
                 .isInstanceOf(DomainException.class);
     }
 }

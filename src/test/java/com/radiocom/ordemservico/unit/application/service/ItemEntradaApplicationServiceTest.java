@@ -25,6 +25,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -214,7 +215,7 @@ class ItemEntradaApplicationServiceTest {
     @Test
     @DisplayName("atualizarAvaliacaoCompleta não deve publicar nenhum evento")
     void atualizarAvaliacaoCompleta_naoDevePublicarEvento() {
-        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.AJUSTE, "Trocar fusível", "Fusível queimado", null, null, null, false);
+        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.AJUSTE, "Trocar fusível", "Fusível queimado", null, null, null, false, Set.of());
         SalvarAvaliacaoTecnicaDTO dto = SalvarAvaliacaoTecnicaDTO.builder()
                 .resultado(ResultadoAvaliacao.AJUSTE).detalheAjuste("Trocar fusível").defeitoEncontrado("Fusível queimado").build();
         when(itemDomainService.atualizarAvaliacaoCompleta(itemId, ResultadoAvaliacao.AJUSTE, "Trocar fusível",
@@ -230,7 +231,7 @@ class ItemEntradaApplicationServiceTest {
     @DisplayName("salvarAvaliacaoTecnica deve publicar ItemAvaliadoEvent quando resultado não é SEM_DEFEITO")
     void salvarAvaliacaoTecnica_devePublicarEventoQuandoNaoSemDefeito() {
         item.iniciarAvaliacao();
-        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.ORCAMENTO, null, "Capacitor queimado", null, null, null, false);
+        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.ORCAMENTO, null, "Capacitor queimado", null, null, null, false, Set.of());
         SalvarAvaliacaoTecnicaDTO dto = SalvarAvaliacaoTecnicaDTO.builder()
                 .resultado(ResultadoAvaliacao.ORCAMENTO).defeitoEncontrado("Capacitor queimado").build();
         when(itemDomainService.salvarAvaliacaoTecnica(itemId, ResultadoAvaliacao.ORCAMENTO, null,
@@ -245,7 +246,7 @@ class ItemEntradaApplicationServiceTest {
     @DisplayName("salvarAvaliacaoTecnica não deve publicar evento quando resultado é SEM_DEFEITO")
     void salvarAvaliacaoTecnica_naoDevePublicarEventoQuandoSemDefeito() {
         item.iniciarAvaliacao();
-        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.SEM_DEFEITO, null, null, null, null, null, false);
+        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.SEM_DEFEITO, null, null, null, null, null, false, Set.of());
         SalvarAvaliacaoTecnicaDTO dto = SalvarAvaliacaoTecnicaDTO.builder()
                 .resultado(ResultadoAvaliacao.SEM_DEFEITO).build();
         when(itemDomainService.salvarAvaliacaoTecnica(itemId, ResultadoAvaliacao.SEM_DEFEITO, null,
@@ -261,11 +262,11 @@ class ItemEntradaApplicationServiceTest {
     void salvarAvaliacaoTecnica_devePublicarOrcamentoMesmoComGarantia() {
         UUID garantiaPecaId = UUID.randomUUID();
         item.iniciarAvaliacao();
-        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.AJUSTE, null, "Bateria fraca", null, null, null, true);
+        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.AJUSTE, null, "Bateria fraca", null, null, null, true, Set.of());
         SalvarAvaliacaoTecnicaDTO dto = SalvarAvaliacaoTecnicaDTO.builder()
-                .resultado(ResultadoAvaliacao.AJUSTE).defeitoEncontrado("Bateria fraca").garantiaPecaId(garantiaPecaId).build();
+                .resultado(ResultadoAvaliacao.AJUSTE).defeitoEncontrado("Bateria fraca").garantiaPecaIds(List.of(garantiaPecaId)).build();
         when(itemDomainService.salvarAvaliacaoTecnica(itemId, ResultadoAvaliacao.AJUSTE, null,
-                "Bateria fraca", null, null, null, garantiaPecaId)).thenReturn(item);
+                "Bateria fraca", null, null, null, List.of(garantiaPecaId))).thenReturn(item);
 
         service.salvarAvaliacaoTecnica(itemId, dto);
 
@@ -279,11 +280,11 @@ class ItemEntradaApplicationServiceTest {
         UUID garantiaPecaId = UUID.randomUUID();
         ReflectionTestUtils.setField(item, "itemEstoqueId", itemEstoqueId);
         item.iniciarAvaliacao();
-        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.AJUSTE, null, "Bateria fraca", null, null, null, true);
+        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.AJUSTE, null, "Bateria fraca", null, null, null, true, Set.of());
         SalvarAvaliacaoTecnicaDTO dto = SalvarAvaliacaoTecnicaDTO.builder()
-                .resultado(ResultadoAvaliacao.AJUSTE).defeitoEncontrado("Bateria fraca").garantiaPecaId(garantiaPecaId).build();
+                .resultado(ResultadoAvaliacao.AJUSTE).defeitoEncontrado("Bateria fraca").garantiaPecaIds(List.of(garantiaPecaId)).build();
         when(itemDomainService.salvarAvaliacaoTecnica(itemId, ResultadoAvaliacao.AJUSTE, null,
-                "Bateria fraca", null, null, null, garantiaPecaId)).thenReturn(item);
+                "Bateria fraca", null, null, null, List.of(garantiaPecaId))).thenReturn(item);
 
         service.salvarAvaliacaoTecnica(itemId, dto);
 
@@ -295,7 +296,7 @@ class ItemEntradaApplicationServiceTest {
     void salvarAvaliacaoTecnica_devePublicarConflitoQuandoHaOutraCobertura() {
         UUID itemEstoqueId = UUID.randomUUID();
         ReflectionTestUtils.setField(item, "itemEstoqueId", itemEstoqueId);
-        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.ORCAMENTO, null, "Tela quebrada", null, null, null, false);
+        item.salvarAvaliacaoTecnica(ResultadoAvaliacao.ORCAMENTO, null, "Tela quebrada", null, null, null, false, Set.of());
         SalvarAvaliacaoTecnicaDTO dto = SalvarAvaliacaoTecnicaDTO.builder()
                 .resultado(ResultadoAvaliacao.ORCAMENTO).defeitoEncontrado("Tela quebrada").build();
         when(itemDomainService.salvarAvaliacaoTecnica(itemId, ResultadoAvaliacao.ORCAMENTO, null,

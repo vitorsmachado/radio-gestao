@@ -80,7 +80,7 @@ class ItemEntradaTest {
     @DisplayName("salvarAvaliacaoTecnica com SEM_DEFEITO deve ir direto para AGUARDANDO_ENTREGA")
     void salvarAvaliacaoTecnica_semDefeito_devePularParaAguardandoEntrega() {
         item.salvarAvaliacaoTecnica(com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao.SEM_DEFEITO,
-                null, null, null, null, null, false);
+                null, null, null, null, null, false, java.util.Set.of());
 
         assertThat(item.getStatus()).isEqualTo(StatusItemEntrada.AGUARDANDO_ENTREGA);
         assertThat(item.isSemDefeito()).isTrue();
@@ -90,10 +90,43 @@ class ItemEntradaTest {
     @DisplayName("salvarAvaliacaoTecnica com defeito deve parar em AVALIADO")
     void salvarAvaliacaoTecnica_comDefeito_deveParaEmAvaliado() {
         item.salvarAvaliacaoTecnica(com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao.ORCAMENTO,
-                null, "Capacitor queimado", null, null, null, false);
+                null, "Capacitor queimado", null, null, null, false, java.util.Set.of());
 
         assertThat(item.getStatus()).isEqualTo(StatusItemEntrada.AVALIADO);
         assertThat(item.isSemDefeito()).isFalse();
+    }
+
+    @Test
+    @DisplayName("salvarAvaliacaoTecnica deve ir direto pra AGUARDANDO_ENTREGA quando toda peça está coberta por garantia")
+    void salvarAvaliacaoTecnica_todaPecaCoberta_devePularParaAguardandoEntrega() {
+        UUID pecaId = UUID.randomUUID();
+        item.adicionarItemConserto(ItemConserto.builder()
+                .tipo(TipoItemConserto.PECA).itemEstoqueId(pecaId).descricao("Bateria BP-227")
+                .quantidade(1).valorUnitario(BigDecimal.ZERO).build());
+
+        item.salvarAvaliacaoTecnica(com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao.AJUSTE,
+                null, "Bateria fraca", null, null, null, true, java.util.Set.of(pecaId));
+
+        assertThat(item.getStatus()).isEqualTo(StatusItemEntrada.AGUARDANDO_ENTREGA);
+        assertThat(item.isGarantia()).isTrue();
+    }
+
+    @Test
+    @DisplayName("salvarAvaliacaoTecnica não deve pular quando só parte das peças está coberta por garantia")
+    void salvarAvaliacaoTecnica_pecaParcialCoberta_naoDevePular() {
+        UUID pecaId = UUID.randomUUID();
+        UUID outraPecaId = UUID.randomUUID();
+        item.adicionarItemConserto(ItemConserto.builder()
+                .tipo(TipoItemConserto.PECA).itemEstoqueId(pecaId).descricao("Bateria BP-227")
+                .quantidade(1).valorUnitario(BigDecimal.ZERO).build());
+        item.adicionarItemConserto(ItemConserto.builder()
+                .tipo(TipoItemConserto.PECA).itemEstoqueId(outraPecaId).descricao("Antena UHF")
+                .quantidade(1).valorUnitario(new BigDecimal("40.00")).build());
+
+        item.salvarAvaliacaoTecnica(com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao.ORCAMENTO,
+                null, "Bateria fraca e antena danificada", null, null, null, true, java.util.Set.of(pecaId));
+
+        assertThat(item.getStatus()).isEqualTo(StatusItemEntrada.AVALIADO);
     }
 
     @Test
