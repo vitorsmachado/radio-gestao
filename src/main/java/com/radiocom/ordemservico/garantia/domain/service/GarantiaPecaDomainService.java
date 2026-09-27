@@ -1,5 +1,6 @@
 package com.radiocom.ordemservico.garantia.domain.service;
 
+import com.radiocom.configuracao.domain.service.ConfiguracaoDomainService;
 import com.radiocom.ordemservico.domain.model.ItemConserto;
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
@@ -7,7 +8,6 @@ import com.radiocom.ordemservico.garantia.domain.model.GarantiaPeca;
 import com.radiocom.ordemservico.garantia.domain.repository.GarantiaPecaRepository;
 import com.radiocom.shared.exception.DomainException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,9 +20,7 @@ import java.util.UUID;
 public class GarantiaPecaDomainService {
 
     private final GarantiaPecaRepository repository;
-
-    @Value("${app.garantia.prazo-dias:90}")
-    private int prazoDias;
+    private final ConfiguracaoDomainService configuracaoDomainService;
 
     /**
      * Chamado ao concluir uma manutenção — registra cobertura para cada peça
@@ -33,7 +31,7 @@ public class GarantiaPecaDomainService {
     public void registrarCobertura(ItemEntrada item) {
         if (item.getItemEstoqueId() == null) return;
         LocalDate hoje = LocalDate.now();
-        LocalDate fim = hoje.plusDays(prazoDias);
+        LocalDate fim = hoje.plusDays(configuracaoDomainService.buscar().getPrazoGarantiaPecaDias());
         for (ItemConserto conserto : item.getItensConserto()) {
             if (conserto.getTipo() != TipoItemConserto.PECA || conserto.getItemEstoqueId() == null) continue;
             repository.save(GarantiaPeca.builder()

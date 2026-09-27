@@ -1,5 +1,7 @@
 package com.radiocom.ordemservico.garantia.unit.domain.service;
 
+import com.radiocom.configuracao.domain.model.Configuracao;
+import com.radiocom.configuracao.domain.service.ConfiguracaoDomainService;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import com.radiocom.ordemservico.domain.model.ItemConserto;
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
@@ -26,6 +28,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -37,6 +40,8 @@ class GarantiaPecaDomainServiceTest {
 
     @Mock private GarantiaPecaRepository repository;
 
+    @Mock private ConfiguracaoDomainService configuracaoDomainService;
+
     @InjectMocks
     private GarantiaPecaDomainService service;
 
@@ -45,7 +50,13 @@ class GarantiaPecaDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(service, "prazoDias", 90);
+        Configuracao configuracao = Configuracao.builder()
+                .valorMaoDeObraPadrao(BigDecimal.ZERO)
+                .prazoGarantiaPecaDias(90)
+                .prazoGarantiaEquipamentoDias(90)
+                .prazoGarantiaAcessorioDias(90)
+                .build();
+        lenient().when(configuracaoDomainService.buscar()).thenReturn(configuracao);
         itemEstoqueId = UUID.randomUUID();
         itemEntradaId = UUID.randomUUID();
     }

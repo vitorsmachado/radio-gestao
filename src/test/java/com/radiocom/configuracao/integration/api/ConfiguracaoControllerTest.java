@@ -68,7 +68,12 @@ class ConfiguracaoControllerTest {
     @WithMockUser(roles = "ADMIN")
     @DisplayName("PUT / deve retornar 200 quando ADMIN")
     void atualizar_comoAdmin_deveRetornar200() throws Exception {
-        AtualizarConfiguracaoDTO body = AtualizarConfiguracaoDTO.builder().valorMaoDeObraPadrao(new BigDecimal("75.00")).build();
+        AtualizarConfiguracaoDTO body = AtualizarConfiguracaoDTO.builder()
+                .valorMaoDeObraPadrao(new BigDecimal("75.00"))
+                .prazoGarantiaPecaDias(90)
+                .prazoGarantiaEquipamentoDias(90)
+                .prazoGarantiaAcessorioDias(90)
+                .build();
         dto.setValorMaoDeObraPadrao(new BigDecimal("75.00"));
         when(service.atualizar(any(AtualizarConfiguracaoDTO.class))).thenReturn(dto);
 

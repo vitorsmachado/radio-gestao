@@ -21,12 +21,16 @@ public class ConfiguracaoApplicationService {
 
     @Transactional
     public ConfiguracaoDTO atualizar(AtualizarConfiguracaoDTO dto) {
-        return toDTO(domainService.atualizarValorMaoDeObraPadrao(dto.getValorMaoDeObraPadrao()));
+        return toDTO(domainService.atualizar(dto.getValorMaoDeObraPadrao(), dto.getPrazoGarantiaPecaDias(),
+                dto.getPrazoGarantiaEquipamentoDias(), dto.getPrazoGarantiaAcessorioDias()));
     }
 
     private ConfiguracaoDTO toDTO(Configuracao c) {
         return ConfiguracaoDTO.builder()
                 .valorMaoDeObraPadrao(c.getValorMaoDeObraPadrao())
+                .prazoGarantiaPecaDias(c.getPrazoGarantiaPecaDias())
+                .prazoGarantiaEquipamentoDias(c.getPrazoGarantiaEquipamentoDias())
+                .prazoGarantiaAcessorioDias(c.getPrazoGarantiaAcessorioDias())
                 .build();
     }
 }

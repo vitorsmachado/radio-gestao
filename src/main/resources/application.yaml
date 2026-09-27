@@ -44,11 +44,6 @@ integracao:
     timeout: ${RECEITAWS_TIMEOUT:10000}
     habilitado: ${RECEITAWS_HABILITADO:true}
 
-# ---- Garantia de manutenção ----
-app:
-  garantia:
-    prazo-dias: ${GARANTIA_PRAZO_DIAS:90}
-
 # ---- Actuator / Observabilidade ----
 management:
   endpoints:

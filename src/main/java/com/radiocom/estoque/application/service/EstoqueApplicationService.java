@@ -1,5 +1,6 @@
 package com.radiocom.estoque.application.service;
 
+import com.radiocom.configuracao.domain.service.ConfiguracaoDomainService;
 import com.radiocom.estoque.application.dto.*;
 import com.radiocom.estoque.application.mapper.EstoqueMapper;
 import com.radiocom.estoque.domain.event.PecaEntradaEstoqueEvent;
@@ -41,6 +42,7 @@ public class EstoqueApplicationService {
 
     private final EquipamentoDomainService equipamentoService;
     private final EstoqueDomainService estoqueService;
+    private final ConfiguracaoDomainService configuracaoDomainService;
     private final EstoqueMapper mapper;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -100,6 +102,8 @@ public class EstoqueApplicationService {
                         .catalogoModeloId(dto.getCatalogoModeloId())
                         .marca(dto.getMarca())
                         .modelo(dto.getModelo())
+                        .garantiaFim(java.time.LocalDate.now()
+                                .plusDays(configuracaoDomainService.buscar().getPrazoGarantiaEquipamentoDias()))
                         .build()));
     }
 
@@ -213,6 +217,8 @@ public class EstoqueApplicationService {
                         .catalogoModeloId(dto.getCatalogoModeloId())
                         .marca(dto.getMarca())
                         .modelo(dto.getModelo())
+                        .garantiaFim(java.time.LocalDate.now()
+                                .plusDays(configuracaoDomainService.buscar().getPrazoGarantiaAcessorioDias()))
                         .build()));
     }
 

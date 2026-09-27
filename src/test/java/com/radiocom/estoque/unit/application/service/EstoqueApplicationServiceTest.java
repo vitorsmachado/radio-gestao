@@ -1,5 +1,7 @@
 package com.radiocom.estoque.unit.application.service;
 
+import com.radiocom.configuracao.domain.model.Configuracao;
+import com.radiocom.configuracao.domain.service.ConfiguracaoDomainService;
 import com.radiocom.estoque.application.dto.*;
 import com.radiocom.estoque.application.mapper.EstoqueMapper;
 import com.radiocom.estoque.application.service.EstoqueApplicationService;
@@ -29,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,6 +44,7 @@ class EstoqueApplicationServiceTest {
     @Mock private CatalogoModeloRepository catalogoModeloRepository;
     @Mock private EquipamentoDomainService equipamentoService;
     @Mock private EstoqueDomainService estoqueService;
+    @Mock private ConfiguracaoDomainService configuracaoDomainService;
     @Mock private org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     private EstoqueApplicationService service;
@@ -49,7 +53,17 @@ class EstoqueApplicationServiceTest {
     void setUp() {
         service = new EstoqueApplicationService(
                 equipamentoRepository, acessorioRepository, pecaRepository, catalogoModeloRepository,
-                equipamentoService, estoqueService, new EstoqueMapper(), eventPublisher);
+                equipamentoService, estoqueService, configuracaoDomainService, new EstoqueMapper(), eventPublisher);
+    }
+
+    private void configurarPrazosGarantiaPadrao() {
+        Configuracao configuracao = Configuracao.builder()
+                .valorMaoDeObraPadrao(java.math.BigDecimal.ZERO)
+                .prazoGarantiaPecaDias(90)
+                .prazoGarantiaEquipamentoDias(90)
+                .prazoGarantiaAcessorioDias(90)
+                .build();
+        lenient().when(configuracaoDomainService.buscar()).thenReturn(configuracao);
     }
 
     // ===== Equipamento =====
@@ -154,6 +168,7 @@ class EstoqueApplicationServiceTest {
     @DisplayName("resolverEquipamentoPorNS deve cadastrar um novo quando o NS ainda não existe")
     void resolverEquipamentoPorNS_deveCriarQuandoNaoExiste() {
         UUID clienteId = UUID.randomUUID();
+        configurarPrazosGarantiaPadrao();
         when(equipamentoRepository.findByNumeroSerie("NS-002")).thenReturn(Optional.empty());
         when(equipamentoRepository.save(any(Equipamento.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -309,6 +324,7 @@ class EstoqueApplicationServiceTest {
     @DisplayName("resolverAcessorioPorNS deve cadastrar um novo quando o NS ainda não existe")
     void resolverAcessorioPorNS_deveCriarQuandoNaoExiste() {
         UUID clienteId = UUID.randomUUID();
+        configurarPrazosGarantiaPadrao();
         when(acessorioRepository.findByNumeroSerie("NS-002")).thenReturn(Optional.empty());
         when(acessorioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 

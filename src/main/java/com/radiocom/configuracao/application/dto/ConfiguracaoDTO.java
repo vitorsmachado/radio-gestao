@@ -14,4 +14,7 @@ import java.math.BigDecimal;
 public class ConfiguracaoDTO {
 
     private BigDecimal valorMaoDeObraPadrao;
+    private Integer prazoGarantiaPecaDias;
+    private Integer prazoGarantiaEquipamentoDias;
+    private Integer prazoGarantiaAcessorioDias;
 }

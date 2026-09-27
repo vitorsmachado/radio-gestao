@@ -22,9 +22,13 @@ public class ConfiguracaoDomainService {
     }
 
     @Transactional
-    public Configuracao atualizarValorMaoDeObraPadrao(BigDecimal valor) {
+    public Configuracao atualizar(BigDecimal valorMaoDeObraPadrao, Integer prazoGarantiaPecaDias,
+                                   Integer prazoGarantiaEquipamentoDias, Integer prazoGarantiaAcessorioDias) {
         Configuracao configuracao = buscar();
-        configuracao.setValorMaoDeObraPadrao(valor);
+        configuracao.setValorMaoDeObraPadrao(valorMaoDeObraPadrao);
+        configuracao.setPrazoGarantiaPecaDias(prazoGarantiaPecaDias);
+        configuracao.setPrazoGarantiaEquipamentoDias(prazoGarantiaEquipamentoDias);
+        configuracao.setPrazoGarantiaAcessorioDias(prazoGarantiaAcessorioDias);
         return repository.save(configuracao);
     }
 }

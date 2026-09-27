@@ -33,7 +33,12 @@ class ConfiguracaoDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        configuracao = Configuracao.builder().valorMaoDeObraPadrao(new BigDecimal("50.00")).build();
+        configuracao = Configuracao.builder()
+                .valorMaoDeObraPadrao(new BigDecimal("50.00"))
+                .prazoGarantiaPecaDias(90)
+                .prazoGarantiaEquipamentoDias(90)
+                .prazoGarantiaAcessorioDias(90)
+                .build();
     }
 
     @Test
@@ -53,13 +58,16 @@ class ConfiguracaoDomainServiceTest {
     }
 
     @Test
-    @DisplayName("atualizarValorMaoDeObraPadrao deve definir o novo valor e salvar")
-    void atualizarValorMaoDeObraPadrao_deveDefinirESalvar() {
+    @DisplayName("atualizar deve definir os novos valores e salvar")
+    void atualizar_deveDefinirESalvar() {
         when(repository.findFirstByOrderByDataCriacaoAsc()).thenReturn(Optional.of(configuracao));
         when(repository.save(any(Configuracao.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Configuracao resultado = service.atualizarValorMaoDeObraPadrao(new BigDecimal("75.00"));
+        Configuracao resultado = service.atualizar(new BigDecimal("75.00"), 30, 60, 45);
 
         assertThat(resultado.getValorMaoDeObraPadrao()).isEqualByComparingTo("75.00");
+        assertThat(resultado.getPrazoGarantiaPecaDias()).isEqualTo(30);
+        assertThat(resultado.getPrazoGarantiaEquipamentoDias()).isEqualTo(60);
+        assertThat(resultado.getPrazoGarantiaAcessorioDias()).isEqualTo(45);
     }
 }
