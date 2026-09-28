@@ -48,6 +48,17 @@ public class ItemEntradaDomainService {
         return itemEntradaRepository.save(item);
     }
 
+    /** @return o item original (com a quantidade reduzida) e o item novo, nessa ordem. */
+    @Transactional
+    public List<ItemEntrada> desmembrar(UUID id, int quantidadeNova) {
+        ItemEntrada item = buscarPorId(id);
+        ItemEntrada novo = item.desmembrar(quantidadeNova);
+        validarQuantidade(novo);
+        ItemEntrada itemSalvo = itemEntradaRepository.save(item);
+        ItemEntrada novoSalvo = itemEntradaRepository.save(novo);
+        return List.of(itemSalvo, novoSalvo);
+    }
+
     @Transactional
     public ItemEntrada avaliar(UUID id, String avaliacaoTecnica, boolean semDefeito) {
         ItemEntrada item = buscarPorId(id);

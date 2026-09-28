@@ -57,6 +57,14 @@ public class ItemEntradaApplicationService {
         return comCatalogo(mapper.toItemDTOList(itemDomainService.listarPorOS(osId)));
     }
 
+    /** @return o item original (com a quantidade reduzida) e o item novo, nessa ordem. */
+    @Transactional
+    public List<ItemEntradaDTO> desmembrar(UUID id, DesmembrarItemDTO dto) {
+        List<ItemEntrada> resultado = itemDomainService.desmembrar(id, dto.getQuantidade());
+        log.info("Item {} desmembrado — novo item: {}", id, resultado.get(1).getId());
+        return comCatalogo(mapper.toItemDTOList(resultado));
+    }
+
     @Transactional
     public ItemEntradaDTO avaliar(UUID id, AvaliarItemDTO dto) {
         return comCatalogo(mapper.toDTO(itemDomainService.avaliar(id, dto.getAvaliacaoTecnica(), dto.isSemDefeito())));

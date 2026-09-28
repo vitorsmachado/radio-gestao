@@ -5,6 +5,7 @@ import com.radiocom.estoque.domain.model.enums.TipoItem;
 import com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao;
 import com.radiocom.ordemservico.domain.model.enums.StatusItemEntrada;
 import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
+import com.radiocom.shared.exception.DomainException;
 import com.radiocom.shared.model.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -234,6 +235,34 @@ public class ItemEntrada extends BaseEntity {
         validarNaoEntregue("Atualizar avaliação");
         this.avaliacaoTecnica = avaliacaoTecnica;
         this.semDefeito = semDefeito;
+    }
+
+    /**
+     * Separa uma quantidade em um item novo e independente, deixando o resto
+     * aqui — só antes da avaliação, pra não ter que decidir qual parte de um
+     * laudo/orçamento/garantia já registrado pertence a qual pedaço. Útil
+     * quando "3 unidades" viram, na avaliação, alguns defeitos diferentes ou
+     * destinos diferentes (cada uma pareada com um equipamento distinto).
+     */
+    public ItemEntrada desmembrar(int quantidadeNova) {
+        validarStatus("Desmembrar", StatusItemEntrada.PENDENTE_AVALIACAO, StatusItemEntrada.EM_AVALIACAO);
+        if (quantidadeNova < 1 || quantidadeNova >= this.quantidade) {
+            throw new DomainException(
+                    "Quantidade a desmembrar deve ser entre 1 e " + (this.quantidade - 1));
+        }
+        this.quantidade -= quantidadeNova;
+        return ItemEntrada.builder()
+                .osId(this.osId)
+                .catalogoModeloId(this.catalogoModeloId)
+                .tipoItem(this.tipoItem)
+                .descricao(this.descricao)
+                .quantidade(quantidadeNova)
+                .marca(this.marca)
+                .modelo(this.modelo)
+                .faixa(this.faixa)
+                .defeitoRelatado(this.defeitoRelatado)
+                .status(this.status)
+                .build();
     }
 
     // ===== AUTORIZAÇÃO =====

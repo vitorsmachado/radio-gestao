@@ -36,6 +36,15 @@ public class ItemEntradaController {
         return ResponseEntity.ok(itemService.buscarPorId(id));
     }
 
+    @PostMapping("/{id}/desmembrar")
+    @Operation(summary = "Separar uma quantidade do item num item novo e independente",
+            description = "Só antes da avaliação — depois de avaliado, o item já tem laudo/orçamento/garantia "
+                    + "que não dá pra dividir. Retorna o item original (quantidade reduzida) e o item novo.")
+    public ResponseEntity<List<ItemEntradaDTO>> desmembrar(
+            @PathVariable UUID id, @Valid @RequestBody DesmembrarItemDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(itemService.desmembrar(id, dto));
+    }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Remover um item de entrada inteiro da OS",
             description = "Só permitido enquanto o item está pendente de avaliação — o cliente decidiu não "

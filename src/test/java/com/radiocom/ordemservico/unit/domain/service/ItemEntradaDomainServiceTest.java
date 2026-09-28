@@ -79,6 +79,24 @@ class ItemEntradaDomainServiceTest {
     }
 
     @Test
+    @DisplayName("desmembrar deve salvar o item original e o item novo")
+    void desmembrar_deveSalvarOriginalENovo() {
+        ItemEntrada acessorios = ItemEntrada.builder()
+                .osId(UUID.randomUUID())
+                .tipoItem(TipoItem.ACESSORIO)
+                .descricao("Antena UHF")
+                .quantidade(3)
+                .build();
+        when(itemEntradaRepository.findById(itemId)).thenReturn(Optional.of(acessorios));
+
+        List<ItemEntrada> resultado = service.desmembrar(itemId, 1);
+
+        assertThat(resultado).hasSize(2);
+        assertThat(resultado.get(0).getQuantidade()).isEqualTo(2);
+        assertThat(resultado.get(1).getQuantidade()).isEqualTo(1);
+    }
+
+    @Test
     @DisplayName("autorizar deve ir para PENDENTE_MANUTENCAO quando peça está disponível")
     void autorizar_devePendenteManutencaoQuandoPecaDisponivel() {
         item.avaliar("Precisa de bateria nova", false);

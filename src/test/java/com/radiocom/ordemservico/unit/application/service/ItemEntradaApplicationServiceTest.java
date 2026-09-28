@@ -63,6 +63,20 @@ class ItemEntradaApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("desmembrar deve delegar para o domain service e mapear os dois itens")
+    void desmembrar_deveDelegarEMapearAmbosItens() {
+        ItemEntrada original = ItemEntrada.builder()
+                .osId(item.getOsId()).tipoItem(TipoItem.ACESSORIO).descricao("Antena UHF").quantidade(2).build();
+        ItemEntrada novo = ItemEntrada.builder()
+                .osId(item.getOsId()).tipoItem(TipoItem.ACESSORIO).descricao("Antena UHF").quantidade(1).build();
+        when(itemDomainService.desmembrar(itemId, 1)).thenReturn(List.of(original, novo));
+
+        List<ItemEntradaDTO> resultado = service.desmembrar(itemId, DesmembrarItemDTO.builder().quantidade(1).build());
+
+        assertThat(resultado).extracting(ItemEntradaDTO::getQuantidade).containsExactly(2, 1);
+    }
+
+    @Test
     @DisplayName("criar deve mapear o DTO e delegar para o domain service")
     void criar_deveMapearEDelegar() {
         ItemEntradaCreateDTO dto = ItemEntradaCreateDTO.builder()

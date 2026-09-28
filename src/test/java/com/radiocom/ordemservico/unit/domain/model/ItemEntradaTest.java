@@ -410,6 +410,55 @@ class ItemEntradaTest {
                 .isInstanceOf(IllegalStateException.class);
     }
 
+    // ===== desmembrar =====
+
+    private ItemEntrada criarItemComQuantidade(int quantidade) {
+        return ItemEntrada.builder()
+                .osId(osOrigemId)
+                .tipoItem(TipoItem.ACESSORIO)
+                .descricao("Antena UHF")
+                .quantidade(quantidade)
+                .marca("Motorola")
+                .modelo("EP450")
+                .defeitoRelatado("Sem sinal")
+                .build();
+    }
+
+    @Test
+    @DisplayName("desmembrar deve reduzir a quantidade original e criar um item novo com o restante")
+    void desmembrar_deveCriarItemNovo() {
+        ItemEntrada acessorios = criarItemComQuantidade(3);
+
+        ItemEntrada novo = acessorios.desmembrar(1);
+
+        assertThat(acessorios.getQuantidade()).isEqualTo(2);
+        assertThat(novo.getQuantidade()).isEqualTo(1);
+        assertThat(novo.getOsId()).isEqualTo(osOrigemId);
+        assertThat(novo.getDescricao()).isEqualTo("Antena UHF");
+        assertThat(novo.getMarca()).isEqualTo("Motorola");
+        assertThat(novo.getModelo()).isEqualTo("EP450");
+        assertThat(novo.getDefeitoRelatado()).isEqualTo("Sem sinal");
+        assertThat(novo.getStatus()).isEqualTo(StatusItemEntrada.PENDENTE_AVALIACAO);
+    }
+
+    @Test
+    @DisplayName("desmembrar deve lançar exceção quando quantidade é maior ou igual à atual")
+    void desmembrar_deveLancarExcecaoQuandoQuantidadeInvalida() {
+        ItemEntrada acessorios = criarItemComQuantidade(3);
+
+        assertThatThrownBy(() -> acessorios.desmembrar(3)).isInstanceOf(com.radiocom.shared.exception.DomainException.class);
+        assertThatThrownBy(() -> acessorios.desmembrar(0)).isInstanceOf(com.radiocom.shared.exception.DomainException.class);
+    }
+
+    @Test
+    @DisplayName("desmembrar deve lançar exceção quando já avaliado")
+    void desmembrar_deveLancarExcecaoQuandoAvaliado() {
+        ItemEntrada acessorios = criarItemComQuantidade(3);
+        acessorios.avaliar("Sem defeito", true);
+
+        assertThatThrownBy(() -> acessorios.desmembrar(1)).isInstanceOf(IllegalStateException.class);
+    }
+
     // ===== mover entre OS =====
 
     @Test
