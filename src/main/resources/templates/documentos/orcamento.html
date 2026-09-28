@@ -92,8 +92,23 @@
             </tr>
             <tr>
                 <td colspan="3">
-                    <div th:if="${item.avaliacaoTecnica != null}">
+                    <div th:if="${item.defeitoEncontrado != null}">
+                        <span class="lbl">Defeito encontrado:</span> <span th:text="${item.defeitoEncontrado}">—</span>
+                    </div>
+                    <div th:if="${item.defeitoEncontrado == null and item.avaliacaoTecnica != null}">
                         <span class="lbl">Avaliação técnica:</span> <span th:text="${item.avaliacaoTecnica}">—</span>
+                    </div>
+                    <div th:if="${item.causaDefeito != null}">
+                        <span class="lbl">Causa:</span> <span th:text="${item.causaDefeito}">—</span>
+                    </div>
+                    <div th:if="${item.solucaoRecomendada != null}">
+                        <span class="lbl">Solução recomendada:</span> <span th:text="${item.solucaoRecomendada}">—</span>
+                    </div>
+                    <div th:if="${item.detalheAjuste != null}">
+                        <span class="lbl">Detalhe do ajuste:</span> <span th:text="${item.detalheAjuste}">—</span>
+                    </div>
+                    <div th:if="${item.observacoesTecnicas != null}">
+                        <span class="lbl">Observações técnicas:</span> <span th:text="${item.observacoesTecnicas}">—</span>
                     </div>
 
                     <table class="conserto-table" th:if="${not #lists.isEmpty(item.itensConserto)}">
