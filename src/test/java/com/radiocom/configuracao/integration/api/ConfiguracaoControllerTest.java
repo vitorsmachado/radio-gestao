@@ -89,7 +89,12 @@ class ConfiguracaoControllerTest {
     @WithMockUser(roles = "TECNICO")
     @DisplayName("PUT / deve retornar 403 quando não é ADMIN")
     void atualizar_comoTecnico_deveRetornar403() throws Exception {
-        AtualizarConfiguracaoDTO body = AtualizarConfiguracaoDTO.builder().valorMaoDeObraPadrao(new BigDecimal("75.00")).build();
+        AtualizarConfiguracaoDTO body = AtualizarConfiguracaoDTO.builder()
+                .valorMaoDeObraPadrao(new BigDecimal("75.00"))
+                .prazoGarantiaPecaDias(90)
+                .prazoGarantiaEquipamentoDias(90)
+                .prazoGarantiaAcessorioDias(90)
+                .build();
 
         mockMvc.perform(put("/v1/configuracoes")
                         .with(csrf())
