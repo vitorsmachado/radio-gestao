@@ -109,12 +109,6 @@ public class ItemEntradaController {
         return ResponseEntity.ok(itemService.confirmarAguardandoPeca(id));
     }
 
-    @PatchMapping("/{id}/enviar-autorizacao")
-    @Operation(summary = "Marcar orçamento como apresentado ao cliente")
-    public ResponseEntity<ItemEntradaDTO> enviarParaAutorizacao(@PathVariable UUID id) {
-        return ResponseEntity.ok(itemService.enviarParaAutorizacao(id));
-    }
-
     @PatchMapping("/{id}/autorizar")
     @Operation(summary = "Autorizar o conserto",
             description = "Decide automaticamente entre fila de manutenção ou aguardando peça, "

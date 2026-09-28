@@ -142,11 +142,6 @@ public class ItemEntradaApplicationService {
     }
 
     @Transactional
-    public ItemEntradaDTO enviarParaAutorizacao(UUID id) {
-        return comCatalogo(mapper.toDTO(itemDomainService.enviarParaAutorizacao(id)));
-    }
-
-    @Transactional
     public ItemEntradaDTO autorizar(UUID id) {
         ItemEntrada item = itemDomainService.autorizar(id);
         log.info("Item {} autorizado — status: {}", item.getId(), item.getStatus());
