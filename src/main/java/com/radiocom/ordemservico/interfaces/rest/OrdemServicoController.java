@@ -118,14 +118,15 @@ public class OrdemServicoController {
         return ResponseEntity.ok(service.listarFilaManutencao());
     }
 
-    @PostMapping("/{id}/dividir")
-    @Operation(summary = "Dividir a OS",
-            description = "Cria uma OS nova e move os itens escolhidos pra ela — "
-                    + "útil quando o cliente aprova só parte dos itens, ou quando alguns "
-                    + "itens já podem ser entregues enquanto outros aguardam peça.")
-    public ResponseEntity<OrdemServicoDTO> dividir(
-            @PathVariable UUID id, @Valid @RequestBody DividirOSDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.dividir(id, dto));
+    @PostMapping("/{id}/separar")
+    @Operation(summary = "Separar itens da OS em uma ou mais OS novas",
+            description = "Cada grupo de itens vira uma OS nova, tudo numa única transação — "
+                    + "útil quando o cliente aprova só parte dos itens, quando alguns itens já "
+                    + "podem ser entregues enquanto outros aguardam peça, ou quando dá pra formar "
+                    + "mais de um kit de uma vez.")
+    public ResponseEntity<List<OrdemServicoDTO>> separar(
+            @PathVariable UUID id, @Valid @RequestBody SepararOSDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.separar(id, dto));
     }
 
     @PostMapping("/{id}/unir")

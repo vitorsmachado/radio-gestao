@@ -204,21 +204,22 @@ class OrdemServicoControllerTest {
     }
 
     @Test
-    @DisplayName("POST /{id}/dividir deve retornar 201 com a nova OS")
-    void dividir_deveRetornar201() throws Exception {
+    @DisplayName("POST /{id}/separar deve retornar 201 com as novas OS")
+    void separar_deveRetornar201() throws Exception {
         OrdemServicoDTO novaOS = OrdemServicoDTO.builder()
                 .id(UUID.randomUUID()).numero("OS-2026-0002").clienteId(clienteId).build();
-        when(service.dividir(eq(osId), any(DividirOSDTO.class))).thenReturn(novaOS);
+        when(service.separar(eq(osId), any(SepararOSDTO.class))).thenReturn(List.of(novaOS));
 
-        DividirOSDTO dto = DividirOSDTO.builder()
-                .itemIds(List.of(UUID.randomUUID())).solicitante("Técnico João").build();
+        SepararOSDTO dto = SepararOSDTO.builder()
+                .grupos(List.of(SepararOSDTO.GrupoItensDTO.builder().itemIds(List.of(UUID.randomUUID())).build()))
+                .solicitante("Técnico João").build();
 
-        mockMvc.perform(post("/v1/ordens-servico/{id}/dividir", osId)
+        mockMvc.perform(post("/v1/ordens-servico/{id}/separar", osId)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.numero").value("OS-2026-0002"));
+                .andExpect(jsonPath("$[0].numero").value("OS-2026-0002"));
     }
 
     @Test

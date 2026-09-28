@@ -270,10 +270,14 @@ public class OrdemServicoApplicationService {
     }
 
     @Transactional
-    public OrdemServicoDTO dividir(UUID osOrigemId, DividirOSDTO dto) {
-        OrdemServico novaOS = osDomainService.dividir(osOrigemId, dto.getItemIds(), dto.getSolicitante());
-        log.info("OS {} dividida — nova OS: {}", osOrigemId, novaOS.getNumero());
-        return mapper.toDTO(novaOS);
+    public List<OrdemServicoDTO> separar(UUID osOrigemId, SepararOSDTO dto) {
+        List<List<UUID>> grupos = dto.getGrupos().stream()
+                .map(SepararOSDTO.GrupoItensDTO::getItemIds)
+                .toList();
+        List<OrdemServico> novas = osDomainService.separarEmGrupos(osOrigemId, grupos, dto.getSolicitante());
+        log.info("OS {} separada em {} nova(s) OS: {}", osOrigemId, novas.size(),
+                novas.stream().map(OrdemServico::getNumero).toList());
+        return novas.stream().map(mapper::toDTO).toList();
     }
 
     @Transactional

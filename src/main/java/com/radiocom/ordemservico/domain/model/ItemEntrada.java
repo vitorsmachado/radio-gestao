@@ -358,6 +358,7 @@ public class ItemEntrada extends BaseEntity {
             throw new IllegalArgumentException("Nova OS não pode ser nula");
         }
         this.osId = novaOsId;
+        this.orcamentoId = null;
     }
 
     // ===== AGRUPAMENTO EM ORÇAMENTO =====

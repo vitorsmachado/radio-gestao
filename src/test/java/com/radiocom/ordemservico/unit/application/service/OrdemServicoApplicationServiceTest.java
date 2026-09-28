@@ -228,16 +228,24 @@ class OrdemServicoApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("dividir deve delegar e retornar a nova OS")
-    void dividir_deveDelegar() {
-        UUID itemId = UUID.randomUUID();
-        OrdemServico novaOS = OrdemServico.builder().numero("OS-2026-0002").clienteId(clienteId).build();
-        when(osDomainService.dividir(eq(osId), eq(List.of(itemId)), eq("Técnico João"))).thenReturn(novaOS);
+    @DisplayName("separar deve delegar e retornar as novas OS")
+    void separar_deveDelegar() {
+        UUID item1 = UUID.randomUUID();
+        UUID item2 = UUID.randomUUID();
+        OrdemServico novaOS1 = OrdemServico.builder().numero("OS-2026-0002").clienteId(clienteId).build();
+        OrdemServico novaOS2 = OrdemServico.builder().numero("OS-2026-0003").clienteId(clienteId).build();
+        when(osDomainService.separarEmGrupos(eq(osId), eq(List.of(List.of(item1), List.of(item2))), eq("Técnico João")))
+                .thenReturn(List.of(novaOS1, novaOS2));
 
-        OrdemServicoDTO resultado = service.dividir(osId,
-                DividirOSDTO.builder().itemIds(List.of(itemId)).solicitante("Técnico João").build());
+        List<OrdemServicoDTO> resultado = service.separar(osId, SepararOSDTO.builder()
+                .grupos(List.of(
+                        SepararOSDTO.GrupoItensDTO.builder().itemIds(List.of(item1)).build(),
+                        SepararOSDTO.GrupoItensDTO.builder().itemIds(List.of(item2)).build()))
+                .solicitante("Técnico João")
+                .build());
 
-        assertThat(resultado.getNumero()).isEqualTo("OS-2026-0002");
+        assertThat(resultado).extracting(OrdemServicoDTO::getNumero)
+                .containsExactly("OS-2026-0002", "OS-2026-0003");
     }
 
     @Test

@@ -199,6 +199,24 @@ public class OrdemServicoDomainService {
     }
 
     /**
+     * Separa os itens da OS de origem em vários grupos, cada um virando uma
+     * OS nova — tudo numa única transação: se um grupo falhar, nenhum item
+     * se move. Útil quando dá pra formar mais de um kit de uma vez (ex.:
+     * vários rádios com seus acessórios, e os itens avulsos numa terceira OS).
+     */
+    @Transactional
+    public List<OrdemServico> separarEmGrupos(UUID osOrigemId, List<List<UUID>> grupos, String solicitante) {
+        List<List<UUID>> gruposComItens = grupos == null ? List.of()
+                : grupos.stream().filter(g -> g != null && !g.isEmpty()).toList();
+        if (gruposComItens.isEmpty()) {
+            throw new DomainException("Selecione ao menos um grupo com item para separar");
+        }
+        return gruposComItens.stream()
+                .map(itemIds -> dividir(osOrigemId, itemIds, solicitante))
+                .toList();
+    }
+
+    /**
      * Move todos os itens das OS de origem para a OS destino e cancela as
      * origens que ficarem vazias.
      */

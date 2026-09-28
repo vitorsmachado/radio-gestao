@@ -279,6 +279,54 @@ class OrdemServicoDomainServiceTest {
                 .hasMessageContaining("Selecione ao menos um item");
     }
 
+    // ===== separarEmGrupos =====
+
+    @Test
+    @DisplayName("separarEmGrupos deve criar uma OS nova por grupo")
+    void separarEmGrupos_deveCriarUmaOSPorGrupo() {
+        UUID item1 = UUID.randomUUID();
+        UUID item2 = UUID.randomUUID();
+        ItemEntrada entrada1 = ItemEntrada.builder()
+                .osId(osId).tipoItem(com.radiocom.estoque.domain.model.enums.TipoItem.EQUIPAMENTO)
+                .descricao("Rádio 1").build();
+        ItemEntrada entrada2 = ItemEntrada.builder()
+                .osId(osId).tipoItem(com.radiocom.estoque.domain.model.enums.TipoItem.EQUIPAMENTO)
+                .descricao("Rádio 2").build();
+
+        when(osRepository.findById(any())).thenReturn(Optional.of(os));
+        when(numeroGenerator.gerarNumero()).thenReturn("OS-2026-0002", "OS-2026-0003");
+        when(osRepository.save(any(OrdemServico.class))).thenAnswer(inv -> {
+            OrdemServico novaOSEntidade = inv.getArgument(0);
+            if (novaOSEntidade.getId() == null) {
+                ReflectionTestUtils.setField(novaOSEntidade, "id", UUID.randomUUID());
+            }
+            return novaOSEntidade;
+        });
+        when(itemEntradaRepository.findById(item1)).thenReturn(Optional.of(entrada1));
+        when(itemEntradaRepository.findById(item2)).thenReturn(Optional.of(entrada2));
+
+        List<OrdemServico> novas = service.separarEmGrupos(
+                osId, List.of(List.of(item1), List.of(item2)), "Técnico João");
+
+        assertThat(novas).hasSize(2);
+        assertThat(novas.get(0).getNumero()).isEqualTo("OS-2026-0002");
+        assertThat(novas.get(1).getNumero()).isEqualTo("OS-2026-0003");
+        assertThat(entrada1.getOsId()).isEqualTo(novas.get(0).getId());
+        assertThat(entrada2.getOsId()).isEqualTo(novas.get(1).getId());
+    }
+
+    @Test
+    @DisplayName("separarEmGrupos deve lançar exceção quando não há grupo com item")
+    void separarEmGrupos_deveLancarExcecaoQuandoSemGrupos() {
+        assertThatThrownBy(() -> service.separarEmGrupos(osId, List.of(), "Técnico João"))
+                .isInstanceOf(DomainException.class)
+                .hasMessageContaining("Selecione ao menos um grupo");
+
+        assertThatThrownBy(() -> service.separarEmGrupos(osId, List.of(List.of()), "Técnico João"))
+                .isInstanceOf(DomainException.class)
+                .hasMessageContaining("Selecione ao menos um grupo");
+    }
+
     // ===== unir =====
 
     @Test

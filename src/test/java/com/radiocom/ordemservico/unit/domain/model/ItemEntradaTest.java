@@ -423,6 +423,16 @@ class ItemEntradaTest {
     }
 
     @Test
+    @DisplayName("moverParaOS deve limpar o orçamento vinculado")
+    void moverParaOS_deveLimparOrcamento() {
+        item.atribuirOrcamento(UUID.randomUUID());
+
+        item.moverParaOS(UUID.randomUUID());
+
+        assertThat(item.getOrcamentoId()).isNull();
+    }
+
+    @Test
     @DisplayName("moverParaOS deve lançar exceção quando item já entregue")
     void moverParaOS_deveLancarExcecaoQuandoEntregue() {
         item.avaliar("Sem defeito", true);
