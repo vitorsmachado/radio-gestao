@@ -163,6 +163,13 @@ public class OrcamentoApplicationService {
     }
 
     @Transactional
+    public OrcamentoDTO reabrir(UUID id) {
+        Orcamento orcamento = orcamentoDomainService.reabrir(id);
+        log.info("Orçamento {} reaberto para edição", orcamento.getNumero());
+        return toDTOComItens(orcamento);
+    }
+
+    @Transactional
     public OrcamentoDTO cancelar(UUID id, MotivoDTO dto) {
         return toDTOComItens(orcamentoDomainService.cancelar(id, dto.getMotivo()));
     }

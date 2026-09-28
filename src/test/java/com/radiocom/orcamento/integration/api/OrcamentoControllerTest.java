@@ -186,6 +186,17 @@ class OrcamentoControllerTest {
     }
 
     @Test
+    @DisplayName("PATCH /{id}/reabrir deve retornar 200")
+    void reabrir_deveRetornar200() throws Exception {
+        orcamentoDTO.setStatus(StatusOrcamento.RASCUNHO);
+        when(service.reabrir(orcamentoId)).thenReturn(orcamentoDTO);
+
+        mockMvc.perform(patch("/v1/orcamentos/{id}/reabrir", orcamentoId).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("RASCUNHO"));
+    }
+
+    @Test
     @DisplayName("PATCH /{id}/cancelar deve retornar 200")
     void cancelar_deveRetornar200() throws Exception {
         orcamentoDTO.setStatus(StatusOrcamento.CANCELADO);

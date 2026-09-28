@@ -103,6 +103,14 @@ public class OrcamentoController {
         return ResponseEntity.ok(service.enviar(id));
     }
 
+    @PatchMapping("/{id}/reabrir")
+    @Operation(summary = "Reabrir orçamento enviado para edição",
+            description = "Volta o orçamento ENVIADO para RASCUNHO, liberando peças, valores, desconto e "
+                    + "condições pra edição. Precisa ser enviado de novo depois de ajustado.")
+    public ResponseEntity<OrcamentoDTO> reabrir(@PathVariable UUID id) {
+        return ResponseEntity.ok(service.reabrir(id));
+    }
+
     @PatchMapping("/{id}/cancelar")
     @Operation(summary = "Cancelar o orçamento")
     public ResponseEntity<OrcamentoDTO> cancelar(

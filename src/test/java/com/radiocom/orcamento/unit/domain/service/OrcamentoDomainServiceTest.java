@@ -206,6 +206,27 @@ class OrcamentoDomainServiceTest {
         assertThat(resultado.getStatus()).isEqualTo(com.radiocom.orcamento.domain.model.enums.StatusOrcamento.ENVIADO);
     }
 
+    @Test
+    @DisplayName("reabrir deve voltar orçamento ENVIADO para RASCUNHO")
+    void reabrir_deveVoltarParaRascunho() {
+        orcamento.enviar();
+        when(orcamentoRepository.findById(orcamentoId)).thenReturn(Optional.of(orcamento));
+        when(orcamentoRepository.save(any(Orcamento.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Orcamento resultado = service.reabrir(orcamentoId);
+
+        assertThat(resultado.getStatus()).isEqualTo(com.radiocom.orcamento.domain.model.enums.StatusOrcamento.RASCUNHO);
+    }
+
+    @Test
+    @DisplayName("reabrir deve lançar exceção quando orçamento não está ENVIADO")
+    void reabrir_deveLancarExcecaoQuandoNaoEnviado() {
+        when(orcamentoRepository.findById(orcamentoId)).thenReturn(Optional.of(orcamento));
+
+        assertThatThrownBy(() -> service.reabrir(orcamentoId))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
     // ===== calcularStatusAprovacao =====
 
     @Test

@@ -133,6 +133,18 @@ class OrcamentoApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("reabrir deve delegar para o domain service")
+    void reabrir_deveDelegar() {
+        orcamento.enviar();
+        orcamento.reabrir();
+        when(orcamentoDomainService.reabrir(orcamentoId)).thenReturn(orcamento);
+
+        OrcamentoDTO resultado = service.reabrir(orcamentoId);
+
+        assertThat(resultado.getStatus()).isEqualTo(StatusOrcamento.RASCUNHO);
+    }
+
+    @Test
     @DisplayName("cancelar deve delegar e registrar o motivo")
     void cancelar_deveDelegarERegistrarMotivo() {
         orcamento.cancelar("Cliente desistiu");

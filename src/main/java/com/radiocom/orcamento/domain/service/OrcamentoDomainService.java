@@ -206,6 +206,14 @@ public class OrcamentoDomainService {
         return orcamentoRepository.save(orcamento);
     }
 
+    /** Reabertura manual — admin decide reabrir um orçamento já enviado pra corrigir peças/valores/condições. */
+    @Transactional
+    public Orcamento reabrir(UUID id) {
+        Orcamento orcamento = buscarPorId(id);
+        orcamento.reabrir();
+        return orcamentoRepository.save(orcamento);
+    }
+
     @Transactional
     public Orcamento cancelar(UUID id, String motivo) {
         Orcamento orcamento = buscarPorId(id);
