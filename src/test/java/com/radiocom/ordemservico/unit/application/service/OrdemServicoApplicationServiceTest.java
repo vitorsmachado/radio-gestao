@@ -249,12 +249,14 @@ class OrdemServicoApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("unir deve delegar e retornar a OS destino")
+    @DisplayName("unir deve delegar e retornar a OS nova")
     void unir_deveDelegar() {
-        UUID origemId = UUID.randomUUID();
-        when(osDomainService.unir(osId, List.of(origemId))).thenReturn(os);
+        UUID origem1Id = UUID.randomUUID();
+        UUID origem2Id = UUID.randomUUID();
+        when(osDomainService.unir(List.of(origem1Id, origem2Id), "Técnico João")).thenReturn(os);
 
-        OrdemServicoDTO resultado = service.unir(osId, UnirOSDTO.builder().osOrigemIds(List.of(origemId)).build());
+        OrdemServicoDTO resultado = service.unir(UnirOSDTO.builder()
+                .osOrigemIds(List.of(origem1Id, origem2Id)).solicitante("Técnico João").build());
 
         assertThat(resultado.getId()).isEqualTo(osId);
     }

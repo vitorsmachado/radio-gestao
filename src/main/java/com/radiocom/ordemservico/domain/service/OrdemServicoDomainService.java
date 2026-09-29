@@ -217,23 +217,30 @@ public class OrdemServicoDomainService {
     }
 
     /**
-     * Move todos os itens das OS de origem para a OS destino e cancela as
-     * origens que ficarem vazias.
+     * Cria uma OS nova e move pra ela todos os itens das OS selecionadas,
+     * cancelando as origens que ficarem vazias — todas precisam ser do
+     * mesmo cliente, senão os itens ficariam atribuídos ao cliente errado.
      */
     @Transactional
-    public OrdemServico unir(UUID osDestinoId, List<UUID> osOrigemIds) {
-        OrdemServico destino = buscarPorId(osDestinoId);
-        for (UUID origemId : osOrigemIds) {
-            if (origemId.equals(osDestinoId)) continue;
+    public OrdemServico unir(List<UUID> osOrigemIds, String solicitante) {
+        if (osOrigemIds == null || osOrigemIds.size() < 2) {
+            throw new DomainException("Selecione ao menos duas OS para unir");
+        }
+        List<OrdemServico> origens = osOrigemIds.stream().map(this::buscarPorId).toList();
+        UUID clienteId = origens.get(0).getClienteId();
+        if (origens.stream().anyMatch(os -> !os.getClienteId().equals(clienteId))) {
+            throw new DomainException("Todas as OS precisam ser do mesmo cliente para unir");
+        }
 
-            List<ItemEntrada> itens = itemEntradaRepository.findByOsId(origemId);
-            itens.forEach(item -> moverItem(item.getId(), osDestinoId));
+        OrdemServico novaOS = criar(clienteId, null, null, solicitante);
+        for (OrdemServico origem : origens) {
+            List<ItemEntrada> itens = itemEntradaRepository.findByOsId(origem.getId());
+            itens.forEach(item -> moverItem(item.getId(), novaOS.getId()));
 
-            OrdemServico origem = buscarPorId(origemId);
             if (!origem.isEncerrada()) {
-                cancelar(origemId, "Itens unidos à OS " + destino.getNumero());
+                cancelar(origem.getId(), "Itens unidos à OS " + novaOS.getNumero());
             }
         }
-        return destino;
+        return novaOS;
     }
 }

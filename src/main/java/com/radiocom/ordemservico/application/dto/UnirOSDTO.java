@@ -1,6 +1,7 @@
 package com.radiocom.ordemservico.application.dto;
 
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,4 +18,7 @@ public class UnirOSDTO {
 
     @NotEmpty
     private List<UUID> osOrigemIds;
+
+    @Size(max = 100)
+    private String solicitante;
 }

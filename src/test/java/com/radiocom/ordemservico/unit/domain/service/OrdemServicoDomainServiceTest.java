@@ -330,28 +330,69 @@ class OrdemServicoDomainServiceTest {
     // ===== unir =====
 
     @Test
-    @DisplayName("unir deve mover itens das origens para o destino e cancelar as origens vazias")
-    void unir_deveMoverItensECancelarOrigens() {
-        UUID origemId = UUID.randomUUID();
-        OrdemServico origem = OrdemServico.builder().numero("OS-2026-0003").clienteId(clienteId).build();
-        ReflectionTestUtils.setField(origem, "id", origemId);
+    @DisplayName("unir deve criar OS nova, mover itens das origens e cancelar as origens vazias")
+    void unir_deveCriarNovaOSEMoverItensECancelarOrigens() {
+        UUID origem1Id = UUID.randomUUID();
+        OrdemServico origem1 = OrdemServico.builder().numero("OS-2026-0001").clienteId(clienteId).build();
+        ReflectionTestUtils.setField(origem1, "id", origem1Id);
+
+        UUID origem2Id = UUID.randomUUID();
+        OrdemServico origem2 = OrdemServico.builder().numero("OS-2026-0002").clienteId(clienteId).build();
+        ReflectionTestUtils.setField(origem2, "id", origem2Id);
 
         UUID itemId = UUID.randomUUID();
         ItemEntrada item = ItemEntrada.builder()
-                .osId(origemId)
+                .osId(origem1Id)
                 .tipoItem(com.radiocom.estoque.domain.model.enums.TipoItem.EQUIPAMENTO)
                 .descricao("Rádio").build();
         ReflectionTestUtils.setField(item, "id", itemId);
 
-        when(osRepository.findById(osId)).thenReturn(Optional.of(os));
-        when(osRepository.findById(origemId)).thenReturn(Optional.of(origem));
-        when(itemEntradaRepository.findByOsId(origemId)).thenReturn(List.of(item));
+        // fallback pra buscarPorId(novaOsId) dentro de moverItem — só valida existência, não usa o conteúdo
+        when(osRepository.findById(any())).thenReturn(Optional.of(origem1));
+        when(osRepository.findById(origem1Id)).thenReturn(Optional.of(origem1));
+        when(osRepository.findById(origem2Id)).thenReturn(Optional.of(origem2));
+        when(itemEntradaRepository.findByOsId(origem1Id)).thenReturn(List.of(item));
+        when(itemEntradaRepository.findByOsId(origem2Id)).thenReturn(List.of());
         when(itemEntradaRepository.findById(itemId)).thenReturn(Optional.of(item));
-        when(osRepository.save(any(OrdemServico.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(numeroGenerator.gerarNumero()).thenReturn("OS-2026-0003");
+        when(osRepository.save(any(OrdemServico.class))).thenAnswer(inv -> {
+            OrdemServico novaOSEntidade = inv.getArgument(0);
+            if (novaOSEntidade.getId() == null) {
+                ReflectionTestUtils.setField(novaOSEntidade, "id", UUID.randomUUID());
+            }
+            return novaOSEntidade;
+        });
 
-        service.unir(osId, List.of(origemId));
+        OrdemServico novaOS = service.unir(List.of(origem1Id, origem2Id), "Técnico João");
 
-        assertThat(item.getOsId()).isEqualTo(osId);
-        assertThat(origem.isEncerrada()).isTrue();
+        assertThat(novaOS.getNumero()).isEqualTo("OS-2026-0003");
+        assertThat(novaOS.getClienteId()).isEqualTo(clienteId);
+        assertThat(item.getOsId()).isEqualTo(novaOS.getId());
+        assertThat(origem1.isEncerrada()).isTrue();
+        assertThat(origem2.isEncerrada()).isTrue();
+    }
+
+    @Test
+    @DisplayName("unir deve lançar exceção quando menos de duas OS são selecionadas")
+    void unir_deveLancarExcecaoQuandoMenosDeDuasOS() {
+        assertThatThrownBy(() -> service.unir(List.of(osId), null))
+                .isInstanceOf(DomainException.class)
+                .hasMessageContaining("ao menos duas OS");
+    }
+
+    @Test
+    @DisplayName("unir deve lançar exceção quando as OS são de clientes diferentes")
+    void unir_deveLancarExcecaoQuandoClientesDiferentes() {
+        UUID outroClienteId = UUID.randomUUID();
+        UUID outraOsId = UUID.randomUUID();
+        OrdemServico outraOs = OrdemServico.builder().numero("OS-2026-0002").clienteId(outroClienteId).build();
+        ReflectionTestUtils.setField(outraOs, "id", outraOsId);
+
+        when(osRepository.findById(osId)).thenReturn(Optional.of(os));
+        when(osRepository.findById(outraOsId)).thenReturn(Optional.of(outraOs));
+
+        assertThatThrownBy(() -> service.unir(List.of(osId, outraOsId), null))
+                .isInstanceOf(DomainException.class)
+                .hasMessageContaining("mesmo cliente");
     }
 }

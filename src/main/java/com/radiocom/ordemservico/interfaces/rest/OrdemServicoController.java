@@ -129,12 +129,12 @@ public class OrdemServicoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.separar(id, dto));
     }
 
-    @PostMapping("/{id}/unir")
-    @Operation(summary = "Unir outras OS a esta",
-            description = "Move todos os itens das OS de origem para esta OS e cancela as origens.")
-    public ResponseEntity<OrdemServicoDTO> unir(
-            @PathVariable UUID id, @Valid @RequestBody UnirOSDTO dto) {
-        return ResponseEntity.ok(service.unir(id, dto));
+    @PostMapping("/unir")
+    @Operation(summary = "Unir OS numa OS nova",
+            description = "Cria uma OS nova, move pra ela todos os itens das OS selecionadas e cancela as "
+                    + "origens que ficarem vazias. Todas precisam ser do mesmo cliente.")
+    public ResponseEntity<OrdemServicoDTO> unir(@Valid @RequestBody UnirOSDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.unir(dto));
     }
 
     @GetMapping("/{id}/pdf")

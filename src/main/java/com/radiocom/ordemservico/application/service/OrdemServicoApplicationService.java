@@ -281,9 +281,9 @@ public class OrdemServicoApplicationService {
     }
 
     @Transactional
-    public OrdemServicoDTO unir(UUID osDestinoId, UnirOSDTO dto) {
-        OrdemServico destino = osDomainService.unir(osDestinoId, dto.getOsOrigemIds());
-        log.info("OS(s) {} unidas em: {}", dto.getOsOrigemIds(), destino.getNumero());
-        return mapper.toDTO(destino);
+    public OrdemServicoDTO unir(UnirOSDTO dto) {
+        OrdemServico novaOS = osDomainService.unir(dto.getOsOrigemIds(), dto.getSolicitante());
+        log.info("OS(s) {} unidas em: {}", dto.getOsOrigemIds(), novaOS.getNumero());
+        return mapper.toDTO(novaOS);
     }
 }
