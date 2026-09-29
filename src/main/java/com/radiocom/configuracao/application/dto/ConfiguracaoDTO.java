@@ -17,4 +17,14 @@ public class ConfiguracaoDTO {
     private Integer prazoGarantiaPecaDias;
     private Integer prazoGarantiaEquipamentoDias;
     private Integer prazoGarantiaAcessorioDias;
+
+    private String nomeEmpresa;
+    private String razaoSocialEmpresa;
+    private String documentoEmpresa;
+    private String inscricaoEstadualEmpresa;
+    private String enderecoEmpresa;
+    private String bairroEmpresa;
+    private String cidadeEmpresa;
+    private String telefoneEmpresa;
+    private String emailEmpresa;
 }

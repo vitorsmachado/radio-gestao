@@ -38,6 +38,8 @@ class ConfiguracaoDomainServiceTest {
                 .prazoGarantiaPecaDias(90)
                 .prazoGarantiaEquipamentoDias(90)
                 .prazoGarantiaAcessorioDias(90)
+                .nomeEmpresa("Teletrom")
+                .documentoEmpresa("59273032000103")
                 .build();
     }
 
@@ -63,11 +65,36 @@ class ConfiguracaoDomainServiceTest {
         when(repository.findFirstByOrderByDataCriacaoAsc()).thenReturn(Optional.of(configuracao));
         when(repository.save(any(Configuracao.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Configuracao resultado = service.atualizar(new BigDecimal("75.00"), 30, 60, 45);
+        Configuracao dados = Configuracao.builder()
+                .valorMaoDeObraPadrao(new BigDecimal("75.00"))
+                .prazoGarantiaPecaDias(30)
+                .prazoGarantiaEquipamentoDias(60)
+                .prazoGarantiaAcessorioDias(45)
+                .nomeEmpresa("Teletrom")
+                .razaoSocialEmpresa("Teletrom Comércio e Serviços Ltda")
+                .documentoEmpresa("59273032000103")
+                .inscricaoEstadualEmpresa("0836629500144")
+                .enderecoEmpresa("Rua Exemplo, 100")
+                .bairroEmpresa("Centro")
+                .cidadeEmpresa("São Paulo")
+                .telefoneEmpresa("(11) 99999-9999")
+                .emailEmpresa("contato@teletrom.com.br")
+                .build();
+
+        Configuracao resultado = service.atualizar(dados);
 
         assertThat(resultado.getValorMaoDeObraPadrao()).isEqualByComparingTo("75.00");
         assertThat(resultado.getPrazoGarantiaPecaDias()).isEqualTo(30);
         assertThat(resultado.getPrazoGarantiaEquipamentoDias()).isEqualTo(60);
         assertThat(resultado.getPrazoGarantiaAcessorioDias()).isEqualTo(45);
+        assertThat(resultado.getNomeEmpresa()).isEqualTo("Teletrom");
+        assertThat(resultado.getRazaoSocialEmpresa()).isEqualTo("Teletrom Comércio e Serviços Ltda");
+        assertThat(resultado.getDocumentoEmpresa()).isEqualTo("59273032000103");
+        assertThat(resultado.getInscricaoEstadualEmpresa()).isEqualTo("0836629500144");
+        assertThat(resultado.getEnderecoEmpresa()).isEqualTo("Rua Exemplo, 100");
+        assertThat(resultado.getBairroEmpresa()).isEqualTo("Centro");
+        assertThat(resultado.getCidadeEmpresa()).isEqualTo("São Paulo");
+        assertThat(resultado.getTelefoneEmpresa()).isEqualTo("(11) 99999-9999");
+        assertThat(resultado.getEmailEmpresa()).isEqualTo("contato@teletrom.com.br");
     }
 }

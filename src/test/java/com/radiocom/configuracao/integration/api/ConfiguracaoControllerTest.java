@@ -73,6 +73,8 @@ class ConfiguracaoControllerTest {
                 .prazoGarantiaPecaDias(90)
                 .prazoGarantiaEquipamentoDias(90)
                 .prazoGarantiaAcessorioDias(90)
+                .nomeEmpresa("Teletrom")
+                .documentoEmpresa("59273032000103")
                 .build();
         dto.setValorMaoDeObraPadrao(new BigDecimal("75.00"));
         when(service.atualizar(any(AtualizarConfiguracaoDTO.class))).thenReturn(dto);
@@ -94,6 +96,8 @@ class ConfiguracaoControllerTest {
                 .prazoGarantiaPecaDias(90)
                 .prazoGarantiaEquipamentoDias(90)
                 .prazoGarantiaAcessorioDias(90)
+                .nomeEmpresa("Teletrom")
+                .documentoEmpresa("59273032000103")
                 .build();
 
         mockMvc.perform(put("/v1/configuracoes")

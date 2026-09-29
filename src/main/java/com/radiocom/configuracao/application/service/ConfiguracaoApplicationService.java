@@ -21,8 +21,22 @@ public class ConfiguracaoApplicationService {
 
     @Transactional
     public ConfiguracaoDTO atualizar(AtualizarConfiguracaoDTO dto) {
-        return toDTO(domainService.atualizar(dto.getValorMaoDeObraPadrao(), dto.getPrazoGarantiaPecaDias(),
-                dto.getPrazoGarantiaEquipamentoDias(), dto.getPrazoGarantiaAcessorioDias()));
+        Configuracao dados = Configuracao.builder()
+                .valorMaoDeObraPadrao(dto.getValorMaoDeObraPadrao())
+                .prazoGarantiaPecaDias(dto.getPrazoGarantiaPecaDias())
+                .prazoGarantiaEquipamentoDias(dto.getPrazoGarantiaEquipamentoDias())
+                .prazoGarantiaAcessorioDias(dto.getPrazoGarantiaAcessorioDias())
+                .nomeEmpresa(dto.getNomeEmpresa())
+                .razaoSocialEmpresa(dto.getRazaoSocialEmpresa())
+                .documentoEmpresa(dto.getDocumentoEmpresa())
+                .inscricaoEstadualEmpresa(dto.getInscricaoEstadualEmpresa())
+                .enderecoEmpresa(dto.getEnderecoEmpresa())
+                .bairroEmpresa(dto.getBairroEmpresa())
+                .cidadeEmpresa(dto.getCidadeEmpresa())
+                .telefoneEmpresa(dto.getTelefoneEmpresa())
+                .emailEmpresa(dto.getEmailEmpresa())
+                .build();
+        return toDTO(domainService.atualizar(dados));
     }
 
     private ConfiguracaoDTO toDTO(Configuracao c) {
@@ -31,6 +45,15 @@ public class ConfiguracaoApplicationService {
                 .prazoGarantiaPecaDias(c.getPrazoGarantiaPecaDias())
                 .prazoGarantiaEquipamentoDias(c.getPrazoGarantiaEquipamentoDias())
                 .prazoGarantiaAcessorioDias(c.getPrazoGarantiaAcessorioDias())
+                .nomeEmpresa(c.getNomeEmpresa())
+                .razaoSocialEmpresa(c.getRazaoSocialEmpresa())
+                .documentoEmpresa(c.getDocumentoEmpresa())
+                .inscricaoEstadualEmpresa(c.getInscricaoEstadualEmpresa())
+                .enderecoEmpresa(c.getEnderecoEmpresa())
+                .bairroEmpresa(c.getBairroEmpresa())
+                .cidadeEmpresa(c.getCidadeEmpresa())
+                .telefoneEmpresa(c.getTelefoneEmpresa())
+                .emailEmpresa(c.getEmailEmpresa())
                 .build();
     }
 }

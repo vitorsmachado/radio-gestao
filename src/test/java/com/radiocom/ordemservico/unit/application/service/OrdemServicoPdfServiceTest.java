@@ -6,6 +6,8 @@ import com.radiocom.cliente.domain.model.Cliente;
 import com.radiocom.cliente.domain.model.Posto;
 import com.radiocom.cliente.domain.model.enums.TipoPessoa;
 import com.radiocom.cliente.domain.service.ClienteDomainService;
+import com.radiocom.configuracao.domain.model.Configuracao;
+import com.radiocom.configuracao.domain.service.ConfiguracaoDomainService;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import com.radiocom.ordemservico.application.service.OrdemServicoPdfService;
 import com.radiocom.ordemservico.domain.model.ItemConserto;
@@ -33,6 +35,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 /**
@@ -49,6 +52,7 @@ class OrdemServicoPdfServiceTest {
     @Mock private OrdemServicoDomainService osDomainService;
     @Mock private ItemEntradaDomainService itemEntradaDomainService;
     @Mock private ClienteDomainService clienteDomainService;
+    @Mock private ConfiguracaoDomainService configuracaoDomainService;
     @Mock private UsuarioRepository usuarioRepository;
 
     private OrdemServicoPdfService service;
@@ -62,13 +66,30 @@ class OrdemServicoPdfServiceTest {
     void setUp() {
         SpringTemplateEngine templateEngine = criarTemplateEngineReal();
         service = new OrdemServicoPdfService(
-                osDomainService, itemEntradaDomainService, clienteDomainService,
+                osDomainService, itemEntradaDomainService, clienteDomainService, configuracaoDomainService,
                 usuarioRepository, new PdfRenderer(), templateEngine);
 
         osId = UUID.randomUUID();
         clienteId = UUID.randomUUID();
         postoId = UUID.randomUUID();
         tecnicoId = UUID.randomUUID();
+
+        Configuracao empresa = Configuracao.builder()
+                .valorMaoDeObraPadrao(BigDecimal.ZERO)
+                .prazoGarantiaPecaDias(90)
+                .prazoGarantiaEquipamentoDias(90)
+                .prazoGarantiaAcessorioDias(90)
+                .nomeEmpresa("Teletrom")
+                .razaoSocialEmpresa("Teletrom Comércio e Serviços Ltda")
+                .documentoEmpresa("59273032000103")
+                .inscricaoEstadualEmpresa("0836629500144")
+                .enderecoEmpresa("Av. Industrial, 500")
+                .bairroEmpresa("Distrito Industrial")
+                .cidadeEmpresa("São Paulo/SP")
+                .telefoneEmpresa("(11) 4002-8922")
+                .emailEmpresa("contato@teletrom.com.br")
+                .build();
+        lenient().when(configuracaoDomainService.buscar()).thenReturn(empresa);
     }
 
     private SpringTemplateEngine criarTemplateEngineReal() {
@@ -99,11 +120,22 @@ class OrdemServicoPdfServiceTest {
         Posto posto = Posto.builder().nome("Matriz").responsavel("Maria Souza").build();
         ReflectionTestUtils.setField(posto, "id", postoId);
 
+        com.radiocom.cliente.domain.model.Endereco endereco = com.radiocom.cliente.domain.model.Endereco.builder()
+                .cep("01310100").logradouro("Av. Paulista").numero("1000")
+                .bairro("Bela Vista").cidade("São Paulo").estado("SP").build();
+
+        com.radiocom.cliente.domain.model.Contato contato = com.radiocom.cliente.domain.model.Contato.builder()
+                .nome("Carlos Mendes").telefone("11988887777").principal(true)
+                .tipo(com.radiocom.cliente.domain.model.enums.TipoContato.TECNICO).build();
+
         Cliente cliente = Cliente.builder()
                 .tipo(TipoPessoa.PESSOA_JURIDICA)
                 .documento("11222333000181")
                 .nomeRazaoSocial("Empresa Cliente Ltda")
+                .numeroIdentificacao(4821)
+                .endereco(endereco)
                 .postos(new java.util.LinkedHashSet<>(java.util.Set.of(posto)))
+                .contatos(new java.util.LinkedHashSet<>(java.util.Set.of(contato)))
                 .build();
         ReflectionTestUtils.setField(cliente, "id", clienteId);
 
@@ -219,10 +251,14 @@ class OrdemServicoPdfServiceTest {
 
         Context ctx = new Context();
         ctx.setVariable("os", os);
-        ctx.setVariable("itens", List.of(itemAutorizado, itemNaoAutorizado));
+        ctx.setVariable("equipamentos", List.of(itemAutorizado, itemNaoAutorizado));
+        ctx.setVariable("acessorios", List.of());
         ctx.setVariable("cliente", cliente);
+        ctx.setVariable("contatoPrincipal", null);
         ctx.setVariable("posto", null);
         ctx.setVariable("tecnicoNome", null);
+        ctx.setVariable("empresa", null);
+        ctx.setVariable("logoBase64", null);
         ctx.setVariable("dataGeracao", java.time.LocalDateTime.now());
 
         String html = templateEngine.process("documentos/ordem-servico", ctx);

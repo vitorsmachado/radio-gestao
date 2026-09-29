@@ -143,6 +143,10 @@ public class Cliente extends BaseEntity {
         return this.contatos.stream().anyMatch(Contato::isPrincipal);
     }
 
+    public Contato getContatoPrincipal() {
+        return this.contatos.stream().filter(Contato::isPrincipal).findFirst().orElse(null);
+    }
+
     // ===== STATUS =====
 
     public void inativar() {

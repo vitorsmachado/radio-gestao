@@ -7,8 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-
 @Service
 @RequiredArgsConstructor
 public class ConfiguracaoDomainService {
@@ -21,14 +19,23 @@ public class ConfiguracaoDomainService {
                 .orElseThrow(() -> new DomainException("Configurações do sistema não encontradas"));
     }
 
+    /** @param dados valores novos (transiente, só carrega os campos editáveis) — sobrescreve os da configuração salva. */
     @Transactional
-    public Configuracao atualizar(BigDecimal valorMaoDeObraPadrao, Integer prazoGarantiaPecaDias,
-                                   Integer prazoGarantiaEquipamentoDias, Integer prazoGarantiaAcessorioDias) {
+    public Configuracao atualizar(Configuracao dados) {
         Configuracao configuracao = buscar();
-        configuracao.setValorMaoDeObraPadrao(valorMaoDeObraPadrao);
-        configuracao.setPrazoGarantiaPecaDias(prazoGarantiaPecaDias);
-        configuracao.setPrazoGarantiaEquipamentoDias(prazoGarantiaEquipamentoDias);
-        configuracao.setPrazoGarantiaAcessorioDias(prazoGarantiaAcessorioDias);
+        configuracao.setValorMaoDeObraPadrao(dados.getValorMaoDeObraPadrao());
+        configuracao.setPrazoGarantiaPecaDias(dados.getPrazoGarantiaPecaDias());
+        configuracao.setPrazoGarantiaEquipamentoDias(dados.getPrazoGarantiaEquipamentoDias());
+        configuracao.setPrazoGarantiaAcessorioDias(dados.getPrazoGarantiaAcessorioDias());
+        configuracao.setNomeEmpresa(dados.getNomeEmpresa());
+        configuracao.setRazaoSocialEmpresa(dados.getRazaoSocialEmpresa());
+        configuracao.setDocumentoEmpresa(dados.getDocumentoEmpresa());
+        configuracao.setInscricaoEstadualEmpresa(dados.getInscricaoEstadualEmpresa());
+        configuracao.setEnderecoEmpresa(dados.getEnderecoEmpresa());
+        configuracao.setBairroEmpresa(dados.getBairroEmpresa());
+        configuracao.setCidadeEmpresa(dados.getCidadeEmpresa());
+        configuracao.setTelefoneEmpresa(dados.getTelefoneEmpresa());
+        configuracao.setEmailEmpresa(dados.getEmailEmpresa());
         return repository.save(configuracao);
     }
 }

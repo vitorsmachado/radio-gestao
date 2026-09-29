@@ -9,18 +9,27 @@
         h1 { font-size: 14pt; margin: 0 0 2pt 0; }
         h2 { font-size: 10pt; margin: 12pt 0 4pt 0; border-bottom: 1px solid #999999; padding-bottom: 2pt; }
         .cabecalho-table { width: 100%; border-bottom: 2px solid #333333; padding-bottom: 6pt; margin-bottom: 8pt; }
-        .empresa-nome { font-size: 13pt; font-weight: bold; }
-        .empresa-sub { font-size: 8pt; color: #666666; }
-        .os-numero { font-size: 12pt; font-weight: bold; text-align: right; }
-        .os-status { font-size: 9pt; text-align: right; color: #444444; }
+        .cabecalho-table td { width: 33.33%; vertical-align: top; }
+        .empresa-nome { font-size: 11pt; font-weight: bold; }
+        .empresa-razao-social { font-size: 7pt; color: #666666; font-style: italic; }
+        .empresa-sub { font-size: 7pt; color: #666666; }
+        .empresa-colunas { width: 100%; }
+        .empresa-colunas td { width: 50%; vertical-align: top; padding: 0; }
+        .os-numero { font-size: 12pt; font-weight: bold; text-align: center; white-space: nowrap; }
+        .os-status { font-size: 9pt; text-align: center; color: #444444; }
         .info-table { width: 100%; margin-bottom: 6pt; }
         .info-table td { padding: 1pt 4pt; vertical-align: top; }
         .lbl { font-weight: bold; color: #555555; }
+        .subtitulo { font-weight: bold; font-size: 9pt; margin: 8pt 0 3pt 0; }
         .itens-table { width: 100%; border-collapse: collapse; margin-bottom: 4pt; }
         .itens-table th { background-color: #eeeeee; border: 1px solid #cccccc; padding: 3pt 4pt; text-align: left; font-size: 8.5pt; }
         .itens-table td { border: 1px solid #cccccc; padding: 3pt 4pt; font-size: 8.5pt; }
         .item-header { background-color: #f7f7f7; font-weight: bold; }
-        .observacoes { margin-top: 10pt; font-size: 8.5pt; }
+        .observacoes { margin-top: 8pt; padding-top: 6pt; border-top: 1px solid #999999; font-size: 8.5pt; }
+        .linha-continuacao { border-bottom: 1px solid #cccccc; height: 14pt; margin-top: 4pt; }
+        .assinaturas-table { width: 100%; margin-top: 34pt; }
+        .assinaturas-table td { width: 50%; text-align: center; font-size: 8.5pt; }
+        .assinatura-linha { border-top: 1px solid #333333; margin: 0 20pt; padding-top: 4pt; }
         .rodape { margin-top: 16pt; font-size: 7.5pt; color: #999999; text-align: center; border-top: 1px solid #dddddd; padding-top: 4pt; }
     </style>
 </head>
@@ -29,10 +38,35 @@
     <table class="cabecalho-table">
         <tr>
             <td>
-                <div class="empresa-nome">RadioGestão</div>
-                <div class="empresa-sub">Manutenção e gestão de rádio comunicação</div>
+                <img th:if="${logoBase64 != null}" th:src="'data:image/png;base64,' + ${logoBase64}" style="height: 84pt;" />
             </td>
             <td>
+                <div class="empresa-nome" th:text="${empresa != null ? empresa.nomeEmpresa : '—'}">Teletrom</div>
+                <table class="empresa-colunas" th:if="${empresa != null}">
+                    <tr>
+                        <td>
+                            <div class="empresa-razao-social" th:if="${empresa.razaoSocialEmpresa != null and !empresa.razaoSocialEmpresa.isEmpty()}"
+                                 th:text="${empresa.razaoSocialEmpresa}">—</div>
+                            <div class="empresa-sub">CNPJ: <span th:text="${documentoEmpresaFormatado}">—</span></div>
+                            <div class="empresa-sub" th:if="${empresa.telefoneEmpresa != null and !empresa.telefoneEmpresa.isEmpty()}">
+                                Tel: <span th:text="${empresa.telefoneEmpresa}">—</span>
+                            </div>
+                            <div class="empresa-sub" th:if="${empresa.emailEmpresa != null and !empresa.emailEmpresa.isEmpty()}"
+                                 th:text="${empresa.emailEmpresa}">—</div>
+                        </td>
+                        <td>
+                            <div class="empresa-sub" th:if="${empresa.enderecoEmpresa != null and !empresa.enderecoEmpresa.isEmpty()}"
+                                 th:text="${empresa.enderecoEmpresa}">—</div>
+                            <div class="empresa-sub" th:if="${(empresa.bairroEmpresa != null and !empresa.bairroEmpresa.isEmpty()) or (empresa.cidadeEmpresa != null and !empresa.cidadeEmpresa.isEmpty())}">
+                                <span th:if="${empresa.bairroEmpresa != null and !empresa.bairroEmpresa.isEmpty()}" th:text="${empresa.bairroEmpresa}">—</span><span
+                                    th:if="${empresa.bairroEmpresa != null and !empresa.bairroEmpresa.isEmpty() and empresa.cidadeEmpresa != null and !empresa.cidadeEmpresa.isEmpty()}">, </span><span
+                                    th:if="${empresa.cidadeEmpresa != null and !empresa.cidadeEmpresa.isEmpty()}" th:text="${empresa.cidadeEmpresa}">—</span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td style="vertical-align: middle;">
                 <div class="os-numero">OS Nº <span th:text="${os.numero}">OS-2026-0001</span></div>
                 <div class="os-status">Status: <span th:text="${os.status.label}">Aberta</span></div>
             </td>
@@ -42,15 +76,37 @@
     <h2>Dados do cliente</h2>
     <table class="info-table">
         <tr>
-            <td class="lbl">Cliente:</td>
-            <td th:text="${cliente.nomeRazaoSocial}">Nome do Cliente</td>
+            <td class="lbl" style="width: 42pt;">Cliente:</td>
+            <td colspan="3" th:text="${cliente.nomeRazaoSocial}">Nome do Cliente</td>
+        </tr>
+        <tr>
             <td class="lbl">Documento:</td>
-            <td th:text="${cliente.documento}">00.000.000/0000-00</td>
+            <td th:text="${documentoClienteFormatado}">00.000.000/0000-00</td>
+            <td class="lbl">Código:</td>
+            <td th:text="${cliente.numeroIdentificacao}">—</td>
+        </tr>
+        <tr>
+            <td class="lbl">Endereço:</td>
+            <td th:text="${cliente.endereco != null and cliente.endereco.logradouro != null ? cliente.endereco.logradouro + (cliente.endereco.numero != null and !cliente.endereco.numero.isEmpty() ? ', ' + cliente.endereco.numero : '') : '—'}">—</td>
+            <td class="lbl">Bairro:</td>
+            <td th:text="${cliente.endereco != null and cliente.endereco.bairro != null ? cliente.endereco.bairro : '—'}">—</td>
+        </tr>
+        <tr>
+            <td class="lbl">Cidade:</td>
+            <td th:text="${cliente.endereco != null and cliente.endereco.cidade != null ? cliente.endereco.cidade + (cliente.endereco.estado != null ? '/' + cliente.endereco.estado : '') : '—'}">—</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="lbl">Responsável:</td>
+            <td th:text="${contatoPrincipal != null ? contatoPrincipal.nome : '—'}">—</td>
+            <td class="lbl">Telefone:</td>
+            <td th:text="${contatoPrincipal != null and contatoPrincipal.telefone != null ? contatoPrincipal.telefone : '—'}">—</td>
         </tr>
         <tr th:if="${posto != null}">
             <td class="lbl">Posto:</td>
             <td th:text="${posto.nome}">Posto</td>
-            <td class="lbl">Responsável:</td>
+            <td class="lbl">Responsável do posto:</td>
             <td th:text="${posto.responsavel ?: '—'}">—</td>
         </tr>
     </table>
@@ -69,25 +125,43 @@
             <td class="lbl">Data de conclusão:</td>
             <td th:text="${os.dataConclusao != null ? #temporals.format(os.dataConclusao, 'dd/MM/yyyy HH:mm') : '—'}">—</td>
         </tr>
+        <tr>
+            <td class="lbl">Relatório manual:</td>
+            <td colspan="3" th:text="${os.numeroRelatorio ?: '—'}">—</td>
+        </tr>
     </table>
 
-    <h2>Itens</h2>
+    <div class="observacoes">
+        <span class="lbl">Observações:</span>
+        <div th:if="${os.observacoes != null}" th:text="${os.observacoes}">—</div>
+        <div class="linha-continuacao"></div>
+        <div class="linha-continuacao"></div>
+        <div class="linha-continuacao"></div>
+    </div>
+
+    <h2>Materiais</h2>
+
+    <div class="subtitulo">Equipamentos</div>
     <table class="itens-table">
         <tr>
             <th>Descrição</th>
             <th>Marca/Modelo</th>
+            <th>Faixa</th>
             <th>Série</th>
+            <th>Código</th>
             <th>Status</th>
         </tr>
-        <th:block th:each="item : ${itens}">
+        <th:block th:each="item : ${equipamentos}">
             <tr class="item-header">
                 <td th:text="${item.descricao}">Rádio Motorola EP450</td>
                 <td th:text="${(item.marca ?: '—') + ' / ' + (item.modelo ?: '—')}">— / —</td>
+                <td th:text="${item.faixa != null ? item.faixa.label : '—'}">—</td>
                 <td th:text="${item.numeroSerie ?: '—'}">—</td>
+                <td th:text="${item.codigoCliente ?: '—'}">—</td>
                 <td th:text="${item.status.label}">Avaliado</td>
             </tr>
             <tr>
-                <td colspan="4">
+                <td colspan="6">
                     <div><span class="lbl">Defeito relatado:</span> <span th:text="${item.defeitoRelatado ?: '—'}">—</span></div>
                     <div th:if="${item.defeitoEncontrado != null}">
                         <span class="lbl">Defeito encontrado:</span> <span th:text="${item.defeitoEncontrado}">—</span>
@@ -113,18 +187,72 @@
                 </td>
             </tr>
         </th:block>
-        <tr th:if="${#lists.isEmpty(itens)}">
-            <td colspan="4">Nenhum item registrado.</td>
+        <tr th:if="${#lists.isEmpty(equipamentos)}">
+            <td colspan="6">Nenhum equipamento registrado.</td>
         </tr>
     </table>
 
-    <div class="observacoes" th:if="${os.observacoes != null}">
-        <span class="lbl">Observações:</span>
-        <div th:text="${os.observacoes}">—</div>
-    </div>
+    <div class="subtitulo">Acessórios</div>
+    <table class="itens-table">
+        <tr>
+            <th>Descrição</th>
+            <th>Marca/Modelo</th>
+            <th>Série</th>
+            <th>Código</th>
+            <th>Qtd.</th>
+            <th>Status</th>
+        </tr>
+        <th:block th:each="item : ${acessorios}">
+            <tr class="item-header">
+                <td th:text="${item.descricao}">Bateria BP-227</td>
+                <td th:text="${(item.marca ?: '—') + ' / ' + (item.modelo ?: '—')}">— / —</td>
+                <td th:text="${item.numeroSerie ?: '—'}">—</td>
+                <td th:text="${item.codigoCliente ?: '—'}">—</td>
+                <td th:text="${item.quantidade}">1</td>
+                <td th:text="${item.status.label}">Avaliado</td>
+            </tr>
+            <tr>
+                <td colspan="6">
+                    <div><span class="lbl">Defeito relatado:</span> <span th:text="${item.defeitoRelatado ?: '—'}">—</span></div>
+                    <div th:if="${item.defeitoEncontrado != null}">
+                        <span class="lbl">Defeito encontrado:</span> <span th:text="${item.defeitoEncontrado}">—</span>
+                    </div>
+                    <div th:if="${item.defeitoEncontrado == null and item.avaliacaoTecnica != null}">
+                        <span class="lbl">Avaliação técnica:</span> <span th:text="${item.avaliacaoTecnica}">—</span>
+                    </div>
+                    <div th:if="${item.causaDefeito != null}">
+                        <span class="lbl">Causa:</span> <span th:text="${item.causaDefeito}">—</span>
+                    </div>
+                    <div th:if="${item.solucaoRecomendada != null}">
+                        <span class="lbl">Solução recomendada:</span> <span th:text="${item.solucaoRecomendada}">—</span>
+                    </div>
+                    <div th:if="${item.detalheAjuste != null}">
+                        <span class="lbl">Detalhe do ajuste:</span> <span th:text="${item.detalheAjuste}">—</span>
+                    </div>
+                    <div th:if="${item.observacoesTecnicas != null}">
+                        <span class="lbl">Observações técnicas:</span> <span th:text="${item.observacoesTecnicas}">—</span>
+                    </div>
+                    <div th:if="${item.motivoNaoAutorizado != null}">
+                        <span class="lbl">Motivo não autorizado:</span> <span th:text="${item.motivoNaoAutorizado}">—</span>
+                    </div>
+                </td>
+            </tr>
+        </th:block>
+        <tr th:if="${#lists.isEmpty(acessorios)}">
+            <td colspan="6">Nenhum acessório registrado.</td>
+        </tr>
+    </table>
+
+    <table class="assinaturas-table">
+        <tr>
+            <td><div class="assinatura-linha">Supervisor técnico</div></td>
+            <td><div class="assinatura-linha">Responsável pela entrega</div></td>
+        </tr>
+    </table>
 
     <div class="rodape">
-        Documento gerado automaticamente em <span th:text="${#temporals.format(dataGeracao, 'dd/MM/yyyy HH:mm')}">01/01/2026 00:00</span> — RadioGestão
+        Documento gerado automaticamente em <span th:text="${#temporals.format(dataGeracao, 'dd/MM/yyyy HH:mm')}">01/01/2026 00:00</span>
+        — <span th:text="${empresa != null ? empresa.nomeEmpresa : '—'}">Teletrom</span>
     </div>
 
 </body>
