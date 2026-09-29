@@ -9,11 +9,15 @@
         h2 { font-size: 10pt; margin: 12pt 0 4pt 0; color: #8a5a00; border-bottom: 1px solid #e0b361; padding-bottom: 2pt; }
         .faixa-topo { background-color: #b8790c; height: 5pt; margin-bottom: 8pt; }
         .cabecalho-table { width: 100%; padding-bottom: 8pt; margin-bottom: 8pt; border-bottom: 2px solid #b8790c; }
-        .empresa-nome { font-size: 13pt; font-weight: bold; color: #2a1f0f; }
-        .empresa-sub { font-size: 8pt; color: #7a6a4f; }
-        .titulo-doc { font-size: 9pt; letter-spacing: 1pt; color: #b8790c; font-weight: bold; text-align: right; }
-        .orc-numero { font-size: 14pt; font-weight: bold; text-align: right; color: #2a1f0f; }
-        .orc-status { font-size: 9pt; text-align: right; color: #7a6a4f; }
+        .cabecalho-table td { width: 33.33%; vertical-align: top; }
+        .empresa-nome { font-size: 11pt; font-weight: bold; color: #2a1f0f; }
+        .empresa-razao-social { font-size: 7pt; color: #7a6a4f; font-style: italic; }
+        .empresa-sub { font-size: 7pt; color: #7a6a4f; }
+        .empresa-colunas { width: 100%; }
+        .empresa-colunas td { width: 50%; vertical-align: top; padding: 0; }
+        .titulo-doc { font-size: 9pt; letter-spacing: 1pt; color: #b8790c; font-weight: bold; text-align: center; }
+        .orc-numero { font-size: 14pt; font-weight: bold; text-align: center; color: #2a1f0f; white-space: nowrap; }
+        .orc-status { font-size: 9pt; text-align: center; color: #7a6a4f; }
         .info-table { width: 100%; margin-bottom: 6pt; }
         .info-table td { padding: 1pt 4pt; vertical-align: top; }
         .lbl { font-weight: bold; color: #8a5a00; }
@@ -21,6 +25,7 @@
         .itens-table th { background-color: #f6e5c6; color: #5a3d00; border: 1px solid #e0c98f; padding: 3pt 4pt; text-align: left; font-size: 8.5pt; }
         .itens-table td { border: 1px solid #e0c98f; padding: 3pt 4pt; font-size: 8.5pt; }
         .item-header { background-color: #fbf1de; font-weight: bold; }
+        .item-bloco { page-break-inside: avoid; }
         .conserto-table { width: 100%; border-collapse: collapse; margin: 3pt 0 6pt 0; }
         .conserto-table th { background-color: #faf3e6; border: 1px solid #ecdcb8; padding: 2pt 4pt; font-size: 8pt; text-align: left; }
         .conserto-table td { border: 1px solid #ecdcb8; padding: 2pt 4pt; font-size: 8pt; }
@@ -30,7 +35,11 @@
         .resumo-table { width: 100%; margin-top: 6pt; }
         .resumo-table td { padding: 2pt 4pt; }
         .resumo-total { font-size: 12pt; font-weight: bold; text-align: right; border-top: 2px solid #b8790c; color: #2a1f0f; }
-        .observacoes { margin-top: 10pt; font-size: 8.5pt; }
+        .observacoes { margin-top: 8pt; padding-top: 6pt; border-top: 1px solid #e0b361; font-size: 8.5pt; }
+        .linha-continuacao { border-bottom: 1px solid #ecdcb8; height: 14pt; margin-top: 4pt; }
+        .assinaturas-table { width: 100%; margin-top: 34pt; }
+        .assinaturas-table td { width: 50%; text-align: center; font-size: 8.5pt; }
+        .assinatura-linha { border-top: 1px solid #b8790c; margin: 0 20pt; padding-top: 4pt; }
         .rodape { margin-top: 16pt; font-size: 7.5pt; color: #9a8a6a; text-align: center; border-top: 1px solid #ecdcb8; padding-top: 4pt; }
     </style>
 </head>
@@ -41,10 +50,35 @@
     <table class="cabecalho-table">
         <tr>
             <td>
-                <div class="empresa-nome">RadioGestão</div>
-                <div class="empresa-sub">Manutenção e gestão de rádio comunicação</div>
+                <img th:if="${logoBase64 != null}" th:src="'data:image/png;base64,' + ${logoBase64}" style="height: 84pt;" />
             </td>
             <td>
+                <div class="empresa-nome" th:text="${empresa != null ? empresa.nomeEmpresa : '—'}">Teletrom</div>
+                <table class="empresa-colunas" th:if="${empresa != null}">
+                    <tr>
+                        <td>
+                            <div class="empresa-razao-social" th:if="${empresa.razaoSocialEmpresa != null and !empresa.razaoSocialEmpresa.isEmpty()}"
+                                 th:text="${empresa.razaoSocialEmpresa}">—</div>
+                            <div class="empresa-sub">CNPJ: <span th:text="${documentoEmpresaFormatado}">—</span></div>
+                            <div class="empresa-sub" th:if="${empresa.telefoneEmpresa != null and !empresa.telefoneEmpresa.isEmpty()}">
+                                Tel: <span th:text="${empresa.telefoneEmpresa}">—</span>
+                            </div>
+                            <div class="empresa-sub" th:if="${empresa.emailEmpresa != null and !empresa.emailEmpresa.isEmpty()}"
+                                 th:text="${empresa.emailEmpresa}">—</div>
+                        </td>
+                        <td>
+                            <div class="empresa-sub" th:if="${empresa.enderecoEmpresa != null and !empresa.enderecoEmpresa.isEmpty()}"
+                                 th:text="${empresa.enderecoEmpresa}">—</div>
+                            <div class="empresa-sub" th:if="${(empresa.bairroEmpresa != null and !empresa.bairroEmpresa.isEmpty()) or (empresa.cidadeEmpresa != null and !empresa.cidadeEmpresa.isEmpty())}">
+                                <span th:if="${empresa.bairroEmpresa != null and !empresa.bairroEmpresa.isEmpty()}" th:text="${empresa.bairroEmpresa}">—</span><span
+                                    th:if="${empresa.bairroEmpresa != null and !empresa.bairroEmpresa.isEmpty() and empresa.cidadeEmpresa != null and !empresa.cidadeEmpresa.isEmpty()}">, </span><span
+                                    th:if="${empresa.cidadeEmpresa != null and !empresa.cidadeEmpresa.isEmpty()}" th:text="${empresa.cidadeEmpresa}">—</span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td style="vertical-align: middle;">
                 <div class="titulo-doc">PROPOSTA DE ORÇAMENTO</div>
                 <div class="orc-numero" th:text="${orcamento.numero}">ORC-2026-0001</div>
                 <div class="orc-status">Status: <span th:text="${orcamento.status.label}">Rascunho</span></div>
@@ -55,10 +89,32 @@
     <h2>Dados do cliente</h2>
     <table class="info-table">
         <tr>
-            <td class="lbl">Cliente:</td>
-            <td th:text="${cliente.nomeRazaoSocial}">Nome do Cliente</td>
+            <td class="lbl" style="width: 42pt;">Cliente:</td>
+            <td colspan="3" th:text="${cliente.nomeRazaoSocial}">Nome do Cliente</td>
+        </tr>
+        <tr>
             <td class="lbl">Documento:</td>
-            <td th:text="${cliente.documento}">00.000.000/0000-00</td>
+            <td th:text="${documentoClienteFormatado}">00.000.000/0000-00</td>
+            <td class="lbl">Código:</td>
+            <td th:text="${cliente.numeroIdentificacao}">—</td>
+        </tr>
+        <tr>
+            <td class="lbl">Endereço:</td>
+            <td th:text="${cliente.endereco != null and cliente.endereco.logradouro != null ? cliente.endereco.logradouro + (cliente.endereco.numero != null and !cliente.endereco.numero.isEmpty() ? ', ' + cliente.endereco.numero : '') : '—'}">—</td>
+            <td class="lbl">Bairro:</td>
+            <td th:text="${cliente.endereco != null and cliente.endereco.bairro != null ? cliente.endereco.bairro : '—'}">—</td>
+        </tr>
+        <tr>
+            <td class="lbl">Cidade:</td>
+            <td th:text="${cliente.endereco != null and cliente.endereco.cidade != null ? cliente.endereco.cidade + (cliente.endereco.estado != null ? '/' + cliente.endereco.estado : '') : '—'}">—</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td class="lbl">Responsável:</td>
+            <td th:text="${contatoPrincipal != null ? contatoPrincipal.nome : '—'}">—</td>
+            <td class="lbl">Telefone:</td>
+            <td th:text="${contatoPrincipal != null and contatoPrincipal.telefone != null ? contatoPrincipal.telefone : '—'}">—</td>
         </tr>
     </table>
 
@@ -79,12 +135,14 @@
     <h2>Itens</h2>
 
     <table class="itens-table" th:if="${agrupamento == 'EQUIPAMENTO'}">
-        <tr>
-            <th>Descrição</th>
-            <th>Marca/Modelo</th>
-            <th>Status</th>
-        </tr>
-        <th:block th:each="item : ${itens}">
+        <thead>
+            <tr>
+                <th>Descrição</th>
+                <th>Marca/Modelo</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody th:each="item : ${itens}" class="item-bloco">
             <tr class="item-header">
                 <td th:text="${item.descricao}">Rádio Motorola EP450</td>
                 <td th:text="${(item.marca ?: '—') + ' / ' + (item.modelo ?: '—')}">— / —</td>
@@ -138,30 +196,36 @@
                     </div>
                 </td>
             </tr>
-        </th:block>
-        <tr th:if="${#lists.isEmpty(itens)}">
-            <td colspan="3">Nenhum item agrupado neste orçamento.</td>
-        </tr>
+        </tbody>
+        <tbody th:if="${#lists.isEmpty(itens)}">
+            <tr>
+                <td colspan="3">Nenhum item agrupado neste orçamento.</td>
+            </tr>
+        </tbody>
     </table>
 
     <table class="itens-table" th:if="${agrupamento == 'ITENS'}">
-        <tr>
-            <th>Tipo</th>
-            <th>Descrição</th>
-            <th>Qtd.</th>
-            <th>Valor unit.</th>
-            <th>Valor total</th>
-        </tr>
-        <tr th:each="consolidado : ${itensConsolidados}">
-            <td th:text="${consolidado.tipoLabel}">Peça</td>
-            <td th:text="${consolidado.descricao}">—</td>
-            <td th:text="${consolidado.quantidade}">1</td>
-            <td class="valor" th:text="${'R$ ' + #numbers.formatDecimal(consolidado.valorUnitario, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
-            <td class="valor" th:text="${'R$ ' + #numbers.formatDecimal(consolidado.valorTotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
-        </tr>
-        <tr th:if="${#lists.isEmpty(itensConsolidados)}">
-            <td colspan="5">Nenhum item de conserto neste orçamento.</td>
-        </tr>
+        <thead>
+            <tr>
+                <th>Tipo</th>
+                <th>Descrição</th>
+                <th>Qtd.</th>
+                <th>Valor unit.</th>
+                <th>Valor total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="consolidado : ${itensConsolidados}">
+                <td th:text="${consolidado.tipoLabel}">Peça</td>
+                <td th:text="${consolidado.descricao}">—</td>
+                <td th:text="${consolidado.quantidade}">1</td>
+                <td class="valor" th:text="${'R$ ' + #numbers.formatDecimal(consolidado.valorUnitario, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+                <td class="valor" th:text="${'R$ ' + #numbers.formatDecimal(consolidado.valorTotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(itensConsolidados)}">
+                <td colspan="5">Nenhum item de conserto neste orçamento.</td>
+            </tr>
+        </tbody>
     </table>
 
     <table class="resumo-table">
@@ -179,13 +243,24 @@
         </tr>
     </table>
 
-    <div class="observacoes" th:if="${orcamento.observacoes != null}">
+    <div class="observacoes">
         <span class="lbl">Observações:</span>
-        <div th:text="${orcamento.observacoes}">—</div>
+        <div th:if="${orcamento.observacoes != null}" th:text="${orcamento.observacoes}">—</div>
+        <div class="linha-continuacao"></div>
+        <div class="linha-continuacao"></div>
+        <div class="linha-continuacao"></div>
     </div>
 
+    <table class="assinaturas-table">
+        <tr>
+            <td><div class="assinatura-linha">Responsável técnico</div></td>
+            <td><div class="assinatura-linha">Aprovação do cliente</div></td>
+        </tr>
+    </table>
+
     <div class="rodape">
-        Documento gerado automaticamente em <span th:text="${#temporals.format(dataGeracao, 'dd/MM/yyyy HH:mm')}">01/01/2026 00:00</span> — RadioGestão
+        Documento gerado automaticamente em <span th:text="${#temporals.format(dataGeracao, 'dd/MM/yyyy HH:mm')}">01/01/2026 00:00</span>
+        — <span th:text="${empresa != null ? empresa.nomeEmpresa : '—'}">Teletrom</span>
     </div>
 
 </body>
