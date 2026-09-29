@@ -121,10 +121,16 @@
     <h2>Condições</h2>
     <table class="info-table">
         <tr>
+            <td class="lbl">Solicitante:</td>
+            <td th:text="${solicitante ?: '—'}">—</td>
             <td class="lbl">Data de emissão:</td>
             <td th:text="${#temporals.format(orcamento.dataEmissao, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+        </tr>
+        <tr>
             <td class="lbl">Validade:</td>
             <td th:text="${orcamento.validade != null ? #temporals.format(orcamento.validade, 'dd/MM/yyyy') : '—'}">—</td>
+            <td></td>
+            <td></td>
         </tr>
         <tr>
             <td class="lbl">Condições de pagamento:</td>

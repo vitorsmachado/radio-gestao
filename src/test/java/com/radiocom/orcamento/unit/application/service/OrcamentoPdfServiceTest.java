@@ -9,7 +9,9 @@ import com.radiocom.estoque.application.service.CatalogoModeloService;
 import com.radiocom.estoque.domain.model.enums.TipoItem;
 import com.radiocom.ordemservico.domain.model.ItemConserto;
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
+import com.radiocom.ordemservico.domain.model.OrdemServico;
 import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
+import com.radiocom.ordemservico.domain.service.OrdemServicoDomainService;
 import com.radiocom.orcamento.application.service.OrcamentoPdfService;
 import com.radiocom.orcamento.domain.model.Orcamento;
 import com.radiocom.orcamento.domain.model.enums.StatusAprovacaoOrcamento;
@@ -46,6 +48,7 @@ import static org.mockito.Mockito.when;
 class OrcamentoPdfServiceTest {
 
     @Mock private OrcamentoDomainService orcamentoDomainService;
+    @Mock private OrdemServicoDomainService ordemServicoDomainService;
     @Mock private ClienteDomainService clienteDomainService;
     @Mock private ConfiguracaoDomainService configuracaoDomainService;
     @Mock private CatalogoModeloService catalogoModeloService;
@@ -59,12 +62,17 @@ class OrcamentoPdfServiceTest {
     @BeforeEach
     void setUp() {
         SpringTemplateEngine templateEngine = criarTemplateEngineReal();
-        service = new OrcamentoPdfService(orcamentoDomainService, clienteDomainService, configuracaoDomainService,
-                catalogoModeloService, new PdfRenderer(), templateEngine);
+        service = new OrcamentoPdfService(orcamentoDomainService, ordemServicoDomainService, clienteDomainService,
+                configuracaoDomainService, catalogoModeloService, new PdfRenderer(), templateEngine);
 
         orcamentoId = UUID.randomUUID();
         clienteId = UUID.randomUUID();
         osId = UUID.randomUUID();
+
+        OrdemServico os = OrdemServico.builder().numero("OS-2026-0001").clienteId(clienteId)
+                .solicitante("João da Silva").build();
+        ReflectionTestUtils.setField(os, "id", osId);
+        lenient().when(ordemServicoDomainService.buscarPorId(osId)).thenReturn(os);
 
         Configuracao empresa = Configuracao.builder()
                 .valorMaoDeObraPadrao(BigDecimal.ZERO)
@@ -242,6 +250,7 @@ class OrcamentoPdfServiceTest {
 
         Context ctx = new Context();
         ctx.setVariable("orcamento", orcamento);
+        ctx.setVariable("solicitante", null);
         ctx.setVariable("itens", List.of(item1, item2));
         ctx.setVariable("agrupamento", "EQUIPAMENTO");
         ctx.setVariable("itensConsolidados", List.of());

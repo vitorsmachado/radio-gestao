@@ -8,7 +8,9 @@ import com.radiocom.configuracao.domain.service.ConfiguracaoDomainService;
 import com.radiocom.estoque.application.service.CatalogoModeloService;
 import com.radiocom.ordemservico.domain.model.ItemConserto;
 import com.radiocom.ordemservico.domain.model.ItemEntrada;
+import com.radiocom.ordemservico.domain.model.OrdemServico;
 import com.radiocom.ordemservico.domain.model.enums.ResultadoAvaliacao;
+import com.radiocom.ordemservico.domain.service.OrdemServicoDomainService;
 import com.radiocom.orcamento.domain.model.Orcamento;
 import com.radiocom.orcamento.domain.model.enums.StatusAprovacaoOrcamento;
 import com.radiocom.orcamento.domain.service.OrcamentoDomainService;
@@ -51,6 +53,7 @@ public class OrcamentoPdfService {
     }
 
     private final OrcamentoDomainService orcamentoDomainService;
+    private final OrdemServicoDomainService ordemServicoDomainService;
     private final ClienteDomainService clienteDomainService;
     private final ConfiguracaoDomainService configuracaoDomainService;
     private final CatalogoModeloService catalogoModeloService;
@@ -60,12 +63,14 @@ public class OrcamentoPdfService {
     private String logoBase64Cache;
 
     public OrcamentoPdfService(OrcamentoDomainService orcamentoDomainService,
+                                OrdemServicoDomainService ordemServicoDomainService,
                                 ClienteDomainService clienteDomainService,
                                 ConfiguracaoDomainService configuracaoDomainService,
                                 CatalogoModeloService catalogoModeloService,
                                 PdfRenderer pdfRenderer,
                                 @Qualifier("pdfTemplateEngine") SpringTemplateEngine pdfTemplateEngine) {
         this.orcamentoDomainService = orcamentoDomainService;
+        this.ordemServicoDomainService = ordemServicoDomainService;
         this.clienteDomainService = clienteDomainService;
         this.configuracaoDomainService = configuracaoDomainService;
         this.catalogoModeloService = catalogoModeloService;
@@ -86,9 +91,11 @@ public class OrcamentoPdfService {
         Cliente cliente = clienteDomainService.buscarPorIdComRelacionamentos(orcamento.getClienteId());
         Contato contatoPrincipal = cliente.getContatoPrincipal();
         Configuracao empresa = configuracaoDomainService.buscar();
+        OrdemServico os = ordemServicoDomainService.buscarPorId(orcamento.getOsId());
 
         Context ctx = new Context();
         ctx.setVariable("orcamento", orcamento);
+        ctx.setVariable("solicitante", os.getSolicitante());
         ctx.setVariable("itens", itens);
         ctx.setVariable("agrupamento", agrupamento.name());
         ctx.setVariable("itensConsolidados", agrupamento == Agrupamento.ITENS ? consolidar(itens) : List.of());
