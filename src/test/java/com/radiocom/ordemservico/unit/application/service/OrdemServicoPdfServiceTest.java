@@ -269,4 +269,46 @@ class OrdemServicoPdfServiceTest {
         assertThat(html).contains("Cliente não quis pagar");
         assertThat(html).contains("Capacitor queimado");
     }
+
+    @Test
+    @DisplayName("template deve agrupar cada item num bloco que não quebra entre páginas")
+    void template_deveAgruparCadaItemNumBlocoQueNaoQuebraEntrePaginas() {
+        SpringTemplateEngine templateEngine = criarTemplateEngineReal();
+
+        OrdemServico os = OrdemServico.builder().numero("OS-2026-0004").clienteId(clienteId).build();
+        ReflectionTestUtils.setField(os, "id", osId);
+
+        Cliente cliente = Cliente.builder()
+                .tipo(TipoPessoa.PESSOA_FISICA)
+                .documento("11144477735")
+                .nomeRazaoSocial("Cliente Pessoa Física")
+                .build();
+        ReflectionTestUtils.setField(cliente, "id", clienteId);
+
+        ItemEntrada equipamento1 = ItemEntrada.builder().osId(osId).tipoItem(TipoItem.EQUIPAMENTO).descricao("Rádio 1").build();
+        ItemEntrada equipamento2 = ItemEntrada.builder().osId(osId).tipoItem(TipoItem.EQUIPAMENTO).descricao("Rádio 2").build();
+        ItemEntrada acessorio1 = ItemEntrada.builder().osId(osId).tipoItem(TipoItem.ACESSORIO).descricao("Bateria").build();
+
+        Context ctx = new Context();
+        ctx.setVariable("os", os);
+        ctx.setVariable("equipamentos", List.of(equipamento1, equipamento2));
+        ctx.setVariable("acessorios", List.of(acessorio1));
+        ctx.setVariable("cliente", cliente);
+        ctx.setVariable("contatoPrincipal", null);
+        ctx.setVariable("posto", null);
+        ctx.setVariable("tecnicoNome", null);
+        ctx.setVariable("empresa", null);
+        ctx.setVariable("logoBase64", null);
+        ctx.setVariable("dataGeracao", java.time.LocalDateTime.now());
+
+        String html = templateEngine.process("documentos/ordem-servico", ctx);
+
+        // Um <tbody class="item-bloco"> por item (2 equipamentos + 1 acessório) —
+        // é esse agrupamento que o CSS page-break-inside: avoid usa pra manter
+        // cada item inteiro numa página só, em vez de cortar no meio.
+        int ocorrencias = html.split("class=\"item-bloco\"", -1).length - 1;
+        assertThat(ocorrencias).isEqualTo(3);
+        assertThat(html).contains("page-break-inside: avoid");
+        assertThat(html).contains("<thead>");
+    }
 }

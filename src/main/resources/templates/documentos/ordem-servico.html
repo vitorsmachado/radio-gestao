@@ -25,6 +25,7 @@
         .itens-table th { background-color: #eeeeee; border: 1px solid #cccccc; padding: 3pt 4pt; text-align: left; font-size: 8.5pt; }
         .itens-table td { border: 1px solid #cccccc; padding: 3pt 4pt; font-size: 8.5pt; }
         .item-header { background-color: #f7f7f7; font-weight: bold; }
+        .item-bloco { page-break-inside: avoid; }
         .observacoes { margin-top: 8pt; padding-top: 6pt; border-top: 1px solid #999999; font-size: 8.5pt; }
         .linha-continuacao { border-bottom: 1px solid #cccccc; height: 14pt; margin-top: 4pt; }
         .assinaturas-table { width: 100%; margin-top: 34pt; }
@@ -143,15 +144,17 @@
 
     <div class="subtitulo">Equipamentos</div>
     <table class="itens-table">
-        <tr>
-            <th>Descrição</th>
-            <th>Marca/Modelo</th>
-            <th>Faixa</th>
-            <th>Série</th>
-            <th>Código</th>
-            <th>Status</th>
-        </tr>
-        <th:block th:each="item : ${equipamentos}">
+        <thead>
+            <tr>
+                <th>Descrição</th>
+                <th>Marca/Modelo</th>
+                <th>Faixa</th>
+                <th>Série</th>
+                <th>Código</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody th:each="item : ${equipamentos}" class="item-bloco">
             <tr class="item-header">
                 <td th:text="${item.descricao}">Rádio Motorola EP450</td>
                 <td th:text="${(item.marca ?: '—') + ' / ' + (item.modelo ?: '—')}">— / —</td>
@@ -186,23 +189,27 @@
                     </div>
                 </td>
             </tr>
-        </th:block>
-        <tr th:if="${#lists.isEmpty(equipamentos)}">
-            <td colspan="6">Nenhum equipamento registrado.</td>
-        </tr>
+        </tbody>
+        <tbody th:if="${#lists.isEmpty(equipamentos)}">
+            <tr>
+                <td colspan="6">Nenhum equipamento registrado.</td>
+            </tr>
+        </tbody>
     </table>
 
     <div class="subtitulo">Acessórios</div>
     <table class="itens-table">
-        <tr>
-            <th>Descrição</th>
-            <th>Marca/Modelo</th>
-            <th>Série</th>
-            <th>Código</th>
-            <th>Qtd.</th>
-            <th>Status</th>
-        </tr>
-        <th:block th:each="item : ${acessorios}">
+        <thead>
+            <tr>
+                <th>Descrição</th>
+                <th>Marca/Modelo</th>
+                <th>Série</th>
+                <th>Código</th>
+                <th>Qtd.</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody th:each="item : ${acessorios}" class="item-bloco">
             <tr class="item-header">
                 <td th:text="${item.descricao}">Bateria BP-227</td>
                 <td th:text="${(item.marca ?: '—') + ' / ' + (item.modelo ?: '—')}">— / —</td>
@@ -237,10 +244,12 @@
                     </div>
                 </td>
             </tr>
-        </th:block>
-        <tr th:if="${#lists.isEmpty(acessorios)}">
-            <td colspan="6">Nenhum acessório registrado.</td>
-        </tr>
+        </tbody>
+        <tbody th:if="${#lists.isEmpty(acessorios)}">
+            <tr>
+                <td colspan="6">Nenhum acessório registrado.</td>
+            </tr>
+        </tbody>
     </table>
 
     <table class="assinaturas-table">
