@@ -1,8 +1,18 @@
-# radio-gestao
+# radio-gestão
 
-Sistema de gestão para empresa de rádio comunicação — API para orçamento de manutenção/conserto e ordens de serviço.
+Sistema de gestão para uma empresa de rádio comunicação — API para todo o fluxo de manutenção de equipamentos: recebimento, avaliação técnica, orçamento, garantia e entrega.
 
-> **Status: em construção.** Este repositório é uma versão enxuta, focada em duas rotas de negócio, extraída de um sistema maior em evolução. O objetivo é entregar um núcleo sólido, testado e documentado, e evoluir a partir dele.
+> Frontend (React + TypeScript): [radio-gestao-front](https://github.com/vitrosmachado/radio-gestao-front)
+
+## Funcionalidades
+
+- **Ordem de serviço com ciclo de status por item**, não por OS — cada equipamento/acessório/peça trazido pelo cliente avança independente (avaliação → autorização → manutenção → entrega), permitindo separar, desmembrar ou unir itens entre OS conforme o ritmo de cada um.
+- **Orçamento** que agrupa os itens avaliados de uma OS numa proposta formal (validade, condições de pagamento, desconto).
+- **Garantia em duas camadas**: cobertura por peça trocada num reparo (com atalho automático pra entrega quando o defeito é 100% coberto) e garantia de fábrica/venda do equipamento/acessório, com prazos configuráveis.
+- **Catálogo e estoque** de equipamentos/acessórios/peças, com resolução automática por número de série e baixa de estoque ao concluir manutenção.
+- **Configurações administráveis em runtime** — prazos de garantia, valor padrão de mão de obra e dados da empresa (nome, CNPJ, endereço, contato) usados no cabeçalho dos documentos, sem precisar de deploy pra mudar.
+- **Geração de PDF** (OS e orçamento) com cabeçalho personalizado (logo, dados da empresa), formatação de documento (CPF/CNPJ), e proteção contra quebra de página no meio de um item — cada equipamento/peça fica inteiro numa página só.
+- **Notificações** internas (ex.: conflito de garantia) e sugestões de texto (autocomplete) pros campos de avaliação técnica mais usados.
 
 ## Arquitetura
 
@@ -12,12 +22,10 @@ Organizado por módulo de domínio (DDD leve), cada um com suas próprias camada
 com.radiocom.<modulo>
 ├── domain/        # entidades, regras de negócio, repositórios (interfaces)
 ├── application/   # casos de uso, DTOs, mapeamento
-└── interfaces/     # REST controllers, exception handlers
+└── interfaces/    # REST controllers, exception handlers
 ```
 
-## Rota implementada
-
-O sistema cobre o fluxo completo de uma ordem de serviço de manutenção, do cadastro do cliente até a entrega do item consertado. Cada item trazido pelo cliente (`ItemEntrada`) tem seu próprio ciclo de status, independente do status geral da OS — permitindo dividir uma OS em várias (ou uni-las de volta) conforme itens são aprovados, aguardam peça ou ficam prontos em ritmos diferentes:
+## Fluxo principal
 
 ```
 Cliente cadastrado
@@ -26,7 +34,7 @@ Cliente cadastrado
 OS aberta ── itens de entrada registrados (equipamento/acessório/peça)
       │
       ▼
-Avaliação técnica ──► autorização do cliente
+Avaliação técnica ──► orçamento agrupado automaticamente ──► autorização do cliente
       │
       ├── autorizado ──► fila de manutenção (ou aguardando peça, se faltar em estoque)
       │                        │
@@ -36,21 +44,23 @@ Avaliação técnica ──► autorização do cliente
       └── não autorizado ─► aguardando entrega ──► entregue
 ```
 
-Itens podem ser movidos entre OS (`mover`), ou uma OS pode ser dividida/unida (`dividir`/`unir`) conforme o cliente aprova só parte do conserto.
-
-Antes de enviar a avaliação para autorização, os itens avaliados de uma OS podem ser agrupados num `Orçamento` — um envelope com validade, condições de pagamento e desconto, usado para apresentar a proposta formal ao cliente. A aprovação/rejeição em si continua por item; o orçamento só formaliza o envio em lote.
-
-Tanto a OS quanto o Orçamento têm geração de PDF (`GET /{id}/pdf`) — o HTML é montado via Thymeleaf e convertido para PDF pelo Flying Saucer + OpenPDF.
+Itens podem ser movidos entre OS a qualquer momento: **separar** (um ou mais itens saem pra uma ou mais OS novas, tudo numa transação atômica), **desmembrar** (uma quantidade de um item vira um item novo, útil quando parte de um lote toma destino diferente) e **unir** (várias OS do mesmo cliente viram uma OS nova só).
 
 ## Módulos
 
-| Módulo | Status | Descrição |
-|---|---|---|
-| `auth` | ✅ | Autenticação JWT e papéis de usuário |
-| `cliente` | ✅ | Cadastro de clientes e postos |
-| `estoque` | ✅ | Catálogo de equipamentos/acessórios/peças usados nos orçamentos |
-| `ordemservico` | ✅ | OS, itens de entrada (ciclo próprio de status) e itens de conserto |
-| `orcamento` | ✅ | Envelope que agrupa itens de uma OS numa proposta formal ao cliente |
+| Módulo | Descrição |
+|---|---|
+| `auth` | Autenticação JWT e papéis de usuário |
+| `cliente` | Cadastro de clientes, contatos, postos e endereço |
+| `estoque` | Catálogo e estoque de equipamentos/acessórios/peças |
+| `ordemservico` | OS, itens de entrada (ciclo próprio de status), itens de conserto, garantia por peça e sugestões de texto |
+| `orcamento` | Envelope que agrupa itens de uma OS numa proposta formal ao cliente |
+| `configuracao` | Valores administráveis em runtime (prazos de garantia, dados da empresa) |
+| `notificacao` | Notificações internas (ex.: conflito de garantia) |
+
+## Tecnologias
+
+Java 17 · Spring Boot 3.2 (Web, Data JPA, Security, Validation) · PostgreSQL · Flyway · JWT (jjwt) · Thymeleaf + Flying Saucer/OpenPDF (geração de PDF) · JUnit 5 + Mockito + Testcontainers
 
 ## Como rodar localmente
 
@@ -63,6 +73,10 @@ docker compose up -d          # sobe o Postgres (+ Adminer em http://localhost:9
 
 Documentação da API (Swagger): `http://localhost:8080/api/swagger-ui.html`
 
+### Trocando a logo e os dados da empresa
+
+A logo que aparece no cabeçalho dos PDFs é um arquivo estático (`src/main/resources/static/logo-teletrom.png`) — pra trocar, basta substituir esse arquivo e subir a aplicação de novo. Nome, CNPJ, endereço e demais dados da empresa são editáveis direto na tela de **Configurações**, sem precisar de deploy.
+
 ## Testes
 
 ```bash
@@ -70,4 +84,4 @@ Documentação da API (Swagger): `http://localhost:8080/api/swagger-ui.html`
 ./mvnw verify     # os de cima + testes de integração (*IT.java) com Postgres real via Testcontainers — precisa de Docker
 ```
 
-Testes unitários cobrem regras de domínio e serviços de aplicação; slices de API (`*ControllerTest`) sobem só a camada web com os serviços mockados. Os testes de integração (`*IT.java`, separados via Maven Failsafe) sobem o contexto inteiro contra um Postgres real, validando que as migrations Flyway aplicam sem erro e que as entidades JPA batem com o schema (`ddl-auto=validate`).
+Mais de 500 testes automatizados. Testes unitários cobrem regras de domínio e serviços de aplicação; slices de API (`*ControllerTest`) sobem só a camada web com os serviços mockados. Os testes de integração (`*IT.java`, separados via Maven Failsafe) sobem o contexto inteiro contra um Postgres real, validando que as migrations Flyway aplicam sem erro e que as entidades JPA batem com o schema (`ddl-auto=validate`).
