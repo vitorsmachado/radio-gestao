@@ -2,7 +2,7 @@
 
 Sistema de gestão para uma empresa de rádio comunicação — API para todo o fluxo de manutenção de equipamentos: recebimento, avaliação técnica, orçamento, garantia e entrega.
 
-> Frontend (React + TypeScript): [radio-gestao-front](https://github.com/vitrosmachado/radio-gestao-front)
+> Frontend (React + TypeScript): [radio-gestao-front](https://github.com/vitorsmachado/radio-gestao-front)
 
 ## Funcionalidades
 
