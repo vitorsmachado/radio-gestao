@@ -75,7 +75,18 @@ Documentação da API (Swagger): `http://localhost:8080/api/swagger-ui.html`
 
 ### Trocando a logo e os dados da empresa
 
-A logo que aparece no cabeçalho dos PDFs é um arquivo estático (`src/main/resources/static/logo-teletrom.png`) — pra trocar, basta substituir esse arquivo e subir a aplicação de novo. Nome, CNPJ, endereço e demais dados da empresa são editáveis direto na tela de **Configurações**, sem precisar de deploy.
+A logo do cabeçalho dos PDFs vem da propriedade `empresa.logo` (variável `EMPRESA_LOGO`), que aceita qualquer recurso do Spring — o padrão é o arquivo empacotado `src/main/resources/static/logo-teletrom.png`, mas dá pra apontar outro sem recompilar (ex.: `EMPRESA_LOGO=file:/dados/logo.png`). Nome, CNPJ, endereço e demais dados da empresa são editáveis direto na tela de **Configurações**, sem precisar de deploy.
+
+## Perfis e deploy
+
+| Perfil | Uso |
+|---|---|
+| `dev` (padrão) | Desenvolvimento local, com SQL e logs detalhados |
+| `prod` | Produção — credenciais só por variável de ambiente, sem valores padrão |
+| `demo` | Combinado com outro (`PROFILE=prod,demo`): empresa fictícia, logo de demonstração e banco vazio populado com clientes e OS em todas as etapas do fluxo |
+
+O `Dockerfile` gera a imagem de produção. Variáveis usadas pelo perfil `prod`: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`, `JWT_SECRET` (e, no `demo`, `DEMO_SENHA` para o usuário `demo`).
+
 
 ## Testes
 

@@ -1,0 +1,14 @@
+# =============================================================================
+# radio-gestao — Perfil DEMO
+# Usado junto com outro perfil de banco: PROFILE=prod,demo
+#
+# Instância de demonstração para portfólio: troca a identidade visual por uma
+# empresa fictícia e popula um banco vazio com dados de exemplo
+# (ver com.radiocom.demo.DemoDataSeeder). Nunca ativar numa instalação real.
+# =============================================================================
+empresa:
+  logo: ${EMPRESA_LOGO:classpath:static/logo-demo.png}
+
+demo:
+  usuario:
+    senha: ${DEMO_SENHA:demo1234}
