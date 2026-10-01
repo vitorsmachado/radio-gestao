@@ -12,19 +12,16 @@ import com.radiocom.ordemservico.domain.model.OrdemServico;
 import com.radiocom.ordemservico.domain.service.ItemEntradaDomainService;
 import com.radiocom.ordemservico.domain.service.OrdemServicoDomainService;
 import com.radiocom.configuracao.domain.model.Configuracao;
+import com.radiocom.shared.pdf.LogoEmpresa;
 import com.radiocom.shared.pdf.PdfRenderer;
 import com.radiocom.shared.util.DocumentoFormatter;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,8 +35,7 @@ public class OrdemServicoPdfService {
     private final UsuarioRepository usuarioRepository;
     private final PdfRenderer pdfRenderer;
     private final SpringTemplateEngine pdfTemplateEngine;
-
-    private String logoBase64Cache;
+    private final LogoEmpresa logoEmpresa;
 
     public OrdemServicoPdfService(OrdemServicoDomainService osDomainService,
                                    ItemEntradaDomainService itemEntradaDomainService,
@@ -47,7 +43,8 @@ public class OrdemServicoPdfService {
                                    ConfiguracaoDomainService configuracaoDomainService,
                                    UsuarioRepository usuarioRepository,
                                    PdfRenderer pdfRenderer,
-                                   @Qualifier("pdfTemplateEngine") SpringTemplateEngine pdfTemplateEngine) {
+                                   @Qualifier("pdfTemplateEngine") SpringTemplateEngine pdfTemplateEngine,
+                                   LogoEmpresa logoEmpresa) {
         this.osDomainService = osDomainService;
         this.itemEntradaDomainService = itemEntradaDomainService;
         this.clienteDomainService = clienteDomainService;
@@ -55,6 +52,7 @@ public class OrdemServicoPdfService {
         this.usuarioRepository = usuarioRepository;
         this.pdfRenderer = pdfRenderer;
         this.pdfTemplateEngine = pdfTemplateEngine;
+        this.logoEmpresa = logoEmpresa;
     }
 
     @Transactional(readOnly = true)
@@ -82,21 +80,11 @@ public class OrdemServicoPdfService {
         ctx.setVariable("tecnicoNome", tecnicoNome);
         ctx.setVariable("empresa", empresa);
         ctx.setVariable("documentoEmpresaFormatado", DocumentoFormatter.formatar(empresa.getDocumentoEmpresa()));
-        ctx.setVariable("logoBase64", carregarLogoBase64());
+        ctx.setVariable("logoBase64", logoEmpresa.base64());
         ctx.setVariable("dataGeracao", LocalDateTime.now());
 
         String xhtml = pdfTemplateEngine.process("documentos/ordem-servico", ctx);
         return pdfRenderer.renderizar(xhtml);
-    }
-
-    private String carregarLogoBase64() {
-        if (logoBase64Cache != null) return logoBase64Cache;
-        try (InputStream in = new ClassPathResource("static/logo-teletrom.png").getInputStream()) {
-            logoBase64Cache = Base64.getEncoder().encodeToString(in.readAllBytes());
-            return logoBase64Cache;
-        } catch (IOException e) {
-            throw new IllegalStateException("Erro ao carregar a logo da empresa", e);
-        }
     }
 
     private Posto buscarPosto(Cliente cliente, UUID postoId) {

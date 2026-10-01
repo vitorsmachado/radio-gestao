@@ -14,23 +14,20 @@ import com.radiocom.ordemservico.domain.service.OrdemServicoDomainService;
 import com.radiocom.orcamento.domain.model.Orcamento;
 import com.radiocom.orcamento.domain.model.enums.StatusAprovacaoOrcamento;
 import com.radiocom.orcamento.domain.service.OrcamentoDomainService;
+import com.radiocom.shared.pdf.LogoEmpresa;
 import com.radiocom.shared.pdf.PdfRenderer;
 import com.radiocom.shared.util.DocumentoFormatter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,8 +56,7 @@ public class OrcamentoPdfService {
     private final CatalogoModeloService catalogoModeloService;
     private final PdfRenderer pdfRenderer;
     private final SpringTemplateEngine pdfTemplateEngine;
-
-    private String logoBase64Cache;
+    private final LogoEmpresa logoEmpresa;
 
     public OrcamentoPdfService(OrcamentoDomainService orcamentoDomainService,
                                 OrdemServicoDomainService ordemServicoDomainService,
@@ -68,7 +64,8 @@ public class OrcamentoPdfService {
                                 ConfiguracaoDomainService configuracaoDomainService,
                                 CatalogoModeloService catalogoModeloService,
                                 PdfRenderer pdfRenderer,
-                                @Qualifier("pdfTemplateEngine") SpringTemplateEngine pdfTemplateEngine) {
+                                @Qualifier("pdfTemplateEngine") SpringTemplateEngine pdfTemplateEngine,
+                                LogoEmpresa logoEmpresa) {
         this.orcamentoDomainService = orcamentoDomainService;
         this.ordemServicoDomainService = ordemServicoDomainService;
         this.clienteDomainService = clienteDomainService;
@@ -76,6 +73,7 @@ public class OrcamentoPdfService {
         this.catalogoModeloService = catalogoModeloService;
         this.pdfRenderer = pdfRenderer;
         this.pdfTemplateEngine = pdfTemplateEngine;
+        this.logoEmpresa = logoEmpresa;
     }
 
     @Transactional(readOnly = true)
@@ -107,21 +105,11 @@ public class OrcamentoPdfService {
         ctx.setVariable("contatoPrincipal", contatoPrincipal);
         ctx.setVariable("empresa", empresa);
         ctx.setVariable("documentoEmpresaFormatado", DocumentoFormatter.formatar(empresa.getDocumentoEmpresa()));
-        ctx.setVariable("logoBase64", carregarLogoBase64());
+        ctx.setVariable("logoBase64", logoEmpresa.base64());
         ctx.setVariable("dataGeracao", LocalDateTime.now());
 
         String xhtml = pdfTemplateEngine.process("documentos/orcamento", ctx);
         return pdfRenderer.renderizar(xhtml);
-    }
-
-    private String carregarLogoBase64() {
-        if (logoBase64Cache != null) return logoBase64Cache;
-        try (InputStream in = new ClassPathResource("static/logo-teletrom.png").getInputStream()) {
-            logoBase64Cache = Base64.getEncoder().encodeToString(in.readAllBytes());
-            return logoBase64Cache;
-        } catch (IOException e) {
-            throw new IllegalStateException("Erro ao carregar a logo da empresa", e);
-        }
     }
 
     /** Agrupa todos os itens de conserto de todos os equipamentos por tipo+descrição+valor unitário, somando quantidade. */
