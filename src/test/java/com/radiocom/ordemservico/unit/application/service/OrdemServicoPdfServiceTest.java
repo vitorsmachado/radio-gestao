@@ -16,7 +16,6 @@ import com.radiocom.ordemservico.domain.model.OrdemServico;
 import com.radiocom.ordemservico.domain.model.enums.TipoItemConserto;
 import com.radiocom.ordemservico.domain.service.ItemEntradaDomainService;
 import com.radiocom.ordemservico.domain.service.OrdemServicoDomainService;
-import com.radiocom.shared.pdf.LogoEmpresa;
 import com.radiocom.shared.pdf.PdfRenderer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
@@ -69,8 +67,7 @@ class OrdemServicoPdfServiceTest {
         SpringTemplateEngine templateEngine = criarTemplateEngineReal();
         service = new OrdemServicoPdfService(
                 osDomainService, itemEntradaDomainService, clienteDomainService, configuracaoDomainService,
-                usuarioRepository, new PdfRenderer(), templateEngine,
-                new LogoEmpresa(new ClassPathResource("static/logo-teletrom.png")));
+                usuarioRepository, new PdfRenderer(), templateEngine);
 
         osId = UUID.randomUUID();
         clienteId = UUID.randomUUID();

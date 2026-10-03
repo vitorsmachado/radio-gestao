@@ -16,7 +16,6 @@ import com.radiocom.orcamento.application.service.OrcamentoPdfService;
 import com.radiocom.orcamento.domain.model.Orcamento;
 import com.radiocom.orcamento.domain.model.enums.StatusAprovacaoOrcamento;
 import com.radiocom.orcamento.domain.service.OrcamentoDomainService;
-import com.radiocom.shared.pdf.LogoEmpresa;
 import com.radiocom.shared.pdf.PdfRenderer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
@@ -65,8 +63,7 @@ class OrcamentoPdfServiceTest {
     void setUp() {
         SpringTemplateEngine templateEngine = criarTemplateEngineReal();
         service = new OrcamentoPdfService(orcamentoDomainService, ordemServicoDomainService, clienteDomainService,
-                configuracaoDomainService, catalogoModeloService, new PdfRenderer(), templateEngine,
-                new LogoEmpresa(new ClassPathResource("static/logo-teletrom.png")));
+                configuracaoDomainService, catalogoModeloService, new PdfRenderer(), templateEngine);
 
         orcamentoId = UUID.randomUUID();
         clienteId = UUID.randomUUID();
