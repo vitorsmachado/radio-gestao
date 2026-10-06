@@ -4,6 +4,8 @@ Sistema de gestão para uma empresa de rádio comunicação — API para todo o 
 
 > Frontend (React + TypeScript): [radio-gestao-front](https://github.com/vitorsmachado/radio-gestao-front)
 
+> 🚧 **Em desenvolvimento.** O módulo de manutenção (OS, orçamento, garantia e estoque) está implementado; a próxima etapa é o **módulo de locação de equipamentos**.
+
 ## Funcionalidades
 
 - **Ordem de serviço com ciclo de status por item**, não por OS — cada equipamento/acessório/peça trazido pelo cliente avança independente (avaliação → autorização → manutenção → entrega), permitindo separar, desmembrar ou unir itens entre OS conforme o ritmo de cada um.
